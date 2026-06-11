@@ -952,7 +952,7 @@ Real tools, not homework.
 
 ### Install every course skill into your agent
 
-The repo ships 388 skills and 99 prompts under `phases/**/outputs/`.
+The repo ships 659 skills and 164 prompts under `phases/**/outputs/`.
 
 **Recommended: install via [skills.sh](https://skills.sh).** No clone, no Python,
 detects your agent's skills directory automatically:
