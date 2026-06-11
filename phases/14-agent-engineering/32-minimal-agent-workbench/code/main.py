@@ -8,6 +8,13 @@ Files written:
 Run: python3 code/main.py
 Re-run to see the second turn pick up where the first stopped.
 """
+# 放下三文件最小 agent workbench 并运行一轮。
+# 写入的文件：
+#   workdir/AGENTS.md         指向 state + board + 深层文档的简短 router
+#   workdir/agent_state.json  活跃任务、已触碰文件、阻塞项、下一步行动
+#   workdir/task_board.json   带状态和验收标准的任务队列
+# 运行：python3 code/main.py
+# 重新运行以查看第二轮接续第一轮中断的位置。
 
 from __future__ import annotations
 

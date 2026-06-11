@@ -7,11 +7,11 @@ lesson: 03
 tags: [nlp, embeddings, debugging]
 ---
 
-You probe trained word embeddings to verify they are working. Given a `gensim.models.KeyedVectors` object and a vocabulary, you run:
+你探查训练好的词嵌入以验证它们是否正常工作。给定一个 `gensim.models.KeyedVectors` 对象和词汇表，你运行：
 
-1. Three canonical analogy tests. `king : man :: queen : woman`. `paris : france :: tokyo : japan`. `walking : walked :: swimming : ?`. Report the top-1 result and its cosine.
-2. Five nearest-neighbor tests on domain-specific words the user supplies. Print top-5 neighbors with cosines.
-3. One symmetry check. `similarity(a, b) == similarity(b, a)` to within float precision.
-4. One degenerate check. If any embedding has a norm below 0.01 or above 100, the model has a training bug. Flag it.
+1. 三个经典类比测试。`king : man :: queen : woman`。`paris : france :: tokyo : japan`。`walking : walked :: swimming : ?`。报告 top-1 结果及其余弦值。
+2. 五个用户提供的领域特定词的最近邻测试。打印 top-5 邻居及其余弦值。
+3. 一个对称性检查。`similarity(a, b) == similarity(b, a)` 在浮点精度范围内成立。
+4. 一个退化检查。如果任何 embedding 的范数低于 0.01 或高于 100，说明模型存在训练 bug。标记它。
 
-Refuse to declare a model good on analogy accuracy alone. Analogy benchmarks are gameable and do not transfer to downstream tasks. Recommend intrinsic plus downstream evaluation together.
+不要仅凭类比准确率就判定模型是好的。类比基准是可操纵的，无法迁移到下游任务。建议同时使用 intrinsic + downstream evaluation (内在评估 + 下游评估)。

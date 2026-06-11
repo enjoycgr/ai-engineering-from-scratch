@@ -2,6 +2,7 @@ import json
 
 
 def validate_schema(data, schema):
+    """根据 JSON Schema 验证数据，返回错误列表。"""
     errors = []
     _validate(data, schema, "", errors)
     return errors
@@ -65,6 +66,8 @@ def _validate(data, schema, path, errors):
 
 
 class SchemaField:
+    """schema 字段定义：类型、必填、默认值、枚举、数值范围。"""
+
     def __init__(self, field_type, required=True, default=None, enum=None, minimum=None, maximum=None):
         self.field_type = field_type
         self.required = required
@@ -75,6 +78,7 @@ class SchemaField:
 
 
 def python_type_to_schema(field):
+    """将 Python 类型映射为 JSON Schema 类型。"""
     type_map = {
         str: "string",
         int: "integer",
@@ -103,6 +107,7 @@ def python_type_to_schema(field):
 
 
 def model_to_schema(name, fields):
+    """将 Python 字段定义转换为 JSON Schema。"""
     properties = {}
     required = []
 
@@ -119,6 +124,7 @@ def model_to_schema(name, fields):
 
 
 def next_valid_tokens(partial_json, schema):
+    """根据部分 JSON 字符串推断下一步允许的 token 类别（约束解码模拟）。"""
     stripped = partial_json.strip()
 
     if not stripped:

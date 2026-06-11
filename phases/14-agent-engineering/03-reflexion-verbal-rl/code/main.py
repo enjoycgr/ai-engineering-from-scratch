@@ -1,7 +1,7 @@
-"""Toy Reflexion loop — Actor, Evaluator, Self-Reflector, Episodic memory.
+"""Toy Reflexion loop（玩具 Reflexion 循环）—— Actor、Evaluator、Self-Reflector、Episodic memory（情节记忆）。
 
-Task: pick three integers from 1..9 that sum to a target. The Actor is
-scripted to start with a bad strategy and adapt when reflections are present.
+任务：从 1..9 中挑选三个整数使其和为目标值。Actor 被脚本化
+为以糟糕策略开始，并在存在 reflection（反思）时适应。
 """
 
 from __future__ import annotations

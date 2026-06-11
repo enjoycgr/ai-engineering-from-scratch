@@ -1,8 +1,8 @@
-# Perceptron + 1-hidden-layer MLP in Julia. Single-layer Rosenblatt
-# perceptron for AND/OR/NOT, then a hand-wired XOR network to show
-# why the perceptron fails on XOR, then a trained 2-2-1 sigmoid MLP
-# with manual backpropagation.
-# Stdlib only. Sources:
+# Julia 实现：Perceptron（感知器）+ 1-hidden-layer MLP（多层感知器）。
+# 单层 Rosenblatt perceptron 解决 AND/OR/NOT，然后展示手动连线的 XOR 网络
+# 以说明 perceptron 在 XOR 上的失败，最后是一个手动实现 backpropagation（反向传播）
+# 的 2-2-1 sigmoid MLP。
+# 仅使用标准库。参考来源：
 #   https://en.wikipedia.org/wiki/Perceptron
 #   https://docs.julialang.org/en/v1/manual/types/#Composite-Types
 
@@ -60,8 +60,8 @@ function test_gate(name::String, n_inputs::Int, data::Vector{Tuple{Vector{Float6
 end
 
 
-# Hand-wired XOR via OR + NAND + AND. Demonstrates that a 2-layer
-# network of perceptrons can compute XOR even though a single one cannot.
+# 手动连线的 XOR：通过 OR + NAND + AND 实现。
+# 演示一个 2 层的 perceptron 网络可以计算 XOR，而单个 perceptron 无法做到。
 function xor_network(x1::Float64, x2::Float64)::Int
     or_neuron = Perceptron(2)
     or_neuron.weights = Float64[1.0, 1.0]
@@ -81,14 +81,14 @@ function xor_network(x1::Float64, x2::Float64)::Int
 end
 
 
-# Tiny trained MLP: 2 inputs -> 2 hidden sigmoid neurons -> 1 sigmoid output.
+# 微型可训练 MLP：2 个输入 -> 2 个 hidden layer（隐藏层）sigmoid 神经元 -> 1 个 sigmoid 输出。
 mutable struct TwoLayerNetwork
     w_hidden::Matrix{Float64}    # 2x2
     b_hidden::Vector{Float64}    # 2
     w_output::Vector{Float64}    # 2
     b_output::Float64
     lr::Float64
-    # caches for backprop
+    # 用于 backpropagation（反向传播）的缓存
     last_input::Vector{Float64}
     hidden_out::Vector{Float64}
     output::Float64
@@ -113,6 +113,7 @@ sigmoid(x::Float64)::Float64 = 1.0 / (1.0 + exp(-clamp(x, -500.0, 500.0)))
 
 
 function forward!(net::TwoLayerNetwork, inputs::Vector{Float64})::Float64
+    # forward pass（前向传播）：计算 hidden layer 和 output layer 的输出
     net.last_input = inputs
     for i in 1:2
         z = net.w_hidden[i, 1] * inputs[1] + net.w_hidden[i, 2] * inputs[2] + net.b_hidden[i]
@@ -125,6 +126,7 @@ end
 
 
 function backward!(net::TwoLayerNetwork, target::Float64)
+    # backpropagation（反向传播）：从输出层向隐藏层传播误差并更新 weight 和 bias
     err = target - net.output
     d_output = err * net.output * (1 - net.output)
     saved_w_output = copy(net.w_output)

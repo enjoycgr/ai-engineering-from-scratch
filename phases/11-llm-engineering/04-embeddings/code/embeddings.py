@@ -4,6 +4,7 @@ from collections import Counter
 
 
 def chunk_text(text, chunk_size=200, overlap=50):
+    """固定大小分块：每 N 个 token 分一块，重叠 M 个 token。"""
     words = text.split()
     chunks = []
     start = 0
@@ -16,6 +17,7 @@ def chunk_text(text, chunk_size=200, overlap=50):
 
 
 def chunk_by_sentences(text, max_chunk_tokens=200):
+    """基于句子的分块：在句子边界处分割，保持语义完整。"""
     sentences = text.replace("\n", " ").split(".")
     sentences = [s.strip() + "." for s in sentences if s.strip()]
     chunks = []
@@ -35,12 +37,15 @@ def chunk_by_sentences(text, max_chunk_tokens=200):
 
 
 class SimpleEmbedder:
+    """基于 TF-IDF 的简单 dense embedder：文本输入，固定大小向量输出。"""
+
     def __init__(self):
         self.vocab = []
         self.idf = np.array([])
         self.word_to_idx = {}
 
     def fit(self, documents):
+        """从文档集合中构建词汇表和 IDF 权重。"""
         vocab_set = set()
         for doc in documents:
             vocab_set.update(doc.lower().split())
@@ -53,6 +58,7 @@ class SimpleEmbedder:
             self.idf[i] = math.log((n + 1) / (doc_count + 1)) + 1
 
     def embed(self, text):
+        """将文本转换为 TF-IDF 向量并 L2 归一化。"""
         words = text.lower().split()
         count = Counter(words)
         total = len(words) if words else 1
@@ -67,10 +73,12 @@ class SimpleEmbedder:
         return vec
 
     def embed_batch(self, texts):
+        """批量嵌入多个文本。"""
         return [self.embed(text) for text in texts]
 
 
 def cosine_similarity(a, b):
+    """计算两个向量之间的余弦相似度（角度度量，范围 -1 到 1）。"""
     dot = np.dot(a, b)
     norm_a = np.linalg.norm(a)
     norm_b = np.linalg.norm(b)
@@ -80,33 +88,41 @@ def cosine_similarity(a, b):
 
 
 def dot_product(a, b):
+    """计算两个向量的点积（内积）。"""
     return float(np.dot(a, b))
 
 
 def euclidean_distance(a, b):
+    """计算两个向量之间的欧几里得距离（L2 范数）。"""
     return float(np.linalg.norm(a - b))
 
 
 def hamming_distance(a, b):
+    """计算两个二进制向量之间的汉明距离（不同位的数量）。"""
     return int(np.sum(a != b))
 
 
 def binarize(vec):
+    """将浮点向量二值化：正值为 1，负值为 0。"""
     return (vec > 0).astype(np.int8)
 
 
 class VectorIndex:
+    """暴力向量索引：线性扫描所有向量进行相似度搜索。"""
+
     def __init__(self):
         self.vectors = []
         self.texts = []
         self.metadata = []
 
     def add(self, vector, text, meta=None):
+        """向索引中添加一个向量及其关联文本和元数据。"""
         self.vectors.append(vector)
         self.texts.append(text)
         self.metadata.append(meta or {})
 
     def search(self, query_vector, top_k=5, metric="cosine"):
+        """使用指定相似度度量搜索最相似的 top_k 个向量。"""
         scores = []
         for i, vec in enumerate(self.vectors):
             if metric == "cosine":
@@ -132,10 +148,13 @@ class VectorIndex:
         return results
 
     def size(self):
+        """返回索引中的向量数量。"""
         return len(self.vectors)
 
 
 class SemanticSearchEngine:
+    """语义搜索引擎：分块 -> 嵌入 -> 索引 -> 搜索。"""
+
     def __init__(self, chunk_size=200, overlap=50):
         self.embedder = SimpleEmbedder()
         self.index = VectorIndex()
@@ -143,6 +162,7 @@ class SemanticSearchEngine:
         self.overlap = overlap
 
     def index_documents(self, documents, source_names=None):
+        """将文档分块、嵌入并加入索引。"""
         all_chunks = []
         all_sources = []
         for i, doc in enumerate(documents):
@@ -157,10 +177,12 @@ class SemanticSearchEngine:
         return len(all_chunks)
 
     def search(self, query, top_k=5, metric="cosine"):
+        """对查询进行嵌入并在索引中搜索最相似的块。"""
         query_vec = self.embedder.embed(query)
         return self.index.search(query_vec, top_k, metric)
 
     def search_with_scores(self, query, top_k=5):
+        """搜索并返回带分数的简洁结果。"""
         results = self.search(query, top_k)
         return [
             {
@@ -173,6 +195,7 @@ class SemanticSearchEngine:
 
 
 def compare_metrics(engine, query, top_k=3):
+    """使用多种相似度度量（cosine、dot、euclidean）对比搜索结果。"""
     results = {}
     for metric in ["cosine", "dot", "euclidean"]:
         hits = engine.search(query, top_k=top_k, metric=metric)
@@ -184,6 +207,7 @@ def compare_metrics(engine, query, top_k=3):
 
 
 def truncate_embedding(vec, dimensions):
+    """Matryoshka 截断：保留前 N 维并重新归一化。"""
     truncated = vec[:dimensions]
     norm = np.linalg.norm(truncated)
     if norm > 0:

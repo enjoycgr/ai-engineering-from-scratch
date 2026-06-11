@@ -1,75 +1,75 @@
 {
   "lesson": "08-inference-metrics-goodput",
-  "title": "Inference Metrics — TTFT, TPOT, ITL, Goodput, P99",
+  "title": "推理指标 —— TTFT、TPOT、ITL、Goodput、P99",
   "questions": [
     {
       "stage": "pre",
-      "question": "Which components dominate TTFT (time to first token)?",
+      "question": "哪些组成部分主导了 TTFT（首 token 时间）？",
       "options": [
-        "Decode-only forward time",
-        "Disk I/O for weights",
-        "Tokenizer GIL overhead",
-        "Queue time, network request time, and prefill time"
+        "纯解码前向时间",
+        "权重的磁盘 I/O",
+        "Tokenizer 的 GIL 开销",
+        "队列时间、网络请求时间和 prefill 时间"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which metric does the lesson call the one that actually matters for product?",
+      "question": "课程中把哪个指标称为对产品真正重要的那个？",
       "options": [
-        "GPU duty cycle",
-        "Aggregate throughput in tokens per second",
-        "Goodput — fraction of requests meeting every SLO constraint simultaneously",
-        "Mean ITL"
+        "GPU  duty cycle",
+        "聚合吞吐量（每秒 token 数）",
+        "Goodput —— 同时满足所有 SLO 约束的请求比例",
+        "ITL 均值"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Why is mean the wrong statistic to report for LLM latency?",
+      "question": "为什么均值是报告 LLM 延迟的错误统计量？",
       "options": [
-        "Mean is never computable on streaming responses",
-        "Mean only works for prefill, not decode",
-        "LLM latency distributions are right-skewed; users routinely hit P99 outliers that mean hides",
-        "Mean is not supported by GenAI-Perf"
+        "均值在流式响应上永远无法计算",
+        "均值只对 prefill 有效，对 decode 无效",
+        "LLM 延迟分布是右偏的；用户经常遇到被均值掩盖的 P99 异常值",
+        "GenAI-Perf 不支持均值"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Why do GenAI-Perf and LLMPerf disagree on TPOT for the same run?",
+      "question": "为什么 GenAI-Perf 和 LLMPerf 在同一运行中对 TPOT 结果不一致？",
       "options": [
-        "GenAI-Perf only runs on Blackwell",
-        "GenAI-Perf excludes TTFT from the ITL calculation; LLMPerf includes it, so tool choice changes the number",
-        "LLMPerf uses microseconds and GenAI-Perf uses milliseconds",
-        "They sample different requests"
+        "GenAI-Perf 只在 Blackwell 上运行",
+        "GenAI-Perf 在 ITL 计算中排除 TTFT；LLMPerf 包含 TTFT，因此工具选择会改变数字",
+        "LLMPerf 使用微秒，GenAI-Perf 使用毫秒",
+        "它们采样不同的请求"
       ],
       "correct": 1,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "For long-output requests (>500 tokens), which metric dominates end-to-end latency?",
+      "question": "对于长输出请求（>500 token），哪个指标主导端到端延迟？",
       "options": [
-        "TPOT times output length",
-        "Cold-start time",
+        "TPOT 乘以输出长度",
+        "冷启动时间",
         "TTFT",
-        "Network response time"
+        "网络响应时间"
       ],
       "correct": 0,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Which set best captures the lesson's reasonable consumer-facing SLO for a 70B chat model in 2026?",
+      "question": "哪一组最能体现课程中 2026 年面向消费者的 70B 聊天模型合理 SLO？",
       "options": [
-        "P50 only, no percentiles above",
-        "TTFT P99 800 ms, TPOT P99 25 ms, E2E P99 3 s for <300-token outputs, goodput >= 99%",
-        "TTFT P99 8s, TPOT P99 200ms, goodput 50%",
-        "Mean TTFT 10 ms, mean TPOT 1 ms"
+        "仅 P50，没有更高百分位数",
+        "TTFT P99 800 ms，TPOT P99 25 ms，<300 token 输出端到端 P99 3 s，goodput >= 99%",
+        "TTFT P99 8s，TPOT P99 200ms，goodput 50%",
+        "TTFT 均值 10 ms，TPOT 均值 1 ms"
       ],
       "correct": 1,
       "explanation": ""

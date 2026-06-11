@@ -1,14 +1,13 @@
-"""Toy Blackwell + TRT-LLM economics calculator — stdlib Python.
+"""玩具级 Blackwell + TRT-LLM 经济学计算器 —— 纯 Python 标准库。
 
-Computes HBM footprint and decode throughput for a model under three stacks:
+计算模型在三个栈下的 HBM 占用和 decode 吞吐量：
   H100 + BF16 + vLLM
   H100 + FP8 + vLLM
   B200 + NVFP4 weights / FP8 KV + TRT-LLM + Dynamo
   GB200 NVL72 + NVFP4 / FP8 + TRT-LLM + Dynamo
 
-The decode-throughput model is memory-bandwidth-limited: tokens/sec is
-proportional to HBM-bandwidth / bytes-per-token. Numbers are pedagogical
-illustrations of the shape of the 2026 Blackwell economics.
+Decode 吞吐量模型是内存带宽受限：tok/s 与 HBM-bandwidth / bytes-per-token 成正比。
+数字是 2026 年 Blackwell 经济学趋势的示意。
 """
 
 from __future__ import annotations
@@ -19,12 +18,12 @@ from dataclasses import dataclass
 @dataclass
 class Stack:
     name: str
-    hbm_gb: int               # per-GPU HBM
-    hbm_bw_tbs: float         # HBM bandwidth in TB/s
-    weight_bits: float        # effective weight precision
-    kv_bits: float            # KV cache precision
-    mtp_factor: float         # 1.0 = no draft, 1.8 = MTP on
-    disagg_factor: float      # additional throughput from disaggregation
+    hbm_gb: int               # 每 GPU HBM
+    hbm_bw_tbs: float         # HBM 带宽，TB/s
+    weight_bits: float        # 有效权重精度
+    kv_bits: float            # KV cache 精度
+    mtp_factor: float         # 1.0 = 无草稿, 1.8 = MTP 开启
+    disagg_factor: float      # 分离式带来的额外吞吐量
     price_per_gpu_hour: float
 
 
@@ -39,8 +38,8 @@ STACKS = [
 
 def hbm_footprint_gb(params_b: float, active_b: float, seq_len: int, stack: Stack) -> tuple[float, float]:
     weight_gb = params_b * stack.weight_bits / 8
-    # KV cache for a typical head config: num_layers * 2 * num_kv_heads * head_dim * seq_len * bytes/element
-    # Use a representative 70B shape scaled by active param size
+    # KV cache 典型 head 配置: num_layers * 2 * num_kv_heads * head_dim * seq_len * bytes/element
+    # 使用代表性 70B 形状，按活跃参数大小缩放
     layers = 64 * (active_b / 35.0)**0.5
     kv_heads = 8
     head_dim = 128
@@ -49,8 +48,8 @@ def hbm_footprint_gb(params_b: float, active_b: float, seq_len: int, stack: Stac
 
 
 def decode_throughput(active_b: float, stack: Stack) -> float:
-    """Tokens per second per GPU, memory-bandwidth-limited.
-    Each decoded token reads `active_b * weight_bits/8` bytes of weights.
+    """每 GPU 每秒 token 数，内存带宽受限。
+    每个解码 token 读取 `active_b * weight_bits/8` 字节的权重。
     """
     bytes_per_token = active_b * 1e9 * stack.weight_bits / 8
     raw_tokens_per_s = stack.hbm_bw_tbs * 1e12 / bytes_per_token

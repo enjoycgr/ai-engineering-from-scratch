@@ -1,12 +1,11 @@
 """METR-style time-horizon simulator — stdlib Python.
 
-Given a doubling time and a baseline horizon, projects the 50% task-completion
-horizon across future years. Separately, shows how per-step reliability
-compounds across trajectories: a 99% per-step agent still fails a coin flip on
-a 70-step task.
+给定倍增时间和基线时间跨度 (baseline horizon)，预测未来几年的 50% 任务完成
+时间跨度。另一方面，展示每步可靠性 (per-step reliability) 如何在轨迹中
+复合：一个每步 99% 的智能体在 70 步任务上仍然只有抛硬币般的成功率。
 
-Pedagogical, not calibrated. The point is to hold the numbers in your head
-before trusting an agent to run unattended.
+教学用途，未经校准。要点是在信任智能体无人值守运行之前，
+先在脑中记住这些数字。
 """
 
 from __future__ import annotations
@@ -23,24 +22,24 @@ class HorizonConfig:
 
 
 def horizon_at(cfg: HorizonConfig, months_from_now: int) -> float:
-    """Project the 50% horizon at a given month offset."""
+    """在给定的月份偏移处预测 50% 时间跨度。"""
     delta = months_from_now - cfg.baseline_month
     return cfg.baseline_hours * (2 ** (delta / cfg.doubling_months))
 
 
 def months_to_cross(cfg: HorizonConfig, target_hours: float) -> float:
-    """Months until horizon reaches target_hours."""
+    """时间跨度达到 target_hours 所需的月份数。"""
     ratio = target_hours / cfg.baseline_hours
     return cfg.baseline_month + cfg.doubling_months * math.log2(ratio)
 
 
 def end_to_end_reliability(per_step: float, steps: int) -> float:
-    """Probability that every step succeeds in sequence."""
+    """序列中每一步都成功的概率。"""
     return per_step ** steps
 
 
 def max_steps_for_target(per_step: float, target: float) -> int:
-    """Largest N such that per_step**N >= target."""
+    """满足 per_step**N >= target 的最大 N。"""
     if per_step >= 1.0:
         return 10**9
     return math.floor(math.log(target) / math.log(per_step))
@@ -55,7 +54,7 @@ def fmt_hours(h: float) -> str:
 
 
 def horizon_projection() -> None:
-    """Plot the horizon forward using METR's fit slope."""
+    """使用 METR 拟合斜率向前绘制时间跨度。"""
     cfg = HorizonConfig(
         baseline_hours=14.0,
         baseline_month=0,
@@ -89,7 +88,7 @@ def horizon_projection() -> None:
 
 
 def reliability_compounding() -> None:
-    """Show how per-step reliability decays across a trajectory."""
+    """展示每步可靠性如何在轨迹中衰减。"""
     print("\nPer-step reliability -> end-to-end reliability")
     print("-" * 70)
     print(f"  {'per-step':>10}  {'steps':>8}  {'end-to-end':>12}  "
@@ -125,7 +124,7 @@ def reliability_compounding() -> None:
 
 
 def deploy_gap_note() -> None:
-    """Eval-context-gaming adjustment."""
+    """评估环境博弈 (eval-context-gaming) 调整。"""
     print("\nEval-vs-deploy adjustment")
     print("-" * 70)
     print("  METR numbers assume ideal tooling, no consequences,")

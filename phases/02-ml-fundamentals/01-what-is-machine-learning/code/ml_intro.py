@@ -7,12 +7,14 @@ class NearestCentroid:
         self.centroids = None
 
     def fit(self, X, y):
+        """Compute the centroid (mean) of each class in the training data."""
         self.classes = np.unique(y)
         self.centroids = np.array([
             X[y == c].mean(axis=0) for c in self.classes
         ])
 
     def predict(self, X):
+        """Assign each sample to the class whose centroid is closest."""
         distances = np.array([
             np.sqrt(((X - c) ** 2).sum(axis=1))
             for c in self.centroids
@@ -20,10 +22,12 @@ class NearestCentroid:
         return self.classes[distances.argmin(axis=0)]
 
     def score(self, X, y):
+        """Compute accuracy: fraction of predictions that match the true labels."""
         return np.mean(self.predict(X) == y)
 
 
 def generate_classification_data(n_per_class=100, n_features=2, separation=2.0, seed=42):
+    """Generate synthetic Gaussian data with two classes separated by `separation`."""
     rng = np.random.RandomState(seed)
     center_0 = np.ones(n_features) * (separation / 2)
     center_1 = np.ones(n_features) * (-separation / 2)
@@ -36,6 +40,7 @@ def generate_classification_data(n_per_class=100, n_features=2, separation=2.0, 
 
 
 def train_test_split(X, y, test_fraction=0.3, seed=42):
+    """Shuffle and split data into train and test sets."""
     rng = np.random.RandomState(seed)
     n = len(y)
     idx = rng.permutation(n)
@@ -44,6 +49,7 @@ def train_test_split(X, y, test_fraction=0.3, seed=42):
 
 
 def random_baseline(y_train, y_test, seed=42):
+    """Predict random classes weighted by training class frequencies."""
     rng = np.random.RandomState(seed)
     classes, counts = np.unique(y_train, return_counts=True)
     probs = counts / counts.sum()
@@ -52,6 +58,7 @@ def random_baseline(y_train, y_test, seed=42):
 
 
 def majority_baseline(y_train, y_test):
+    """Always predict the most common class in the training set."""
     values, counts = np.unique(y_train, return_counts=True)
     majority_class = values[np.argmax(counts)]
     preds = np.full(len(y_test), majority_class)

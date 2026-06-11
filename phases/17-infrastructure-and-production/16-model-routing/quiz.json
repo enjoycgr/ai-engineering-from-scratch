@@ -1,46 +1,46 @@
 {
   "lesson": "16-model-routing",
-  "title": "Model Routing as a Cost-Reduction Primitive",
+  "title": "Model Routing（模型路由）—— 成本削减原语",
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the core idea of model cascading?",
+      "question": "Model cascading（模型级联）的核心思想是什么？",
       "options": [
-        "Run two models in parallel and average the outputs",
-        "Always route by random weight",
-        "Run every request on the most expensive model first",
-        "Run a cheap model first, escalate to a frontier model only on low confidence or refusal"
+        "并行运行两个模型并平均输出",
+        "始终按随机权重路由",
+        "每个请求先跑最贵模型",
+        "先跑廉价模型，仅在低置信度或拒绝时升级到 frontier model"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which four signals does the lesson list for routing decisions?",
+      "question": "课程列出的四种 routing signals（路由信号）是什么？",
       "options": [
-        "Task classification, prompt length, embedding similarity to known-hard set, and self-confidence from a first-pass",
-        "Token count only",
-        "User tier only",
-        "GPU temperature, fan speed, room humidity, time of day"
+        "Task classification、prompt length、与 known-hard set 的 embedding similarity、首轮自置信度",
+        "仅 token count",
+        "仅用户 tier",
+        "GPU 温度、风扇转速、室内湿度、时间"
       ],
       "correct": 0,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "What is the expected latency profile of a cascade router?",
+      "question": "Cascade router 的预期延迟表现如何？",
       "options": [
-        "Always slower by 10x",
-        "Identical to the frontier model",
-        "About 1.2x median latency (cheap run plus verify), about 2x on escalated requests (~10% of traffic)",
-        "Always faster than pre-route"
+        "始终慢 10 倍",
+        "与 frontier model 相同",
+        "中位延迟约 1.2 倍（廉价运行+验证），升级请求约 2 倍（约 10% 流量）",
+        "始终比 pre-route 快"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which routing pattern adds 5-10ms latency up front and is fastest overall?",
+      "question": "哪种路由模式 upfront 增加 5-10ms 延迟且总体最快？",
       "options": [
         "Pre-route with a classifier",
         "Ensemble route",
@@ -52,24 +52,24 @@
     },
     {
       "stage": "post",
-      "question": "What is cheap-model drift in routing?",
+      "question": "Routing 中的 cheap-model drift（廉价模型漂移）是什么？",
       "options": [
-        "The cheap model becomes more expensive",
-        "Cascade falls through to frontier 100% of the time",
-        "Task distribution shifts but the trained router keeps sending requests to the cheap model, silently degrading quality",
-        "A latency drift in the cheap model"
+        "廉价模型变得更贵",
+        "Cascade 100% 升级到 frontier",
+        "任务分布已偏移，但训练好的路由器仍把请求发给廉价模型，悄然降低质量",
+        "廉价模型的延迟漂移"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Which guard does the lesson recommend to catch routing drift?",
+      "question": "课程推荐用什么 guard 来捕获 routing drift？",
       "options": [
-        "Only offline eval sets",
-        "Disable routing in production",
-        "Quarterly engineering review only",
-        "Online quality metrics — thumbs-up/down per route, LLM-judge on held-out samples, escalation rate, refusal rate"
+        "仅离线评估集",
+        "在生产环境禁用路由",
+        "仅季度工程评审",
+        "Online quality metrics——每条路由的 thumbs-up/down、保留样本上的 LLM-judge、escalation rate、refusal rate"
       ],
       "correct": 3,
       "explanation": ""

@@ -1,10 +1,9 @@
-"""AI Scientist v2 loop simulator — stdlib Python.
+"""AI Scientist v2 循环模拟器 —— stdlib Python。
 
-Models the research loop as a state machine with configurable per-stage
-failure probabilities, seeded from Beel et al. (2025) findings on AI
-Scientist's real behavior. Runs many trials and reports the distribution
-of outcomes, including the critical "polished paper with flawed
-experiment" class.
+将研究循环建模为具有可配置每阶段失败概率的状态机，
+基于 Beel et al. (2025) 对 AI Scientist 真实行为的发现。
+运行多次试验并报告结果分布，包括关键的
+"打磨过但实验有缺陷的论文" 类别。
 """
 
 from __future__ import annotations
@@ -19,19 +18,19 @@ DEFAULT_SEED = 42
 
 @dataclass
 class LoopConfig:
-    # Probability an idea is mislabeled as novel when it is not.
+    # 想法被错误标记为新意的概率（实际并非如此）。
     novelty_mislabel: float = 0.25
-    # Probability an experiment fails from coding errors (Beel et al. ~0.42).
+    # 实验因编码错误失败的概率（Beel et al. ~0.42）。
     experiment_failure: float = 0.42
-    # Fraction of experiment failures recoverable by retries.
+    # 实验失败中可通过重试恢复的比例。
     retry_recovery: float = 0.55
-    # Probability vision-language figure critique produces clean visuals
-    # even when underlying experiment is broken.
+    # 视觉-语言图表评审在底层实验已损坏时
+    # 仍能产出干净视觉结果的概率。
     polish_masks_weakness: float = 0.70
-    # Probability the auto-writeup step produces a coherent paper given
-    # (possibly flawed) experiment data.
+    # 自动撰写步骤在给出（可能有缺陷的）实验数据时
+    # 产出连贯论文的概率。
     writeup_success: float = 0.85
-    # Internal reviewer accept probability (weak reviewer).
+    # 内部评审员接受概率（弱评审员）。
     internal_review_accept: float = 0.50
 
 
@@ -46,10 +45,10 @@ class Outcome:
 
 
 def run_one(cfg: LoopConfig) -> Outcome:
-    # Idea generation always succeeds in this toy.
+    # 在这个玩具模型中，想法生成始终成功。
     has_novelty_flaw = random.random() < cfg.novelty_mislabel
 
-    # Experiment execution: failure + retry recovery.
+    # 实验执行：失败 + 重试恢复。
     failed = random.random() < cfg.experiment_failure
     if failed:
         recovered = random.random() < cfg.retry_recovery
@@ -62,21 +61,20 @@ def run_one(cfg: LoopConfig) -> Outcome:
                 polished_ok=False,
                 abandoned_stage="experiment",
             )
-        # Modeling choice: a retry-recovered experiment still carries a
-        # residual flaw (silently-wrong numerics, shape-mismatch patched
-        # without re-validation, etc.). This residual flaw is what the
-        # polish stage can mask later and is the headline driver of the
-        # "polished-but-flawed" category.
+        # 建模选择：重试恢复的实验仍携带残余缺陷
+        #（静默错误的数值、未重新验证就修补的形状不匹配等）。
+        # 这个残余缺陷正是打磨阶段后续可以掩盖的，也是
+        # "polished-but-flawed" 类别的核心驱动因素。
         has_experiment_flaw = True
     else:
         has_experiment_flaw = False
 
-    # Vision-language figure polish.
+    # 视觉-语言图表打磨。
     polished_hides_weakness = (
         has_experiment_flaw and random.random() < cfg.polish_masks_weakness
     )
 
-    # Writeup stage.
+    # 撰写阶段。
     if random.random() > cfg.writeup_success:
         return Outcome(
             submitted=False,
@@ -87,7 +85,7 @@ def run_one(cfg: LoopConfig) -> Outcome:
             abandoned_stage="writeup",
         )
 
-    # Internal reviewer.
+    # 内部评审员。
     if random.random() > cfg.internal_review_accept:
         return Outcome(
             submitted=False,
@@ -99,10 +97,10 @@ def run_one(cfg: LoopConfig) -> Outcome:
         )
 
     polished_ok = not has_experiment_flaw and not has_novelty_flaw
-    # Any submitted paper with a flaw counts as polished_but_flawed: the
-    # weak internal reviewer let it through whether or not the polish
-    # stage hid it. This makes the two buckets exhaustive over submitted
-    # papers (polished_ok + polished_but_flawed == len(submitted)).
+    # 任何有缺陷的已提交论文都算作 polished_but_flawed：
+    # 弱内部评审员放行了它，无论打磨阶段是否掩盖了缺陷。
+    # 这使得两个桶对已提交论文是穷尽的
+    # (polished_ok + polished_but_flawed == len(submitted))。
     polished_but_flawed = has_experiment_flaw or has_novelty_flaw
     return Outcome(
         submitted=True,
@@ -190,12 +188,12 @@ def main() -> None:
 
     print()
     print("=" * 70)
-    print("HEADLINE: submissions outpace sound research")
+    print("HEADLINE: 提交速度超过扎实研究")
     print("-" * 70)
-    print("  Even in optimistic scenarios, a non-trivial share of submitted")
-    print("  papers carry a flaw the polish stage helped hide. That is the")
-    print("  operational meaning of 'presentation-quality gap' — and the")
-    print("  reason a human review gate sits between the loop and any venue.")
+    print("  即使在乐观场景中，相当比例的已提交")
+    print("  论文携带打磨阶段帮助隐藏的缺陷。这就是")
+    print("  'presentation-quality gap' 的操作含义 —— 也是")
+    print("  人在评审门控坐在循环与任何发表场所之间的原因。")
 
 
 if __name__ == "__main__":

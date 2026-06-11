@@ -1,102 +1,102 @@
 {
   "lesson": "28-long-context-evaluation",
-  "title": "Long-Context Evaluation — NIAH, RULER, LongBench, MRCR",
+  "title": "长上下文评估 —— NIAH、RULER、LongBench、MRCR",
   "questions": [
     {
       "stage": "pre",
-      "question": "What does the original NIAH benchmark measure?",
+      "question": "原始 NIAH 基准测试衡量什么？",
       "options": [
         "Tokenizer fertility",
-        "Whether the model can retrieve a planted fact at controlled depths across a long context",
+        "模型是否能在长上下文中的可控深度检索一个植入的事实",
         "Embedding cosine drift",
-        "Multi-hop reasoning only"
+        "仅 multi-hop reasoning"
       ],
       "correct": 1,
-      "explanation": "NIAH = needle in a haystack: plant a fact, ask the model to retrieve it, sweep depth and length."
+      "explanation": "NIAH = needle in a haystack：植入一个事实，让模型检索它，扫描深度和长度。"
     },
     {
       "stage": "pre",
-      "question": "Why is the advertised context window often very different from the usable context?",
+      "question": "为什么宣称的上下文窗口（advertised context window）往往与可用上下文（usable context）差异很大？",
       "options": [
-        "Attention degrades with length and task; spec-sheet maximums rarely hold under multi-hop or reasoning loads",
-        "Tokenizers truncate",
-        "Embeddings overflow",
-        "Beam search slows"
+        "Attention 随长度和任务退化；规格表上的最大值在 multi-hop 或推理负载下很少能兑现",
+        "Tokenizer 会截断",
+        "Embedding 溢出",
+        "Beam search 变慢"
       ],
       "correct": 0,
-      "explanation": "Effective context for reasoning is usually 25-50% of the advertised max."
+      "explanation": "推理的有效上下文通常是宣称最大值的 25-50%。"
     },
     {
       "stage": "check",
-      "question": "What does RULER add over NIAH?",
+      "question": "RULER 相比 NIAH 增加了什么？",
       "options": [
-        "Translation tasks",
-        "Faster inference",
+        "翻译任务",
+        "更快的 inference",
         "Per-token logprobs",
-        "Thirteen task types across retrieval, multi-hop tracing, aggregation, and QA at multiple context lengths"
+        "13 种任务类型，涵盖 retrieval、multi-hop tracing、aggregation 和 QA，在多种上下文长度上运行"
       ],
       "correct": 3,
-      "explanation": "RULER expands NIAH into a multi-task long-context benchmark catching models that saturate NIAH but fail elsewhere."
+      "explanation": "RULER 将 NIAH 扩展为多任务长上下文基准测试，捕获那些饱和 NIAH 但在其他方面失败的模型。"
     },
     {
       "stage": "check",
-      "question": "What is the 'lost in the middle' effect?",
+      "question": "什么是 'lost in the middle' 效应？",
       "options": [
-        "Models under-attend to content placed in the middle of long inputs; depth=0.5 often performs worse than depth=0 or 1",
-        "Models reorder tokens",
-        "Models forget the first token",
-        "Models lose punctuation"
+        "模型对长输入中间部分的内容关注不足；depth=0.5 的表现往往比 depth=0 或 1 更差",
+        "模型重新排序 token",
+        "模型忘记第一个 token",
+        "模型丢失标点符号"
       ],
       "correct": 0,
-      "explanation": "Mid-context content is least attended; sweeping depth exposes the U-shaped accuracy curve."
+      "explanation": "中间上下文的内容最不受关注；扫描深度会暴露 U 形准确率曲线。"
     },
     {
       "stage": "check",
-      "question": "Why must NIAH-only evaluation be supplemented with multi-hop tests?",
+      "question": "为什么必须用 multi-hop 测试来补充仅 NIAH 的评估？",
       "options": [
-        "Multi-hop is faster",
-        "NIAH lacks ground truth",
-        "NIAH cannot run on long context",
-        "Frontier models can ace single-needle retrieval but still fail multi-hop variable-tracing or aggregation tasks"
+        "Multi-hop 更快",
+        "NIAH 缺乏 ground truth",
+        "NIAH 无法在长上下文上运行",
+        "Frontier models 可以完美通过 single-needle retrieval，但仍然会在 multi-hop variable-tracing 或 aggregation 任务上失败"
       ],
       "correct": 3,
-      "explanation": "Retrieval pass does not imply reasoning pass; multi-hop benchmarks expose the real ceiling."
+      "explanation": "Retrieval pass 不等于 reasoning pass；multi-hop 基准测试暴露真实上限。"
     },
     {
       "stage": "post",
-      "question": "What does NoLiMa stress?",
+      "question": "NoLiMa 强调什么？",
       "options": [
         "Streaming output",
         "Latency",
         "Tokenization",
-        "Needles that share no literal tokens with the query, so retrieval requires a semantic reasoning step"
+        "Needle 与 query 没有字面 token 重叠，因此检索需要一步 semantic reasoning（语义推理）"
       ],
       "correct": 3,
-      "explanation": "NoLiMa removes lexical overlap so the model must reason rather than match keywords."
+      "explanation": "NoLiMa 移除词汇重叠，使模型必须推理而非匹配关键词。"
     },
     {
       "stage": "post",
-      "question": "What two numbers should a long-context spec sheet report?",
+      "question": "长上下文规格表应报告哪两个数字？",
       "options": [
-        "Effective retrieval length (e.g. 90% NIAH pass) and effective reasoning length (e.g. 70% multi-hop pass)",
-        "GPU memory and latency only",
-        "Only the advertised max",
-        "Tokens per second only"
+        "Effective retrieval length（例如 90% NIAH pass）和 effective reasoning length（例如 70% multi-hop pass）",
+        "仅 GPU 内存和延迟",
+        "仅宣称的最大值",
+        "仅每秒 token 数"
       ],
       "correct": 0,
-      "explanation": "Distinguishing retrieval-effective from reasoning-effective length is essential for real-world claims."
+      "explanation": "区分 retrieval-effective 和 reasoning-effective 长度对于真实世界声明至关重要。"
     },
     {
       "stage": "post",
-      "question": "Why measure time-to-first-token at long context lengths?",
+      "question": "为什么要在长上下文长度下测量 time-to-first-token？",
       "options": [
-        "1M-token prefills can take tens of seconds; accuracy alone hides product-impacting latency",
-        "Tokenization is slow",
-        "Required by RAG",
-        "Beam search depends on it"
+        "1M token 的 prefill 可能需要数十秒；仅靠准确率会掩盖影响产品的延迟",
+        "Tokenization 很慢",
+        "RAG 要求",
+        "Beam search 依赖它"
       ],
       "correct": 0,
-      "explanation": "Long prompts have huge prefill costs; latency must be tracked alongside accuracy."
+      "explanation": "长提示词有巨大的 prefill 成本；延迟必须与准确率一起追踪。"
     }
   ]
 }

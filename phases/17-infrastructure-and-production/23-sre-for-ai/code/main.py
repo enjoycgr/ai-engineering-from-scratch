@@ -1,7 +1,11 @@
 """Multi-agent AI SRE triage simulator — stdlib Python.
 
+多智能体 AI SRE 分类模拟器 —— 仅使用 Python 标准库。
+
 Three specialized agents produce hypotheses; supervisor ranks by agreement.
 Adversarial evaluation: disagreement escalates to human.
+三个专用智能体产生假设；监督器按一致性排序。
+对抗性评估：不一致时升级给人类。
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ class AgentHypothesis:
 
 def log_agent(incident: str) -> AgentHypothesis:
     # simulated: scans logs, picks most common error token
+    # 模拟：扫描日志，选取最常见的错误标记
     if "checkout" in incident.lower():
         return AgentHypothesis(
             "LogAgent",
@@ -31,6 +36,7 @@ def log_agent(incident: str) -> AgentHypothesis:
 
 def metric_agent(incident: str) -> AgentHypothesis:
     # simulated: PromQL query matches to known patterns
+    # 模拟：PromQL 查询匹配已知模式
     return AgentHypothesis(
         "MetricAgent",
         "GPU memory utilization hit 98% 4 minutes before error spike",
@@ -41,6 +47,7 @@ def metric_agent(incident: str) -> AgentHypothesis:
 
 def runbook_agent(incident: str) -> AgentHypothesis:
     # simulated: vector search on runbook repo
+    # 模拟：在运维手册仓库上进行向量搜索
     return AgentHypothesis(
         "RunbookAgent",
         "Matches runbook RB-017: KV cache OOM under burst concurrency",
@@ -51,6 +58,7 @@ def runbook_agent(incident: str) -> AgentHypothesis:
 
 def supervisor(hypotheses: list[AgentHypothesis]) -> dict:
     # group similar root causes; agreement = confidence boost
+    # 对相似的根因分组；一致 = 置信度提升
     root_causes = {}
     for h in hypotheses:
         key = h.root_cause.split(" on ")[0].split(" hit ")[0][:30]
@@ -75,8 +83,10 @@ def main() -> None:
     print("=" * 80)
     print("AI SRE TRIAGE — multi-agent investigation of a production incident")
     print("=" * 80)
+    print("=" * 80)
     incident = "High error rate in /checkout/generate-summary, last 6 min"
-    print(f"\nIncident: {incident}\n")
+    print(f"\nIncident: {incident}")
+    print("SUPERVISOR")
 
     hypotheses = [log_agent(incident), metric_agent(incident), runbook_agent(incident)]
     for h in hypotheses:

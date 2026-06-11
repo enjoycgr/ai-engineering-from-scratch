@@ -1,7 +1,7 @@
 """Stdlib span emitter matching OpenTelemetry GenAI semantic conventions.
 
-Emits invoke_agent INTERNAL spans, per-tool spans, chat spans for LLM calls.
-Content capture is opt-in: prompts go to an external store, spans carry IDs.
+发射 invoke_agent INTERNAL spans（内部跨度）、per-tool spans（每工具跨度）、LLM 调用的 chat spans（聊天跨度）。
+Content capture（内容捕获）是 opt-in（选择加入）：prompts 进入 external store（外部存储），spans 携带 IDs。
 """
 
 from __future__ import annotations
@@ -157,17 +157,17 @@ def main() -> None:
         for child in span.children:
             render(child, indent + 1)
 
-    print("\nspan tree (GenAI-shaped)")
+    print("\nspan tree（符合 GenAI 规范）")
     render(tracer.root)
 
-    print("\nexternal content store (opt-in references, not inline)")
+    print("\nexternal content store（外部内容存储）（opt-in references 选择加入引用，非内联）")
     for cid, content in tracer.content_store.items():
         print(f"  {cid}: {content[:60]}")
 
     print()
-    print("content NOT captured inline by default. store externally; span")
-    print("attributes carry reference IDs. set OTEL_SEMCONV_STABILITY_OPT_IN")
-    print("=gen_ai_latest_experimental to pin experimental attribute names.")
+    print("content 默认不内联捕获。存储在外部；span")
+    print("attributes 携带 reference IDs（引用 ID）。设置 OTEL_SEMCONV_STABILITY_OPT_IN")
+    print("=gen_ai_latest_experimental 以固定 experimental attribute names（实验性属性名称）。")
 
 
 if __name__ == "__main__":

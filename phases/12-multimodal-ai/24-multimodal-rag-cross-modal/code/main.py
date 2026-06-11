@@ -1,8 +1,8 @@
-"""Multimodal RAG toy — three retrievers + score fusion + grounded generator.
+"""多模态 RAG 玩具 — 三个检索器 + 分数融合 + 有根据生成器。
 
-Stdlib. A synthetic restaurant corpus with text reviews, image-feature tags,
-and audio-ambiance scores. Runs three retrievers, fuses scores, emits a stub
-answer with citations. Demonstrates agentic reformulation on low-confidence.
+Stdlib。合成餐厅语料库，含文本评论、图像特征标签
+和音频环境分数。运行三个检索器，融合分数，发出带引用的
+stub 答案。演示低置信度时的 agentic 重新制定。
 """
 
 from __future__ import annotations

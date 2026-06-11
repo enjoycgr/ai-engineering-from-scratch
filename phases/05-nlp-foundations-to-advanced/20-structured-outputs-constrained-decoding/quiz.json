@@ -4,96 +4,96 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "Why is prompt-only 'return JSON' not enough for production?",
+      "question": "为什么仅靠 prompt 要求 'return JSON' 不足以满足生产环境需求？",
       "options": [
-        "JSON is too verbose",
-        "Prompts are too long",
-        "Frontier models comply most of the time but not always; the small fraction of malformed outputs breaks downstream parsers",
-        "Prompting cannot describe schemas"
+        "JSON is too verbose (JSON 太冗长)",
+        "Prompts are too long (提示太长)",
+        "Frontier models comply most of the time but not always; the small fraction of malformed outputs breaks downstream parsers (前沿模型大多数时候会遵守但并不总是；少量格式错误的输出会破坏下游解析器)",
+        "Prompting cannot describe schemas (提示无法描述 schema)"
       ],
       "correct": 2,
       "explanation": "Prompt-only structure works ~80% of the time on frontier models; production needs harder guarantees."
     },
     {
       "stage": "pre",
-      "question": "What does constrained decoding modify at each generation step?",
+      "question": "Constrained decoding (约束解码) 在每一步生成中修改什么？",
       "options": [
-        "The KV cache",
-        "The tokenizer",
-        "The training loss",
-        "The logit vector, masking tokens that would invalidate the target grammar so only valid continuations can be sampled"
+        "The KV cache (KV 缓存)",
+        "The tokenizer (分词器)",
+        "The training loss (训练损失)",
+        "The logit vector, masking tokens that would invalidate the target grammar so only valid continuations can be sampled (logit 向量，屏蔽会使目标语法无效的 token，从而只能采样有效的后续内容)"
       ],
       "correct": 3,
       "explanation": "A logit processor sets invalid tokens to -inf so the softmax cannot sample them."
     },
     {
       "stage": "check",
-      "question": "Why might constrained decoding be faster than free generation?",
+      "question": "为什么 constrained decoding 可能比自由生成更快？",
       "options": [
-        "The model is smaller",
-        "Forced scaffold tokens (e.g. '{\"name\": \"') can be emitted directly without sampling, and the valid-token search space shrinks",
-        "It avoids softmax entirely",
-        "It skips backprop"
+        "The model is smaller (模型更小)",
+        "Forced scaffold tokens (e.g. '{\"name\": \"') can be emitted directly without sampling, and the valid-token search space shrinks (强制脚手架 token 可直接发出无需采样，且有效 token 搜索空间缩小)",
+        "It avoids softmax entirely (完全避免 softmax)",
+        "It skips backprop (跳过反向传播)"
       ],
       "correct": 1,
       "explanation": "Determined tokens skip sampling and reduced valid-token sets shrink the decode cost."
     },
     {
       "stage": "check",
-      "question": "Which schema design choice prevents premature commitment by the model?",
+      "question": "哪种 schema 设计选择可以防止模型过早承诺 (premature commitment)？",
       "options": [
-        "Put 'answer' first",
-        "Use shorter keys",
-        "Place reasoning fields before the answer/decision field so the model thinks before committing",
-        "Use snake_case"
+        "Put 'answer' first (把 'answer' 放前面)",
+        "Use shorter keys (使用更短的键)",
+        "Place reasoning fields before the answer/decision field so the model thinks before committing (将 reasoning 字段放在 answer/decision 字段之前，让模型先思考再做出决定)",
+        "Use snake_case (使用 snake_case)"
       ],
       "correct": 2,
       "explanation": "Field order is logic: putting reasoning first lets the model think before locking in an answer."
     },
     {
       "stage": "check",
-      "question": "What is the limitation of FSM-based constrained decoding tools like Outlines?",
+      "question": "像 Outlines 这样的基于 FSM 的 constrained decoding 工具有什么限制？",
       "options": [
-        "They are not deterministic",
-        "They lock you to OpenAI",
-        "Recursive schemas have to be flattened; truly recursive structures need CFG-based engines such as XGrammar",
-        "They only support enums"
+        "They are not deterministic (它们不是确定性的)",
+        "They lock you to OpenAI (它们将你锁定到 OpenAI)",
+        "Recursive schemas have to be flattened; truly recursive structures need CFG-based engines such as XGrammar (递归 schema 必须被展平；真正的递归结构需要基于 CFG 的引擎如 XGrammar)",
+        "They only support enums (它们只支持枚举)"
       ],
       "correct": 2,
       "explanation": "FSMs cannot represent unbounded recursion; CFG engines handle it."
     },
     {
       "stage": "post",
-      "question": "Why is Instructor described as not modifying logits?",
+      "question": "为什么说 Instructor 不修改 logits？",
       "options": [
-        "Instructor formats the schema into the prompt and parses/retries the output; logit masking happens server-side or not at all",
-        "It uses gradient updates",
-        "Required by Anthropic",
-        "It edits the prompt"
+        "Instructor formats the schema into the prompt and parses/retries the output; logit masking happens server-side or not at all (Instructor 将 schema 格式化进 prompt 并解析/重试输出；logit masking 发生在服务端或根本不发生)",
+        "It uses gradient updates (它使用梯度更新)",
+        "Required by Anthropic (Anthropic 要求的)",
+        "It edits the prompt (它编辑提示)"
       ],
       "correct": 0,
       "explanation": "Instructor uses provider-side structured output plus client-side validation and retries, not logit masking."
     },
     {
       "stage": "post",
-      "question": "What problem can a strict regex like date='YYYY-MM-DD' introduce?",
+      "question": "像 date='YYYY-MM-DD' 这样严格的正则可能引入什么问题？",
       "options": [
-        "It requires CFG support",
-        "It removes any escape hatch for unknown values, so the model fabricates a date instead of returning null/sentinel",
-        "It breaks JSON parsing",
-        "Regex is slow"
+        "It requires CFG support (需要 CFG 支持)",
+        "It removes any escape hatch for unknown values, so the model fabricates a date instead of returning null/sentinel (它移除了对未知值的任何逃生通道，导致模型编造日期而不是返回 null/哨兵值)",
+        "It breaks JSON parsing (破坏 JSON 解析)",
+        "Regex is slow (正则很慢)"
       ],
       "correct": 1,
       "explanation": "Over-strict grammars force the model to invent values; always allow null/sentinel for unknowns."
     },
     {
       "stage": "post",
-      "question": "When should you reach for vLLM guided decoding vs a vendor structured-output API?",
+      "question": "何时应该选择 vLLM guided decoding 而非供应商 structured-output API？",
       "options": [
-        "Always vendor",
-        "Only for tiny schemas",
-        "Only with byte-level BPE",
-        "Self-hosted inference where you control the model and want logit-level guarantees without retries"
+        "Always vendor (总是选供应商)",
+        "Only for tiny schemas (仅用于微小 schema)",
+        "Only with byte-level BPE (仅与字节级 BPE 一起使用)",
+        "Self-hosted inference where you control the model and want logit-level guarantees without retries (自托管推理，你控制模型并希望无需重试的 logit 级别保证)"
       ],
       "correct": 3,
       "explanation": "vLLM guided decoding fits self-hosted serving with logit-level constraints; vendor APIs lock you to their stack."

@@ -1,8 +1,7 @@
-"""A stdlib actor runtime modeled on AutoGen v0.4 Core.
+"""基于 AutoGen v0.4 Core 的标准库 actor runtime (Actor 运行时)。
 
-Actors have private state and an inbox. Messages are the only interaction.
-Failures in one actor are caught by the runtime and routed to a dead-letter
-queue; other actors keep running.
+Actors 拥有 private state (私有状态) 和 inbox (收件箱)。Messages (消息) 是唯一的交互方式。
+一个 actor 中的失败被 runtime 捕获并路由到 dead-letter queue (死信队列)；其他 actors 继续运行。
 """
 
 from __future__ import annotations

@@ -1,21 +1,19 @@
 /**
- * Batch APIs — TypeScript port + deferred-future dispatcher.
+ * Batch APIs — TypeScript 移植版 + deferred-future dispatcher（延迟 future 调度器）。
  *
- * Two halves:
- *   1. BatchDispatcher: submits N jobs, returns a promise per job that resolves
- *      when the batch completes. Simulates the OpenAI / Anthropic JSONL batch
- *      lifecycle (in_progress → completed) without any network. The "deferred
- *      future" pattern is what your code does at the call site — you fire and
- *      forget, the promise hands you the answer hours later.
- *   2. Cost simulator matching main.py: SYNC, SYNC+CACHE, BATCH, BATCH+CACHE
- *      across three workloads. Pricing constants 2026-04 per docs/en.md.
+ * 两部分：
+ *   1. BatchDispatcher：提交 N 个任务，每个任务返回一个 promise，在 batch 完成时 resolve。
+ *      模拟 OpenAI / Anthropic JSONL batch 生命周期（in_progress → completed），无需真实网络。
+ *      "deferred future" 模式是你在调用现场的做法——先发射后忘记，promise 在数小时后给出答案。
+ *   2. 与 main.py 一致的成本模拟器：SYNC、SYNC+CACHE、BATCH、BATCH+CACHE
+ *      跨三种工作负载。定价常数 2026-04，来自 docs/en.md。
  *
- * Citations:
+ * 引用：
  *   - OpenAI Batch API: platform.openai.com/docs/guides/batch
  *   - Anthropic Message Batches: docs.anthropic.com/en/docs/build-with-claude/batch-processing
  *   - Vertex AI Batch Prediction: cloud.google.com/vertex-ai/generative-ai/docs/model-reference/batch-prediction
  *
- * Runs on Node 20+ stdlib. No npm deps.
+ * 在 Node 20+ stdlib 上运行。无 npm 依赖。
  */
 
 import { randomUUID } from "node:crypto";
@@ -52,8 +50,8 @@ type Batch<I, O> = {
 class BatchDispatcher<I, O> {
   private readonly batches = new Map<string, Batch<I, O>>();
   private readonly processor: (input: I) => Promise<O>;
-  // Simulated turnaround. Real providers say 24h SLA; typical P50 is 2-6h.
-  // In the demo we use small ms to keep the run snappy.
+  // 模拟 turnaround。真实提供商承诺 24h SLA；典型 P50 为 2-6h。
+  // 演示中使用较小的 ms 值以保持运行轻快。
   private readonly turnaroundMs: number;
 
   constructor(
@@ -64,7 +62,7 @@ class BatchDispatcher<I, O> {
     this.turnaroundMs = turnaroundMs;
   }
 
-  // Open a new batch. Returns the batch id you append jobs to.
+  // 打开一个新 batch。返回可追加任务的 batch id。
   openBatch(): string {
     const id = `batch_${randomUUID().slice(0, 12)}`;
     this.batches.set(id, {
@@ -76,9 +74,8 @@ class BatchDispatcher<I, O> {
     return id;
   }
 
-  // Append a job to a queued batch. Returns the deferred Promise<O> the caller
-  // awaits once the batch closes and processes. Matches the user-facing shape
-  // of OpenAI's batch.create + retrieve flow.
+  // 向 queued batch 追加任务。返回 caller 在 batch 关闭并处理后 await 的 deferred Promise<O>。
+  // 与 OpenAI batch.create + retrieve 流程的用户侧形态一致。
   addJob(batchId: string, input: I): Promise<O> {
     const batch = this.requireBatch(batchId);
     if (batch.status !== "queued") {
@@ -103,9 +100,8 @@ class BatchDispatcher<I, O> {
     return promise;
   }
 
-  // Close + process. Returns when all jobs resolved/rejected.
-  // The async-iteration model is identical to a real batch: you don't await
-  // each job; you await the whole batch.
+  // 关闭并处理。所有任务 resolve/reject 后返回。
+  // 异步迭代模型与真实 batch 相同：你不 await 每个任务；你 await 整个 batch。
   async closeBatch(batchId: string): Promise<Batch<I, O>> {
     const batch = this.requireBatch(batchId);
     batch.status = "in_progress";
@@ -135,13 +131,13 @@ class BatchDispatcher<I, O> {
   }
 }
 
-// -- Mocked classification processor (no network) --------------------------
+// -- 模拟分类处理器（无网络） --------------------------
 
 type ClassifyIn = { docId: string; text: string };
 type ClassifyOut = { docId: string; label: string; confidence: number };
 
 async function fakeClassifier(input: ClassifyIn): Promise<ClassifyOut> {
-  // Deterministic toy classifier on input length parity.
+  // 基于输入长度奇偶性的确定性玩具分类器。
   const label = input.text.length % 2 === 0 ? "positive" : "neutral";
   return {
     docId: input.docId,
@@ -152,7 +148,7 @@ async function fakeClassifier(input: ClassifyIn): Promise<ClassifyOut> {
 
 async function batchDemo(): Promise<void> {
   console.log("--- Batch dispatcher with deferred futures ---");
-  // Turnaround set to 50ms in demo (production: 24h SLA).
+  // 演示中 turnaround 设为 50ms（生产环境：24h SLA）。
   const dispatcher = new BatchDispatcher<ClassifyIn, ClassifyOut>(
     fakeClassifier,
     50,
@@ -265,7 +261,7 @@ async function main(): Promise<void> {
   await batchDemo();
   console.log("\n" + "=".repeat(80));
   console.log(
-    "BATCH API ECONOMICS — stack batch with prompt caching for ~10% of sync bill",
+    "BATCH API ECONOMICS — batch 叠加 prompt caching，约为 sync 账单的 ~10%",
   );
   console.log("=".repeat(80));
   runScenario(

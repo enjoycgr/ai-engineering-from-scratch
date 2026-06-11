@@ -1,7 +1,7 @@
 """Three-layer eval harness with evaluator-optimizer loop and CI gate.
 
-Cases: benchmark (SWE-bench-shaped), custom (LLM-judge), online (guardrail).
-Aggregator produces pass rate, regression-vs-baseline, and CI verdict.
+用例：benchmark（SWE-bench 形态）、custom（LLM-judge）、online（guardrail）。
+聚合器产出通过率、与基线的回归、以及 CI 裁决。
 """
 
 from __future__ import annotations

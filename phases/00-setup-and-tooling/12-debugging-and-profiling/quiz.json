@@ -2,38 +2,38 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What makes debugging AI/ML code fundamentally different from debugging a typical web application?",
-      "options": ["AI code uses different programming languages", "AI bugs often don't crash -- they silently produce incorrect results with no error messages", "AI code cannot be debugged with standard tools like print statements", "AI code always requires a GPU to debug"],
+      "question": "调试 AI/ML 代码与调试典型 Web 应用在根本上有什么不同？",
+      "options": ["AI 代码使用不同的编程语言", "AI bug 通常不会崩溃——它们静默地产生没有错误信息的不正确结果", "AI 代码无法使用 print 等标准工具调试", "AI 代码总是需要 GPU 才能调试"],
       "correct": 1,
-      "explanation": "The worst AI bugs produce valid-looking output. A misconfigured training loop might run for hours without errors while the model learns nothing useful, unlike web apps that crash with stack traces."
+      "explanation": "最糟糕的 AI bug 会产生看起来有效的输出。配置错误的训练循环可能运行数小时不出错，而模型什么有用的东西都没学到，不像 Web 应用会带着堆栈跟踪崩溃。"
     },
     {
       "stage": "pre",
-      "question": "What does a profiler measure?",
-      "options": ["Whether the code produces correct output", "How much time and memory each part of the code consumes", "How many bugs exist in the codebase", "The code coverage of unit tests"],
+      "question": "profiler (性能分析器) 测量什么？",
+      "options": ["代码是否产生正确输出", "代码各部分消耗多少时间和内存", "代码库中存在多少 bug", "单元测试的代码覆盖率"],
       "correct": 1,
-      "explanation": "Profilers measure resource consumption -- execution time per function, memory allocation, and GPU utilization -- helping you find bottlenecks and optimize performance."
+      "explanation": "Profiler 测量资源消耗——每个函数的执行时间、内存分配和 GPU 利用率——帮助你找到瓶颈并优化性能。"
     },
     {
       "stage": "post",
-      "question": "Your model achieves 99% accuracy on the test set. What AI-specific bug should you suspect first?",
-      "options": ["The model has too many parameters", "Data leakage -- test samples may have leaked into the training set", "The learning rate is too high", "The batch size is too large"],
+      "question": "你的模型在测试集上达到了 99% 准确率。你应该首先怀疑哪种 AI 特有的 bug？",
+      "options": ["模型参数太多", "数据泄漏——测试样本可能泄漏到了训练集中", "学习率太高", "batch size (批量大小) 太大"],
       "correct": 1,
-      "explanation": "Suspiciously high accuracy often indicates data leakage -- overlap between training and test data, or features that contain the target label. Always check for train/test overlap."
+      "explanation": "异常高的准确率通常表明数据泄漏——训练和测试数据之间有重叠，或者特征中包含了目标标签。务必检查训练/测试重叠。"
     },
     {
       "stage": "post",
-      "question": "What is the most common finding when profiling a training loop's time breakdown?",
-      "options": ["The backward pass takes 90% of the time", "Data loading takes more time than the forward and backward passes combined", "Writing logs takes the most time", "GPU memory allocation is the bottleneck"],
+      "question": "对训练循环的时间分布进行性能分析时，最常见的发现是什么？",
+      "options": ["backward pass (反向传播) 占用 90% 的时间", "数据加载占用的时间比 forward pass (前向传播) 和 backward pass 加起来还多", "写日志占用最多时间", "GPU 内存分配是瓶颈"],
       "correct": 1,
-      "explanation": "Data loading often takes 60%+ of training time when num_workers=0 in the DataLoader. The fix is setting num_workers > 0 to load data in parallel with GPU computation."
+      "explanation": "当 DataLoader 中 num_workers=0 时，数据加载通常占用训练时间的 60% 以上。修复方法是设置 num_workers > 0，使数据加载与 GPU 计算并行进行。"
     },
     {
       "stage": "post",
-      "question": "You see NaN loss at step 500. Which approach will help you find the root cause?",
-      "options": ["Restart training from scratch with a different random seed", "Use detect_nan to check for NaN/Inf in gradients and add breakpoint() at the failure point", "Increase the batch size to stabilize gradients", "Switch from Adam to SGD optimizer"],
+      "question": "你在第 500 步看到 NaN loss。哪种方法能帮你找到根本原因？",
+      "options": ["用不同的随机种子从头重新开始训练", "使用 detect_nan 检查梯度中的 NaN/Inf，并在故障点添加 breakpoint()", "增大 batch size (批量大小) 以稳定梯度", "从 Adam 切换到 SGD 优化器"],
       "correct": 1,
-      "explanation": "First identify WHERE the NaN originates by checking gradients for each parameter. A conditional breakpoint at the NaN step lets you inspect tensor values interactively. Common causes: learning rate too high, log(0), or division by zero."
+      "explanation": "首先通过检查每个参数的梯度来识别 NaN 的来源。在 NaN 步设置条件断点可以让你交互式地检查 tensor 值。常见原因：学习率太高、log(0) 或除零。"
     }
   ]
 }

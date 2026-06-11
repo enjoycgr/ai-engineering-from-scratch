@@ -14,6 +14,7 @@ LANGUAGE_FEATURES = {
 
 
 def similarity(a, b):
+    """基于词序、文字体系和语系计算两种语言的相似度。"""
     fa = LANGUAGE_FEATURES[a]
     fb = LANGUAGE_FEATURES[b]
     matches = sum(1 for k in fa if fa[k] == fb[k])
@@ -21,12 +22,14 @@ def similarity(a, b):
 
 
 def rank_source_languages(target, candidates):
+    """为给定目标语言按相似度对候选源语言排序。"""
     scored = [(cand, similarity(target, cand)) for cand in candidates if cand != target]
     scored.sort(key=lambda x: -x[1])
     return scored
 
 
 def simulate_transfer_accuracy(target, source):
+    """根据语言相似度模拟迁移准确率。"""
     sim = similarity(target, source)
     base_accuracy = 0.45
     max_boost = 0.45

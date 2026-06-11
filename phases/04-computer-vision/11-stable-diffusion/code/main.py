@@ -1,6 +1,6 @@
 """
-Stable Diffusion usage examples. Requires `diffusers`, `transformers`, and a GPU
-for any real inference. Running this on CPU without the model is a no-op summary.
+Stable Diffusion 使用示例。需要安装 `diffusers`、`transformers`，
+以及用于实际推理（inference）的 GPU。在没有模型的情况下在 CPU 上运行将只输出摘要。
 """
 
 import os

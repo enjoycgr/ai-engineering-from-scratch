@@ -3,6 +3,7 @@ from collections import Counter
 
 
 def chunk_text(text, chunk_size=200, overlap=50):
+    """将文本按固定大小分块，并设置重叠以避免在边界处分割句子。"""
     words = text.split()
     chunks = []
     start = 0
@@ -15,6 +16,7 @@ def chunk_text(text, chunk_size=200, overlap=50):
 
 
 def build_vocabulary(documents):
+    """从所有文档中构建唯一词的有序词汇表。"""
     vocab = set()
     for doc in documents:
         vocab.update(doc.lower().split())
@@ -22,6 +24,7 @@ def build_vocabulary(documents):
 
 
 def compute_tf(text, vocab):
+    """计算文本中每个词汇表词的词频（TF）。"""
     words = text.lower().split()
     count = Counter(words)
     total = len(words)
@@ -31,6 +34,7 @@ def compute_tf(text, vocab):
 
 
 def compute_idf(documents, vocab):
+    """计算每个词汇表词的逆文档频率（IDF）。"""
     n = len(documents)
     idf = []
     for word in vocab:
@@ -40,11 +44,13 @@ def compute_idf(documents, vocab):
 
 
 def tfidf_embed(text, vocab, idf):
+    """通过 TF-IDF 将文本转换为向量。"""
     tf = compute_tf(text, vocab)
     return [t * i for t, i in zip(tf, idf)]
 
 
 def cosine_similarity(a, b):
+    """计算两个向量之间的余弦相似度。"""
     dot_product = sum(x * y for x, y in zip(a, b))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(x * x for x in b))
@@ -54,6 +60,7 @@ def cosine_similarity(a, b):
 
 
 def search(query_embedding, stored_embeddings, top_k=5):
+    """通过余弦相似度找到与查询最相似的 top-k 个嵌入。"""
     scores = []
     for i, emb in enumerate(stored_embeddings):
         sim = cosine_similarity(query_embedding, emb)
@@ -63,6 +70,7 @@ def search(query_embedding, stored_embeddings, top_k=5):
 
 
 def build_rag_prompt(query, retrieved_chunks):
+    """将检索到的 chunk 格式化为带引用的 RAG 提示。"""
     context = "\n\n---\n\n".join(
         f"[Source {i+1}]\n{chunk}"
         for i, chunk in enumerate(retrieved_chunks)
@@ -70,7 +78,7 @@ def build_rag_prompt(query, retrieved_chunks):
     return (
         "Answer the question based ONLY on the following context.\n"
         "If the context doesn't contain enough information, "
-        "say \"I don't have enough information to answer that.\"\n\n"
+        'say "I don\'t have enough information to answer that."\n\n'
         f"Context:\n{context}\n\n"
         f"Question: {query}\n\n"
         "Answer:"
@@ -78,6 +86,10 @@ def build_rag_prompt(query, retrieved_chunks):
 
 
 def simple_generate(prompt, retrieved_chunks):
+    """生成的占位实现：选择与查询重叠最多的句子。
+
+    在生产环境中，这里应调用真实的 LLM API。
+    """
     query_section = prompt.lower().split("question:")[-1]
     query_words = set(query_section.split())
     stop_words = {"the", "a", "an", "is", "are", "was", "were", "what", "how",
@@ -103,6 +115,8 @@ def simple_generate(prompt, retrieved_chunks):
 
 
 class RAGPipeline:
+    """端到端 RAG 流水线：分块、TF-IDF 嵌入、余弦相似度检索、提示组装。"""
+
     def __init__(self, chunk_size=200, overlap=50, top_k=5):
         self.chunk_size = chunk_size
         self.overlap = overlap
@@ -114,6 +128,7 @@ class RAGPipeline:
         self.sources = []
 
     def index(self, documents, source_names=None):
+        """对文档进行分块、嵌入并存储以供检索。"""
         all_chunks = []
         all_sources = []
         for i, doc in enumerate(documents):
@@ -133,6 +148,7 @@ class RAGPipeline:
         return len(all_chunks)
 
     def query(self, question, top_k=None):
+        """嵌入查询、检索最相似的 chunk、构建提示并生成回答。"""
         k = top_k or self.top_k
         query_emb = tfidf_embed(question, self.vocab, self.idf)
         results = search(query_emb, self.embeddings, k)

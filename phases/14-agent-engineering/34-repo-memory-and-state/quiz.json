@@ -4,19 +4,19 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the durability test that decides whether a piece of information belongs in repo memory?",
+      "question": "决定一条信息是否属于 repo memory（仓库记忆）的 durability test（耐久性测试）是什么？",
       "options": [
-        "Whether it is JSON",
-        "Whether it would be useful three months from now in a CI rerun; if yes, repo; if no, telemetry",
-        "Whether the user marked it as important",
-        "Whether it fits in 4 kB"
+        "它是否是 JSON",
+        "三个月后它在 CI rerun 中是否有用；如果是，放入 repo；如果不是，放入 telemetry（遥测）",
+        "用户是否标记它为重要",
+        "它是否适合 4 kB"
       ],
       "correct": 1,
-      "explanation": "Repo memory is for durable, three-months-from-now-useful state; transient data is telemetry."
+      "explanation": "Repo memory 是持久的、三个月后仍有用的 state；瞬态数据是 telemetry。"
     },
     {
       "stage": "pre",
-      "question": "What schema field carries the agent's contract version?",
+      "question": "哪个 schema field 承载 agent 的 contract version（合约版本）？",
       "options": [
         "schema_version",
         "build_hash",
@@ -24,67 +24,67 @@
         "session_uuid"
       ],
       "correct": 0,
-      "explanation": "schema_version is the integer contract; the manager refuses to load from an unknown version."
+      "explanation": "schema_version 是整数合约；manager 拒绝加载未知版本的文件。"
     },
     {
       "stage": "check",
-      "question": "How does atomic write work?",
+      "question": "Atomic write（原子写入）如何工作？",
       "options": [
-        "tempfile.mkstemp in the same directory, write, fsync, os.replace (atomic rename) over the target",
-        "Truncate-then-write to the target",
-        "Append-only with a CRC",
-        "Encrypt and overwrite"
+        "在同一目录中使用 tempfile.mkstemp，写入，fsync，os.replace（atomic rename）覆盖目标",
+        "Truncate-then-write 到目标",
+        "Append-only 带 CRC",
+        "加密并覆盖"
       ],
       "correct": 0,
-      "explanation": "Atomic rename on POSIX and Windows is what prevents partial-write corruption."
+      "explanation": "POSIX 和 Windows 上的 atomic rename 是防止 partial-write corruption（部分写入损坏）的方法。"
     },
     {
       "stage": "check",
-      "question": "Why are idempotency keys required for non-idempotent tool calls?",
+      "question": "为什么非幂等 tool calls 需要 idempotency keys（幂等键）？",
       "options": [
-        "For billing",
-        "If the agent crashes after a tool call but before checkpointing the result, retry safely; log call ID before execution and skip the call on retry",
-        "To deduplicate logs",
-        "To shorten output"
+        "用于计费",
+        "如果 agent 在 tool call 后但在 checkpointing result（检查点记录结果）前崩溃，安全重试；执行前记录 call ID，重试时跳过该调用",
+        "用于日志去重",
+        "用于缩短输出"
       ],
       "correct": 1,
-      "explanation": "pending_calls.jsonl carries the call IDs; recovery checks and skips already-executed work."
+      "explanation": "pending_calls.jsonl 承载 call IDs；恢复时检查并跳过已执行的工作。"
     },
     {
       "stage": "check",
-      "question": "Where should large artifacts (CSVs, long transcripts, generated files) live relative to state?",
+      "question": "大型 artifacts（CSV、长 transcripts、生成文件）应该相对于 state 存放在哪里？",
       "options": [
-        "Inline in agent_state.json",
-        "As separate files (or object storage) with only the path kept in state, so checkpoints stay small and fast",
-        "In environment variables",
-        "Concatenated into one giant log"
+        "Inline 在 agent_state.json 中",
+        "作为单独的文件（或对象存储），只在 state 中保留 path，使 checkpoints 保持小巧快速",
+        "在环境变量中",
+        "拼接成一个巨大的日志"
       ],
       "correct": 1,
-      "explanation": "Separate artifacts grow independently of state; checkpoints stay cheap to read and write."
+      "explanation": "独立的 artifacts 与 state 独立增长；checkpoints 保持读写廉价。"
     },
     {
       "stage": "post",
-      "question": "What does event sourcing for audit + snapshots for resume buy you?",
+      "question": "Event sourcing for audit（审计的事件溯源）+ snapshots for resume（恢复的快照）能带来什么？",
       "options": [
-        "Lower disk usage",
-        "Replay agent decisions verbatim by reading the snapshot then replaying events after it; same shape as Postgres WAL",
-        "Faster inference",
-        "Native voice support"
+        "更低的磁盘使用",
+        "通过读取 snapshot 然后 replay 其后的 events 来 verbatim（逐字）回放 agent 决策；与 Postgres WAL 同形",
+        "更快的 inference",
+        "原生语音支持"
       ],
       "correct": 1,
-      "explanation": "Append to state.events.jsonl on every mutation; periodically snapshot to state.json; replay events after the snapshot timestamp."
+      "explanation": "在每次 mutation 时追加到 state.events.jsonl；定期 snapshot 到 state.json；replay snapshot timestamp 之后的 events。"
     },
     {
       "stage": "post",
-      "question": "What does the lesson say happens when schema_version mismatches?",
+      "question": "当 schema_version 不匹配时，课程说会发生什么？",
       "options": [
-        "The manager silently upgrades",
-        "The manager refuses to load until a migration script in tools/migrate_state.py runs",
-        "The state is deleted",
-        "The agent retries"
+        "Manager 静默升级",
+        "Manager 拒绝加载，直到 tools/migrate_state.py 中的 migration script 运行",
+        "State 被删除",
+        "Agent 重试"
       ],
       "correct": 1,
-      "explanation": "Schema migrations or refuse-to-load; never silent upgrade."
+      "explanation": "Schema migrations 或 refuse-to-load；绝不静默升级。"
     }
   ]
 }

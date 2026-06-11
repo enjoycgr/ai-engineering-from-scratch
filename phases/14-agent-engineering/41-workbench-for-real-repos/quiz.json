@@ -4,19 +4,19 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the goal of running the same task through prompt-only and workbench-guided pipelines?",
+      "question": "让同一项任务分别走过仅提示词 prompt-only（仅提示词）和工作台引导 workbench-guided（工作台引导）两条流水线的目的是什么？",
       "options": [
-        "To compare models",
-        "To produce a before/after report you can hand to a skeptic with numbers, not arguments",
-        "To pick a vendor",
-        "To benchmark GPUs"
+        "对比模型",
+        "产出一份带数字的前后对比报告，直接交给怀疑者，无需辩论",
+        "挑选供应商",
+        "给 GPU 跑基准"
       ],
       "correct": 1,
-      "explanation": "The numbers do the arguing; the case is made on a real-feeling task, not a toy."
+      "explanation": "数字自己会说话；案例建立在贴近真实的任务上，而非玩具任务。"
     },
     {
       "stage": "pre",
-      "question": "Which is NOT one of the five outcomes measured?",
+      "question": "哪一项不是测量的五项 outcome（结果）之一？",
       "options": [
         "tests_actually_run",
         "acceptance_met",
@@ -24,67 +24,67 @@
         "model_perplexity"
       ],
       "correct": 3,
-      "explanation": "The five are tests_actually_run, acceptance_met, files_outside_scope, handoff_quality, reviewer_total."
+      "explanation": "五项结果是 tests_actually_run、acceptance_met、files_outside_scope、handoff_quality、reviewer_total。"
     },
     {
       "stage": "check",
-      "question": "What did LangChain's Anatomy of an Agent Harness measure on Terminal Bench 2.0?",
+      "question": "LangChain 的 Anatomy of an Agent Harness 在 Terminal Bench 2.0 上测量到了什么？",
       "options": [
-        "Models all converged at top-3",
-        "Same model moved from outside top 30 to rank five by changing only the harness",
-        "Top model lost 25 places",
-        "Harness changes did not move the rank"
+        "所有模型都收敛到前 3",
+        "同一个模型仅仅通过更换 harness（执行框架）就从 30 名开外冲到了第 5 名",
+        "第一名掉了 25 名",
+        "Harness（框架）改动没有影响排名"
       ],
       "correct": 1,
-      "explanation": "Twenty-five-rank delta on the same model is the headline harness-vs-model receipt."
+      "explanation": "同一个模型提升 25 名，是 harness（执行框架）vs 模型的 headline 证据。"
     },
     {
       "stage": "check",
-      "question": "What does the preprints.org paper cite as the failure rate for enterprise agent projects?",
+      "question": "preprints.org 论文引用的企业智能体项目失败率是多少？",
       "options": [
         "8%",
-        "About 88% fail to reach production, with failures clustering around runtime, not reasoning",
-        "About 50%",
-        "None fail"
+        "约 88% 未能投产，失败集中在运行时而非推理",
+        "约 50%",
+        "没有一个失败"
       ],
       "correct": 1,
-      "explanation": "The Harness Engineering for Language Agents preprint traces failures to runtime issues (stale state, brittle retries, overgrown context)."
+      "explanation": "Harness Engineering for Language Agents 预印本将失败归因于运行时问题（状态陈旧、重试脆弱、上下文膨胀）。"
     },
     {
       "stage": "check",
-      "question": "What does WebAgent baseline accuracy do in long-context conditions?",
+      "question": "WebAgent 基线准确率在长上下文条件下会怎样？",
       "options": [
-        "Stays flat",
-        "Drops from 40-50% to under 10% mostly from infinite loops and goal loss",
-        "Goes up by 30%",
-        "Halves but stays above 30%"
+        "保持平稳",
+        "从 40-50% 暴跌到不足 10%，主要因为无限循环和目标丢失",
+        "提升 30%",
+        "减半但仍高于 30%"
       ],
       "correct": 1,
-      "explanation": "Long-context collapse is what the Ralph Loop and handoff packet exist to absorb."
+      "explanation": "长上下文崩塌 long-context collapse（长上下文崩塌）正是 Ralph Loop 和 handoff packet（交接包）存在要吸收的问题。"
     },
     {
       "stage": "post",
-      "question": "What does the lesson say about false negatives (cases where prompt-only is faster)?",
+      "question": "本节课对 false negatives（假阴性）（仅提示词更快的情况）是怎么说的？",
       "options": [
-        "They do not exist",
-        "Single-step factual tasks, one-line lints, formatter runs are faster prompt-only; enumerate them honestly so the workbench is not framed as overkill",
-        "They prove the workbench fails",
-        "They invalidate the harness thesis"
+        "它们不存在",
+        "单步事实任务、单行 lint、格式化运行等用仅提示词更快；诚实地列举它们，这样工作台才不会被包装成过度设计",
+        "它们证明工作台失败了",
+        "它们否定了 harness（框架）论点"
       ],
       "correct": 1,
-      "explanation": "Honest enumeration of prompt-only-fastest cases keeps the harness argument credible."
+      "explanation": "诚实地列举仅提示词最快的场景，能让 harness（框架）论点保持可信。"
     },
     {
       "stage": "post",
-      "question": "Where do you cite the report from this lesson?",
+      "question": "你在什么场景下援引本节课的报告？",
       "options": [
-        "Internal HR review",
-        "When someone wants to drop the verification gate 'just for this sprint', or when a new agent product launches and needs a portable time-savings benchmark",
-        "Only in marketing decks",
-        "Only at hackathons"
+        "内部 HR  review",
+        "当有人想 '就这个冲刺' 放弃验证门，或当新的智能体产品发布需要一个可移植的省时基准",
+        "只在营销 PPT 里",
+        "只在黑客马拉松上"
       ],
       "correct": 1,
-      "explanation": "The numbers travel further than the explanation; cite the report when pressure tries to short-circuit surfaces."
+      "explanation": "数字比解释走得更远；当压力试图绕过 surface（工作面）时，就援引这份报告。"
     }
   ]
 }

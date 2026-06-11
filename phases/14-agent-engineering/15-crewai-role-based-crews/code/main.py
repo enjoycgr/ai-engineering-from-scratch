@@ -1,11 +1,11 @@
-"""CrewAI-shaped Crew and Flow primitives in stdlib.
+"""CrewAI 风格的 Crew 和 Flow 原语，基于标准库实现。
 
-Three-agent crew (researcher, writer, editor) producing a brief on
-"agent engineering 2026". Same crew is run Sequential, Hierarchical, and
-through a Flow to show all three execution shapes.
+三智能体 crew（researcher、writer、editor）生成关于
+"agent engineering 2026" 的 brief (简报)。同一个 crew 以 Sequential、Hierarchical
+和 Flow 三种方式运行，以展示全部三种执行形态。
 
-Stdlib + numpy. Mock LLM responses are deterministic hardcoded strings
-keyed off agent role and input prefix.
+标准库 + numpy。Mock LLM responses 是基于 agent role 和 input prefix 的
+deterministic hardcoded strings (确定性硬编码字符串)。
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ import numpy as np
 
 
 def tool(name: str) -> Callable[[Callable[..., str]], Callable[..., str]]:
-    """Mirror of CrewAI's @tool decorator. Marks a function as a tool the
-    Agent can call. Docstring is the description; signature is the schema."""
+    """CrewAI @tool decorator 的镜像。将函数标记为 Agent 可调用的 tool (工具)。
+    Docstring (文档字符串) 是 description；signature (函数签名) 是 schema。"""
 
     def decorator(fn: Callable[..., str]) -> Callable[..., str]:
         fn.tool_name = name  # type: ignore[attr-defined]
@@ -31,7 +31,7 @@ def tool(name: str) -> Callable[[Callable[..., str]], Callable[..., str]]:
 
 @tool("Search the web")
 def search(query: str) -> str:
-    """Return top results for the query."""
+    """返回查询的 top results (顶部结果)。"""
     fixtures = {
         "agent engineering": "src1: agent loop, src2: tool use, src3: memory",
         "crewai": "src1: docs intro, src2: flows guide, src3: tools ref",
@@ -71,8 +71,8 @@ class SequentialCrew:
         by_task: dict[int, str] = {}
         for task in self.tasks:
             if task.context:
-                # CrewAI behavior: feed outputs of every declared upstream task
-                # into the current one. Falls back to prior when none declared.
+                # CrewAI 行为：将每个声明的上游 task 的输出
+                # 喂入当前 task。当没有声明时回退到 prior。
                 joined = "\n\n".join(
                     by_task[id(t)] for t in task.context if id(t) in by_task
                 )
@@ -119,8 +119,8 @@ class HierarchicalCrew:
 
 
 class Flow:
-    """Deterministic event-driven workflow. @start fires on kickoff;
-    @listen(topic) fires when another step emits that topic.
+    """Deterministic event-driven workflow (确定性事件驱动工作流)。@start 在 kickoff 时触发；
+    @listen(topic) 当另一个步骤发出该 topic 时触发。
     """
 
     def __init__(self) -> None:
@@ -156,8 +156,8 @@ class Flow:
 
 
 class Memory:
-    """Four-store memory matching CrewAI's short, long, entity, contextual.
-    Long-term retrieval uses numpy cosine similarity on hashed token vectors.
+    """四存储记忆，匹配 CrewAI 的 short-term、long-term、entity、contextual。
+    Long-term retrieval (长期检索) 使用 numpy cosine similarity (余弦相似度) 在 hashed token vectors (哈希词向量) 上。
     """
 
     def __init__(self, dim: int = 16) -> None:
@@ -199,7 +199,7 @@ class Memory:
 
 def _researcher(prior: Any, tools: list[Callable[..., str]], memory: Memory | None) -> str:
     topic = prior if isinstance(prior, str) else ""
-    # Run whichever search-ish tool the agent was wired with, in order.
+    # 按顺序运行 agent 接入的任何 search-ish (搜索类) tool。
     search_fn = next(
         (t for t in tools if getattr(t, "is_tool", False) and "search" in getattr(t, "tool_name", "").lower()),
         None,

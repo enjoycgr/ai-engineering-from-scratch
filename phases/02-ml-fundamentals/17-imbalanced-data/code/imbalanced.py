@@ -2,8 +2,11 @@ import numpy as np
 
 
 def make_imbalanced_data(n_majority=950, n_minority=50, seed=42):
+    """生成一个二分类不平衡数据集。"""
     rng = np.random.RandomState(seed)
+    # majority class (多数类) 中心在 (0,0)
     X_maj = rng.randn(n_majority, 2) * 1.0 + np.array([0.0, 0.0])
+    # minority class (少数类) 中心在 (2.5, 2.5)
     X_min = rng.randn(n_minority, 2) * 0.8 + np.array([2.5, 2.5])
     X = np.vstack([X_maj, X_min])
     y = np.concatenate([np.zeros(n_majority), np.ones(n_minority)])
@@ -12,10 +15,12 @@ def make_imbalanced_data(n_majority=950, n_minority=50, seed=42):
 
 
 def euclidean_distance(a, b):
+    """计算两个向量之间的欧几里得距离。"""
     return np.sqrt(np.sum((a - b) ** 2))
 
 
 def find_k_neighbors(X, idx, k):
+    """找到 X 中第 idx 个样本的 k 个最近邻（排除自身）。"""
     distances = []
     for i in range(len(X)):
         if i == idx:
@@ -27,6 +32,11 @@ def find_k_neighbors(X, idx, k):
 
 
 def smote(X_minority, k=5, n_synthetic=100, seed=42):
+    """
+    SMOTE (Synthetic Minority Oversampling Technique，合成少数类过采样技术)。
+    在 minority samples (少数类样本) 及其 k-nearest minority neighbors (k 近邻少数类邻居) 之间进行插值，
+    生成 synthetic samples (合成样本)。
+    """
     rng = np.random.RandomState(seed)
     n_samples = len(X_minority)
     k = min(k, n_samples - 1)
@@ -46,6 +56,10 @@ def smote(X_minority, k=5, n_synthetic=100, seed=42):
 
 
 def random_oversample(X, y, seed=42):
+    """
+    Random oversampling (随机过采样)：复制 minority class samples (少数类样本)，
+    使每个类别的样本数达到 majority count (多数类数量)。
+    """
     rng = np.random.RandomState(seed)
     classes, counts = np.unique(y, return_counts=True)
     max_count = counts.max()
@@ -68,6 +82,10 @@ def random_oversample(X, y, seed=42):
 
 
 def random_undersample(X, y, seed=42):
+    """
+    Random undersampling (随机欠采样)：随机移除 majority class samples (多数类样本)，
+    使每个类别的样本数降至 minority count (少数类数量)。
+    """
     rng = np.random.RandomState(seed)
     classes, counts = np.unique(y, return_counts=True)
     min_count = counts.min()
@@ -88,10 +106,15 @@ def random_undersample(X, y, seed=42):
 
 
 def sigmoid(z):
+    """Sigmoid (S 型) 激活函数，带 clipping (裁剪) 防止溢出。"""
     return 1.0 / (1.0 + np.exp(-np.clip(z, -500, 500)))
 
 
 def logistic_regression_weighted(X, y, weights, lr=0.01, epochs=200):
+    """
+    带 sample weights (样本权重) 的 logistic regression (逻辑回归)。
+    weights 用于实现 class weights (类别权重) 或 uniform weights (统一权重)。
+    """
     n_samples, n_features = X.shape
     w = np.zeros(n_features)
     b = 0.0
@@ -112,6 +135,10 @@ def logistic_regression_weighted(X, y, weights, lr=0.01, epochs=200):
 
 
 def compute_class_weights(y):
+    """
+    计算 inverse frequency (逆频率) class weights (类别权重)。
+    公式：weight = n_samples / (n_classes * count)
+    """
     classes, counts = np.unique(y, return_counts=True)
     n_samples = len(y)
     n_classes = len(classes)
@@ -122,6 +149,10 @@ def compute_class_weights(y):
 
 
 def class_weighted_loss(y_true, y_pred_probs, weights):
+    """
+    计算 weighted cross-entropy loss (加权交叉熵损失)。
+    用于比较不同模型在 uniform weights (统一权重) 和 class weights (类别权重) 下的损失。
+    """
     eps = 1e-15
     y_pred_probs = np.clip(y_pred_probs, eps, 1 - eps)
     loss = -(y_true * np.log(y_pred_probs) + (1 - y_true) * np.log(1 - y_pred_probs))
@@ -129,6 +160,7 @@ def class_weighted_loss(y_true, y_pred_probs, weights):
 
 
 def confusion_matrix_values(y_true, y_pred):
+    """计算 confusion matrix (混淆矩阵) 的四个值：TP, TN, FP, FN。"""
     tp = int(np.sum((y_pred == 1) & (y_true == 1)))
     tn = int(np.sum((y_pred == 0) & (y_true == 0)))
     fp = int(np.sum((y_pred == 1) & (y_true == 0)))
@@ -137,6 +169,11 @@ def confusion_matrix_values(y_true, y_pred):
 
 
 def compute_metrics(y_true, y_pred):
+    """
+    计算 classification metrics (分类指标)：accuracy, precision, recall, F1, MCC。
+    对于不平衡数据，precision (精确率)、recall (召回率) 和 F1 score (F1 分数)
+    比 accuracy (准确率) 更有信息量。
+    """
     tp, tn, fp, fn = confusion_matrix_values(y_true, y_pred)
     accuracy = (tp + tn) / (tp + tn + fp + fn)
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
@@ -156,6 +193,10 @@ def compute_metrics(y_true, y_pred):
 
 
 def find_optimal_threshold(y_true, y_probs, metric="f1"):
+    """
+    Threshold tuning (阈值调优)：在 validation set (验证集) 上扫描 thresholds (阈值)，
+    找到能最大化指定 metric (指标) 的最佳 threshold (阈值)。
+    """
     best_threshold = 0.5
     best_score = -1.0
 
@@ -184,6 +225,7 @@ def find_optimal_threshold(y_true, y_probs, metric="f1"):
 
 
 def print_confusion_matrix(y_true, y_pred, label=""):
+    """打印 confusion matrix (混淆矩阵)。"""
     tp, tn, fp, fn = confusion_matrix_values(y_true, y_pred)
     print(f"  {label}")
     print(f"                  Predicted +  Predicted -")
@@ -192,6 +234,7 @@ def print_confusion_matrix(y_true, y_pred, label=""):
 
 
 def print_metrics(metrics, label=""):
+    """打印 classification metrics (分类指标)。"""
     print(f"  {label}")
     print(f"    Accuracy:  {metrics['accuracy']:.4f}")
     print(f"    Precision: {metrics['precision']:.4f}")
@@ -202,7 +245,7 @@ def print_metrics(metrics, label=""):
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("IMBALANCED DATA HANDLING")
+    print("IMBALANCED DATA HANDLING (不平衡数据处理)")
     print("=" * 60)
 
     X, y = make_imbalanced_data(950, 50, seed=42)
@@ -217,15 +260,15 @@ if __name__ == "__main__":
     print(f"Train positives: {int(np.sum(y_train == 1))}, Test positives: {int(np.sum(y_test == 1))}")
 
     print("\n" + "-" * 60)
-    print("1. ALWAYS PREDICT MAJORITY (BASELINE)")
+    print("1. ALWAYS PREDICT MAJORITY (BASELINE) (总是预测多数类 - 基线)")
     print("-" * 60)
     preds_majority = np.zeros_like(y_test)
     metrics_majority = compute_metrics(y_test, preds_majority)
-    print_confusion_matrix(y_test, preds_majority, "Always predict negative:")
-    print_metrics(metrics_majority, "Metrics:")
+    print_confusion_matrix(y_test, preds_majority, "Always predict negative (总是预测负类):")
+    print_metrics(metrics_majority, "Metrics (指标):")
 
     print("\n" + "-" * 60)
-    print("2. NO TREATMENT (PLAIN LOGISTIC REGRESSION)")
+    print("2. NO TREATMENT (PLAIN LOGISTIC REGRESSION) (无处理 - 普通逻辑回归)")
     print("-" * 60)
     w_base, b_base = logistic_regression_weighted(
         X_train, y_train, np.ones(len(y_train)), lr=0.1, epochs=300
@@ -233,11 +276,11 @@ if __name__ == "__main__":
     probs_base = sigmoid(X_test @ w_base + b_base)
     preds_base = (probs_base >= 0.5).astype(int)
     metrics_base = compute_metrics(y_test, preds_base)
-    print_confusion_matrix(y_test, preds_base, "Default threshold (0.5):")
-    print_metrics(metrics_base, "Metrics:")
+    print_confusion_matrix(y_test, preds_base, "Default threshold (0.5) (默认阈值 0.5):")
+    print_metrics(metrics_base, "Metrics (指标):")
 
     print("\n" + "-" * 60)
-    print("3. RANDOM OVERSAMPLING")
+    print("3. RANDOM OVERSAMPLING (随机过采样)")
     print("-" * 60)
     X_over, y_over = random_oversample(X_train, y_train)
     print(f"  After oversampling: {len(y_over)} samples (was {len(y_train)})")
@@ -247,11 +290,11 @@ if __name__ == "__main__":
     )
     preds_over = (sigmoid(X_test @ w_over + b_over) >= 0.5).astype(int)
     metrics_over = compute_metrics(y_test, preds_over)
-    print_confusion_matrix(y_test, preds_over, "Oversampled model:")
-    print_metrics(metrics_over, "Metrics:")
+    print_confusion_matrix(y_test, preds_over, "Oversampled model (过采样模型):")
+    print_metrics(metrics_over, "Metrics (指标):")
 
     print("\n" + "-" * 60)
-    print("4. RANDOM UNDERSAMPLING")
+    print("4. RANDOM UNDERSAMPLING (随机欠采样)")
     print("-" * 60)
     X_under, y_under = random_undersample(X_train, y_train)
     print(f"  After undersampling: {len(y_under)} samples (was {len(y_train)})")
@@ -261,8 +304,8 @@ if __name__ == "__main__":
     )
     preds_under = (sigmoid(X_test @ w_under + b_under) >= 0.5).astype(int)
     metrics_under = compute_metrics(y_test, preds_under)
-    print_confusion_matrix(y_test, preds_under, "Undersampled model:")
-    print_metrics(metrics_under, "Metrics:")
+    print_confusion_matrix(y_test, preds_under, "Undersampled model (欠采样模型):")
+    print_metrics(metrics_under, "Metrics (指标):")
 
     print("\n" + "-" * 60)
     print("5. SMOTE")
@@ -283,10 +326,10 @@ if __name__ == "__main__":
     preds_smote = (sigmoid(X_test @ w_sm + b_sm) >= 0.5).astype(int)
     metrics_smote = compute_metrics(y_test, preds_smote)
     print_confusion_matrix(y_test, preds_smote, "SMOTE model:")
-    print_metrics(metrics_smote, "Metrics:")
+    print_metrics(metrics_smote, "Metrics (指标):")
 
     print("\n" + "-" * 60)
-    print("6. CLASS WEIGHTS")
+    print("6. CLASS WEIGHTS (类别权重)")
     print("-" * 60)
     sample_weights = compute_class_weights(y_train)
     unique_weights = np.unique(sample_weights)
@@ -298,11 +341,11 @@ if __name__ == "__main__":
     probs_cw = sigmoid(X_test @ w_cw + b_cw)
     preds_cw = (probs_cw >= 0.5).astype(int)
     metrics_cw = compute_metrics(y_test, preds_cw)
-    print_confusion_matrix(y_test, preds_cw, "Class-weighted model:")
-    print_metrics(metrics_cw, "Metrics:")
+    print_confusion_matrix(y_test, preds_cw, "Class-weighted model (类别加权模型):")
+    print_metrics(metrics_cw, "Metrics (指标):")
 
     print("\n" + "-" * 60)
-    print("7. THRESHOLD TUNING (on class-weighted model)")
+    print("7. THRESHOLD TUNING (on class-weighted model) (阈值调优 - 基于类别加权模型)")
     print("-" * 60)
     val_split = int(0.75 * len(y_train))
     X_tr, X_val = X_train[:val_split], X_train[val_split:]
@@ -315,10 +358,10 @@ if __name__ == "__main__":
     preds_thresh = (probs_cw >= best_thresh).astype(int)
     metrics_thresh = compute_metrics(y_test, preds_thresh)
     print_confusion_matrix(y_test, preds_thresh, f"Threshold = {best_thresh:.2f}:")
-    print_metrics(metrics_thresh, "Metrics:")
+    print_metrics(metrics_thresh, "Metrics (指标):")
 
     print("\n" + "-" * 60)
-    print("8. WEIGHTED CROSS-ENTROPY LOSS COMPARISON")
+    print("8. WEIGHTED CROSS-ENTROPY LOSS COMPARISON (加权交叉熵损失对比)")
     print("-" * 60)
     probs_train_base = sigmoid(X_train @ w_base + b_base)
     probs_train_cw = sigmoid(X_train @ w_cw + b_cw)
@@ -333,16 +376,16 @@ if __name__ == "__main__":
     print(f"  CW model, weighted loss:    {loss_cw_weighted:.4f}")
 
     print("\n" + "=" * 60)
-    print("SUMMARY COMPARISON")
+    print("SUMMARY COMPARISON (方法对比汇总)")
     print("=" * 60)
     approaches = [
-        ("Always majority", metrics_majority),
-        ("No treatment", metrics_base),
-        ("Oversampling", metrics_over),
-        ("Undersampling", metrics_under),
+        ("Always majority (总是多数类)", metrics_majority),
+        ("No treatment (无处理)", metrics_base),
+        ("Oversampling (过采样)", metrics_over),
+        ("Undersampling (欠采样)", metrics_under),
         ("SMOTE", metrics_smote),
-        ("Class weights", metrics_cw),
-        ("CW + threshold", metrics_thresh),
+        ("Class weights (类别权重)", metrics_cw),
+        ("CW + threshold (类别权重+阈值)", metrics_thresh),
     ]
     print(f"\n  {'Approach':<18} {'Acc':>6} {'Prec':>6} {'Rec':>6} {'F1':>6} {'MCC':>6}")
     print(f"  {'-'*18} {'-'*6} {'-'*6} {'-'*6} {'-'*6} {'-'*6}")

@@ -1,8 +1,8 @@
-"""Hierarchical multi-agent with decomposition-drift demo.
+"""层级多智能体与分解漂移演示。
 
-3-level hierarchy: top manager -> sub-managers -> workers.
-Run happy path and a perturbed path where the top manager mislabels one branch.
-Watch the error cascade.
+3 层 hierarchy (层级结构): top manager (顶层管理者) -> sub-managers (子管理者) -> workers (工作者)。
+运行 happy path (正常路径) 和 perturbed path (扰动路径)，其中 top manager 将某个分支误标。
+观察错误如何 cascade (级联)。
 """
 from __future__ import annotations
 
@@ -86,6 +86,8 @@ class TopManager:
 
 
 def build_hierarchy() -> TopManager:
+    # 构建 3 层 hierarchy (层级结构) 的 helper。
+    # 每个 sub-manager 将任务 split (拆分) 给其 worker。
     fe = Worker("fe", {"frontend": "React component audited; 2 issues."})
     be = Worker("be", {"backend": "API endpoints audited; 1 issue."})
     eng = SubManager(
@@ -115,7 +117,7 @@ def render(label: str, synth: TopSynthesis) -> None:
 
 
 def main() -> None:
-    print("Hierarchical multi-agent with decomposition-drift demo")
+    print("层级多智能体与分解漂移演示")
     print("-" * 60)
 
     top = build_hierarchy()
@@ -127,10 +129,10 @@ def main() -> None:
     perturbed = top.run(task, branch_labels=["engineering", "finance"])
     render("Perturbed path (top manager mislabels 'legal' as 'finance')", perturbed)
 
-    print("\nUser asked about legal/engineering review.")
-    print("Happy path: both legal and engineering answer truthfully.")
-    print("Perturbed path: finance dutifully answers, legal question goes unanswered.")
-    print("The error appears at TOP synthesis -- one level removed from where a human could catch it.")
+    print("\n用户询问了法律/工程审查。")
+    print("Happy path: 法律和工程都如实回答。")
+    print("Perturbed path: finance  dutifully (尽职地) 回答，法律问题无人回应。")
+    print("错误出现在 TOP synthesis (顶层综合) 中——比人类能够发现的位置高了一层。")
 
 
 if __name__ == "__main__":

@@ -4,67 +4,67 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What does a slot-filling state machine do in a rule-based chatbot?",
+      "question": "基于规则的聊天机器人中的槽填充 (slot-filling) 状态机有什么作用？",
       "options": [
         "Detects sarcasm",
         "Picks the most fluent reply",
         "Embeds the user message",
-        "Tracks which required parameters (date, destination, amount) are still missing and asks for them in sequence"
+        "追踪哪些必需参数（日期、目的地、金额）仍然缺失，并按顺序询问它们"
       ],
       "correct": 3,
-      "explanation": "Slot filling iteratively collects the structured parameters a task handler needs."
+      "explanation": "Slot filling 迭代收集任务处理程序所需的结构化参数。"
     },
     {
       "stage": "pre",
-      "question": "Why is retrieval-based chat resistant to hallucination?",
+      "question": "为什么基于检索的聊天能够抵抗幻觉 (hallucination)？",
       "options": [
         "It uses embeddings",
         "It rejects all queries",
-        "It returns a canned response from a curated set rather than generating new text",
+        "它从精选集合中返回预设回复，而不是生成新文本",
         "It uses BM25"
       ],
       "correct": 2,
-      "explanation": "Retrieval surfaces pre-written answers; no generation means no fabricated content."
+      "explanation": "检索 (Retrieval) 展示预先写好的答案；不生成意味着没有虚构内容。"
     },
     {
       "stage": "check",
-      "question": "What defines an LLM agent loop versus a single-shot LLM call?",
+      "question": "什么定义了 LLM 智能体 (LLM agent) 循环与单次 LLM 调用的区别？",
       "options": [
         "Use of greedy decoding",
         "Use of softmax",
-        "A controller that interleaves LLM calls with tool invocations until the model returns a final answer or the step budget is hit",
+        "一个控制器，将 LLM 调用与工具调用交错进行，直到模型返回最终答案或达到步骤预算 (step budget)",
         "Bigger context window"
       ],
       "correct": 2,
-      "explanation": "Agents add a plan-act-observe loop with tool calls and a termination condition."
+      "explanation": "智能体 (Agents) 添加了 plan-act-observe 循环，包含工具调用和终止条件。"
     },
     {
       "stage": "check",
-      "question": "Why is hybrid routing (rules + retrieval + LLM agent) the 2026 production default?",
+      "question": "为什么混合路由（规则 + 检索 + LLM 智能体）是 2026 年的生产默认方案？",
       "options": [
         "It is cheaper to maintain",
         "It removes the need for evaluation",
-        "No single architecture handles every request well; rules cover destructive actions, retrieval covers FAQ, agents handle ambiguous open-ended queries",
+        "没有单一架构能很好地处理每个请求；规则覆盖破坏性操作，检索覆盖 FAQ，智能体处理模糊的开放式查询",
         "It avoids embeddings"
       ],
       "correct": 2,
-      "explanation": "Hybrid systems use deterministic rules for risky actions and reserve LLM agents for open-ended queries."
+      "explanation": "混合系统对高风险操作使用确定性规则，对开放式查询保留 LLM 智能体。"
     },
     {
       "stage": "check",
-      "question": "What is prompt injection?",
+      "question": "什么是提示注入 (prompt injection)？",
       "options": [
         "A SQL injection variant only",
         "A type of tokenizer attack",
         "Injecting tokens into embeddings",
-        "User-supplied (direct) or document-supplied (indirect) text that tries to override the system prompt or hijack the agent's behavior"
+        "用户提供的（直接）或文档提供的（间接）文本，试图覆盖系统提示词或劫持智能体的行为"
       ],
       "correct": 3,
-      "explanation": "Prompt injection rewrites the agent's behavior via untrusted text in user input or tool outputs."
+      "explanation": "Prompt injection 通过用户输入或工具输出中的不可信文本重写智能体的行为。"
     },
     {
       "stage": "post",
-      "question": "Which OWASP Top 10 (LLM Apps 2025) risk is ranked LLM01?",
+      "question": "在 OWASP Top 10（LLM Apps 2025）中，哪个风险排名第一（LLM01）？",
       "options": [
         "Prompt injection (direct and indirect)",
         "Insecure deserialization",
@@ -72,31 +72,31 @@
         "SQL injection"
       ],
       "correct": 0,
-      "explanation": "Prompt injection is LLM01 in the OWASP LLM Apps Top 10 (2025)."
+      "explanation": "Prompt injection 在 OWASP LLM Apps Top 10（2025）中排名第一（LLM01）。"
     },
     {
       "stage": "post",
-      "question": "What mitigation pattern reduces indirect prompt injection by separating planning from execution?",
+      "question": "哪种缓解模式通过将规划与执行分离来减少间接提示注入 (indirect prompt injection)？",
       "options": [
         "Shorter context",
-        "Plan-Verify-Execute: the agent plans first, verifies each action against the plan, then executes — preventing tool outputs from injecting new unplanned actions",
+        "Plan-Verify-Execute：智能体先规划，然后针对计划验证每个动作，再执行 —— 防止工具输出注入新的未计划动作",
         "Bigger model",
         "Lower temperature"
       ],
       "correct": 1,
-      "explanation": "PVE checks each step against the agreed plan, so injected instructions from tool outputs are rejected."
+      "explanation": "PVE 针对每个步骤检查已同意的计划，因此来自工具输出的注入指令会被拒绝。"
     },
     {
       "stage": "post",
-      "question": "Why must destructive actions (payments, deletions) route through a structured flow even in an LLM-agent system?",
+      "question": "为什么在 LLM 智能体系统中，破坏性操作（支付、删除）也必须通过结构化流程？",
       "options": [
         "LLMs are slow",
         "Beam search is unsafe",
         "Tools cannot be called",
-        "Confident fabrication, prompt injection, and scope creep mean the LLM cannot be the sole authority for irreversible side effects"
+        "自信的虚构 (confident fabrication)、提示注入 (prompt injection) 和范围蔓延 (scope creep) 意味着 LLM 不能成为不可逆副作用的唯一权威"
       ],
       "correct": 3,
-      "explanation": "Hallucination and injection make irreversible actions through pure LLM agents unsafe; require deterministic confirmation flows."
+      "explanation": "幻觉 (Hallucination) 和注入使得通过纯 LLM 智能体执行不可逆操作不安全；需要确定性确认流程。"
     }
   ]
 }

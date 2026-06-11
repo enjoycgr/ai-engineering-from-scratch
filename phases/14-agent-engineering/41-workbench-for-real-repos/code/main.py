@@ -1,9 +1,9 @@
-"""Run the same task on a sample app twice: prompt-only vs workbench-guided.
+"""在示例应用上把同一项任务跑两遍：仅提示词 vs 工作台引导。
 
-Both pipelines are scripted (no LLM) so the measurement is reproducible.
-Writes before-after-report.md and comparison.json next to this file.
+两条流水线都是脚本化的（无 LLM），因此测量是可复现的。
+将 before-after-report.md 和 comparison.json 写在本文件旁边。
 
-Run: python3 code/main.py
+运行：python3 code/main.py
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ HERE = Path(__file__).parent
 SAMPLE = HERE / "sample_app"
 
 
-SAMPLE_APP_PY = '''"""Minimal signup handler. Treat as production-ish for this exercise."""
+SAMPLE_APP_PY = '''"""极简注册处理器。在本练习中视为类生产环境处理。"""
 
 USERS: dict[str, str] = {}
 
@@ -50,7 +50,7 @@ FORBIDDEN = {"sample_app/scripts/release.sh"}
 
 
 def run_prompt_only() -> TaskOutcome:
-    """Edits a couple of files, never runs the test, claims done."""
+    """编辑几个文件，从不跑测试，声称完成。"""
     touched = ["sample_app/app.py", "README.md", "sample_app/scripts/release.sh"]
     return TaskOutcome(
         pipeline="prompt-only",
@@ -63,7 +63,7 @@ def run_prompt_only() -> TaskOutcome:
 
 
 def run_workbench() -> TaskOutcome:
-    """Reads scope, edits inside scope, runs acceptance through feedback, gates, reviews, hands off."""
+    """读取范围合约，在范围内编辑，通过反馈运行器跑验收、过门控、经审查、生成交接。"""
     touched = ["sample_app/app.py", "sample_app/test_app.py"]
     return TaskOutcome(
         pipeline="workbench-guided",

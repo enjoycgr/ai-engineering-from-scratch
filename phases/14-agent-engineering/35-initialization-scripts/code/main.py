@@ -6,6 +6,11 @@ short-circuit, and exits non-zero when any block-severity probe fails.
 
 Run: python3 code/main.py
 """
+# 确定性 agent initialization script（初始化脚本）。
+# 运行 probes（runtime、deps、test command、env、state freshness、last-known-good diff、timing budget），
+# 写入 init_report.json，支持 prereqs.lock TTL short-circuit，
+# 当任何 block-severity probe 失败时 exit non-zero。
+# 运行：python3 code/main.py
 
 from __future__ import annotations
 
@@ -110,6 +115,8 @@ def probe_lkg_diff() -> Probe:
 
     Anchors every session against the same baseline so drift cannot compound.
     """
+    # 当与 last-known-good 的 diff 超过文件预算时拒绝启动。
+    # 将每个 session 针对相同的 baseline 锚定，使 drift 无法累积。
     if not LKG_PATH.exists():
         return Probe("lkg_diff", "warn", "no last_known_good.json; pin one after first successful merge")
     try:
@@ -150,6 +157,8 @@ def lock_is_fresh() -> bool:
 
     Same shape as Docker layer caches: idempotent probe + content hash = skip.
     """
+    # 缓存模式：当没有实质性变化时复用之前的 probe pass。
+    # 与 Docker layer caches 同形：idempotent probe + content hash = skip。
     if not LOCK_PATH.exists():
         return False
     try:

@@ -1,11 +1,11 @@
 """vLLM production stack + LMCache simulator — stdlib Python.
 
-Compares three configs on a preemption-heavy workload:
-  NATIVE_ONLY   : vLLM with no offload, requests re-prefill on preemption
-  CPU_OFFLOAD   : native CPU offload, engine-local
-  LMCACHE       : cluster LMCache shared across 4 engines
+在 preemption-heavy 工作负载上对比三种配置：
+  NATIVE_ONLY   : 无卸载，preemption 时请求重新 prefill
+  CPU_OFFLOAD   : 原生 CPU 卸载，engine-local
+  LMCACHE       : 跨 4 个引擎的集群 LMCache
 
-Reports re-prefill count avoided, throughput gain, and break-even HBM utilization.
+报告避免的重新 prefill 次数、吞吐量增益和盈亏平衡 HBM 利用率。
 """
 
 from __future__ import annotations

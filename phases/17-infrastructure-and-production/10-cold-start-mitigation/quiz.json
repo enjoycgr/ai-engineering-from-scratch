@@ -1,38 +1,38 @@
 {
   "lesson": "10-cold-start-mitigation",
-  "title": "Cold Start Mitigation for Serverless LLMs",
+  "title": "Serverless LLM 冷启动缓解",
   "questions": [
     {
       "stage": "pre",
-      "question": "Roughly how long does a cold start typically take for a 70B model on a fresh node without mitigations?",
+      "question": "在没有缓解措施的情况下，70B 模型在全新节点上的冷启动通常需要多长时间？",
       "options": [
-        "Over 1 hour",
-        "30-60 seconds",
-        "3-8 minutes",
-        "Under 10 seconds"
+        "超过 1 小时",
+        "30-60 秒",
+        "3-8 分钟",
+        "不到 10 秒"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which AWS-side feature does the lesson recommend for pre-seeding container images so step-2 image pull disappears?",
+      "question": "课程推荐哪个 AWS 功能用于预置容器镜像，从而使第 2 步镜像拉取消失？",
       "options": [
-        "Bottlerocket dual-volume architecture referenced from EC2NodeClass",
-        "ECS task definitions",
-        "Spot fleet placement",
-        "EBS volume snapshots only"
+        "Bottlerocket 双卷架构，通过 EC2NodeClass 引用",
+        "ECS 任务定义",
+        "Spot 集群放置",
+        "仅 EBS 卷快照"
       ],
       "correct": 0,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which Modal feature provides the closest thing to a \"warm GPU boot in seconds\" by deserializing post-load state directly into HBM?",
+      "question": "哪个 Modal 功能通过将加载后状态直接反序列化到 HBM，提供最接近\"温 GPU 秒级启动\"的体验？",
       "options": [
-        "Tiered NVMe-to-DRAM loading",
-        "Live migration",
-        "GPU memory snapshots (checkpoints)",
+        "分层 NVMe-to-DRAM 加载",
+        "实时迁移",
+        "GPU 内存快照（checkpoints）",
         "Run:ai Model Streamer"
       ],
       "correct": 2,
@@ -40,36 +40,36 @@
     },
     {
       "stage": "check",
-      "question": "Why does live migration transfer input tokens rather than KV cache between nodes?",
+      "question": "为什么实时迁移传输输入 token 而非 KV cache 到目标节点？",
       "options": [
-        "Live migration is required by GDPR",
-        "Input tokens have larger entropy",
-        "KV cache is encrypted and cannot move",
-        "Recomputing KV on the destination is cheaper than transferring GB of KV cache over the network"
+        "实时迁移是 GDPR 要求的",
+        "输入 token 具有更大的熵",
+        "KV cache 已加密，无法移动",
+        "在目标节点重新计算 KV 比通过网络传输 GB 级 KV cache 更便宜"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Which serverless layer trades direct GPU cost for predictable readiness by keeping at least one replica live?",
+      "question": "哪个 serverless 层通过保持至少一个副本在线来用直接 GPU 成本换取可预测的就绪性？",
       "options": [
-        "Warm pool with min_workers >= 1",
-        "Tiered loading",
-        "Bottlerocket pre-seeding",
-        "Live migration"
+        "温池，min_workers >= 1",
+        "分层加载",
+        "Bottlerocket 预置",
+        "实时迁移"
       ],
       "correct": 0,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Why does the lesson say cold-start mitigation must be stacked across layers rather than picked as a single tool?",
+      "question": "为什么课程说冷启动缓解必须跨层叠加，而不是选择单一工具？",
       "options": [
-        "No single layer eliminates every step (node provision, image pull, weights load, engine init); stacking layers compresses each step",
-        "It is a regulatory requirement",
-        "Modal owns the entire stack",
-        "All five layers are bundled in vLLM"
+        "没有单一工具能消除每一步（节点配置、镜像拉取、权重加载、引擎初始化）；叠加层压缩每一步",
+        "这是监管要求",
+        "Modal 拥有整个堆栈",
+        "所有五层都捆绑在 vLLM 中"
       ],
       "correct": 0,
       "explanation": ""

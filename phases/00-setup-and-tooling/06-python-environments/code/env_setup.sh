@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# Phase 0 · Lesson 06 — Python 环境设置脚本。
+# 检测 Python 版本，创建 virtual environment，安装核心依赖并验证。
+# 优先使用 uv（更快），回退到 python3 -m venv + pip。
+# Refs: https://docs.astral.sh/uv/
+#       https://docs.python.org/3/library/venv.html
+
 set -euo pipefail
 
 PYTHON_MIN_MAJOR=3
@@ -19,18 +25,18 @@ REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 cd "$REPO_ROOT"
 
 echo ""
-echo "=== AI Engineering from Scratch: Python Environment Setup ==="
+echo "=== AI Engineering from Scratch: Python 环境设置 ==="
 echo ""
-echo "Repo root: $REPO_ROOT"
+echo "仓库根目录: $REPO_ROOT"
 echo ""
 
 HAS_UV=false
 if command -v uv &> /dev/null; then
     HAS_UV=true
-    pass "uv found: $(uv --version)"
+    pass "uv 已找到: $(uv --version)"
 else
-    warn "uv not found. Install it: curl -LsSf https://astral.sh/uv/install.sh | sh"
-    warn "Falling back to python3 -m venv + pip"
+    warn "uv 未找到。安装方式: curl -LsSf https://astral.sh/uv/install.sh | sh"
+    warn "回退到 python3 -m venv + pip"
 fi
 
 PYTHON_CMD=""
@@ -49,9 +55,9 @@ for cmd in python3 python; do
 done
 
 if [ -z "$PYTHON_CMD" ]; then
-    fail "Python ${PYTHON_MIN_MAJOR}.${PYTHON_MIN_MINOR}+ not found"
+    fail "未找到 Python ${PYTHON_MIN_MAJOR}.${PYTHON_MIN_MINOR}+"
     echo ""
-    echo "Install Python ${PYTHON_MIN_MAJOR}.${PYTHON_MIN_MINOR}+:"
+    echo "安装 Python ${PYTHON_MIN_MAJOR}.${PYTHON_MIN_MINOR}+:"
     echo "  uv:    uv python install 3.12"
     echo "  macOS: brew install python@3.12"
     echo "  Linux: sudo apt install python3.12 python3.12-venv"
@@ -61,18 +67,18 @@ fi
 pass "Python: $($PYTHON_CMD --version)"
 
 echo ""
-echo "--- Creating virtual environment ---"
+echo "--- 创建 virtual environment ---"
 echo ""
 
 if [ -d "$VENV_DIR" ]; then
-    warn "Existing $VENV_DIR found. Reusing it."
+    warn "已存在 $VENV_DIR，复用它。"
 else
     if $HAS_UV; then
         uv venv "$VENV_DIR"
     else
         "$PYTHON_CMD" -m venv "$VENV_DIR"
     fi
-    pass "Created $VENV_DIR"
+    pass "已创建 $VENV_DIR"
 fi
 
 if [ -f "$VENV_DIR/bin/activate" ]; then
@@ -80,21 +86,21 @@ if [ -f "$VENV_DIR/bin/activate" ]; then
 elif [ -f "$VENV_DIR/Scripts/activate" ]; then
     source "$VENV_DIR/Scripts/activate"
 else
-    fail "Could not find activation script in $VENV_DIR"
+    fail "在 $VENV_DIR 中找不到激活脚本"
     exit 1
 fi
 
-pass "Activated virtual environment"
+pass "已激活 virtual environment"
 
 VENV_PYTHON="$(which python)"
 if [[ "$VENV_PYTHON" != *"$VENV_DIR"* ]]; then
-    fail "Python is not running from the venv: $VENV_PYTHON"
+    fail "Python 未在 venv 中运行: $VENV_PYTHON"
     exit 1
 fi
-pass "Python path: $VENV_PYTHON"
+pass "Python 路径: $VENV_PYTHON"
 
 echo ""
-echo "--- Installing core packages ---"
+echo "--- 安装核心包 ---"
 echo ""
 
 if $HAS_UV; then
@@ -104,10 +110,10 @@ else
     pip install $CORE_PACKAGES
 fi
 
-pass "Installed: $CORE_PACKAGES"
+pass "已安装: $CORE_PACKAGES"
 
 echo ""
-echo "--- Verifying installation ---"
+echo "--- 验证安装 ---"
 echo ""
 
 FAILURES=0
@@ -136,9 +142,9 @@ import numpy as np
 a = np.random.randn(3, 3)
 b = np.random.randn(3, 3)
 c = a @ b
-print(f'  Matrix multiply check: ({a.shape}) @ ({b.shape}) = ({c.shape})')
+print(f'  矩阵乘法验证: ({a.shape}) @ ({b.shape}) = ({c.shape})')
 "
-pass "NumPy operations working"
+pass "NumPy 运算正常"
 
 echo ""
 if python -c "import torch" 2>/dev/null; then
@@ -146,26 +152,26 @@ if python -c "import torch" 2>/dev/null; then
     CUDA_AVAIL=$(python -c "import torch; print(torch.cuda.is_available())")
     pass "PyTorch $TORCH_VERSION (CUDA: $CUDA_AVAIL)"
 else
-    warn "PyTorch not installed (install later when needed):"
+    warn "PyTorch 未安装（需要时再安装）："
     echo "    uv pip install torch torchvision torchaudio"
 fi
 
 echo ""
-echo "=== Summary ==="
+echo "=== 总结 ==="
 echo ""
-echo "  Repo root:    $REPO_ROOT"
-echo "  Venv:         $REPO_ROOT/$VENV_DIR"
-echo "  Python:       $(python --version)"
-echo "  Packages:     $CORE_PACKAGES"
+echo "  仓库根目录:  $REPO_ROOT"
+echo "  Venv:        $REPO_ROOT/$VENV_DIR"
+echo "  Python:      $(python --version)"
+echo "  已安装包:    $CORE_PACKAGES"
 echo ""
 
 if [ "$FAILURES" -gt 0 ]; then
-    fail "$FAILURES package(s) failed verification"
+    fail "$FAILURES 个包验证失败"
     exit 1
 else
-    pass "All checks passed"
+    pass "所有检查通过"
     echo ""
-    echo "Activate this environment in future sessions:"
+    echo "在后续会话中激活此环境："
     echo ""
     echo "  source $REPO_ROOT/$VENV_DIR/bin/activate"
     echo ""

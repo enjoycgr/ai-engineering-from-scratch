@@ -11,6 +11,7 @@ sys.path.insert(
 from main import MiniGPT, LayerNorm, FeedForward, MultiHeadAttention, TransformerBlock, Embedding
 
 
+# 指令-响应对的示例数据集（用于演示 SFT 格式）
 INSTRUCTION_DATA = [
     {
         "instruction": "What is the capital of France?",
@@ -46,6 +47,7 @@ INSTRUCTION_DATA = [
     },
 ]
 
+# 用于标记指令/响应边界的特殊 token
 SPECIAL_TOKENS = {
     "INST_START": 253,
     "INST_END": 254,
@@ -54,6 +56,7 @@ SPECIAL_TOKENS = {
 
 
 def tokenize_instruction_pair(instruction, response, vocab_size=256):
+    """将指令-响应对编码为带特殊标记的 token 序列。"""
     inst_tokens = list(instruction.encode("utf-8"))
     resp_tokens = list(response.encode("utf-8"))
 
@@ -72,6 +75,11 @@ def tokenize_instruction_pair(instruction, response, vocab_size=256):
 
 
 def create_loss_mask(tokens):
+    """创建 loss mask：响应 token 为 1，其余为 0。
+
+    这确保梯度只从 assistant 的响应 token 反向传播，
+    而不是从指令或 system prompt token。
+    """
     mask = np.zeros(len(tokens), dtype=np.float32)
     in_response = False
 
@@ -86,6 +94,16 @@ def create_loss_mask(tokens):
 
 
 def masked_cross_entropy_loss(logits, targets, loss_mask):
+    """计算仅针对响应 token 的交叉熵 loss。
+
+    参数：
+        logits:  (batch, seq_len, vocab_size) 模型输出
+        targets: (batch, seq_len) 目标 token ID
+        loss_mask: (batch, seq_len) 1 表示响应 token，0 表示其他
+
+    返回：
+        标量 loss，仅对掩码 token 取平均
+    """
     batch, seq_len, vocab_size = logits.shape
     logits_flat = logits.reshape(-1, vocab_size)
     targets_flat = targets.reshape(-1)
@@ -108,6 +126,11 @@ def masked_cross_entropy_loss(logits, targets, loss_mask):
 
 
 def sft_train(model, dataset, num_epochs=2, lr=2e-5, seq_len=64):
+    """在指令-响应对上运行监督微调（SFT）。
+
+    仅对 assistant 响应 token 计算 loss，保留 pre-trained 知识
+    同时学习对话格式。
+    """
     formatted_data = []
     for example in dataset:
         tokens = tokenize_instruction_pair(example["instruction"], example["response"])
@@ -142,6 +165,7 @@ def sft_train(model, dataset, num_epochs=2, lr=2e-5, seq_len=64):
             logits = model.forward(input_ids)
             loss = masked_cross_entropy_loss(logits, target_ids, loss_mask)
 
+            # 简化的梯度更新（演示用——非生产级 optimizer）
             batch_size, s_len, v_size = logits.shape
             probs = np.exp(logits - logits.max(axis=-1, keepdims=True))
             probs = probs / probs.sum(axis=-1, keepdims=True)
@@ -170,6 +194,7 @@ def sft_train(model, dataset, num_epochs=2, lr=2e-5, seq_len=64):
 
 
 def generate_response(model, prompt_tokens, max_new_tokens=50, temperature=0.8):
+    """从模型自回归采样一个响应。"""
     tokens = list(prompt_tokens)
     seq_len = model.embedding.pos_embed.shape[0]
 
@@ -191,6 +216,7 @@ def generate_response(model, prompt_tokens, max_new_tokens=50, temperature=0.8):
 
 
 def evaluate_instruction_following(model, instructions):
+    """评估模型对格式化指令提示的响应。"""
     print("Evaluating instruction following:")
     print("-" * 50)
 
@@ -214,6 +240,11 @@ def evaluate_instruction_following(model, instructions):
 
 
 def measure_forgetting(model, test_text, seq_len=64):
+    """测量 SFT 后通用 next-token prediction 能力的损失。
+
+    在保留的原始文本语料库上计算 perplexity。
+    大幅增加表明 catastrophic forgetting。
+    """
     tokens = np.array(list(test_text.encode("utf-8")[:512]))
 
     total_loss = 0.0

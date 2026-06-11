@@ -4,16 +4,20 @@ from collections import OrderedDict
 
 
 def count_tokens(text):
+    """通过空格分词估算 token 数量（1 个词 ≈ 1.3 个 token）。"""
     if not text:
         return 0
     return int(len(text.split()) * 1.3)
 
 
 def count_tokens_json(obj):
+    """将对象序列化为 JSON 后估算 token 数量。"""
     return count_tokens(json.dumps(obj))
 
 
 class ContextBudget:
+    """为上下文窗口的每个组件追踪并强制执行 token 限制。"""
+
     def __init__(self, max_tokens=128000, generation_reserve=4000):
         self.max_tokens = max_tokens
         self.generation_reserve = generation_reserve
@@ -66,6 +70,11 @@ class ContextBudget:
 
 
 def reorder_lost_in_middle(items, scores):
+    """将高相关性项目放在开头和结尾，低相关性的放在中间。
+
+    基于 Liu 等人 2023 年的研究：LLM 对上下文中间位置的信息
+    注意力较弱（lost-in-the-middle 效应）。
+    """
     paired = sorted(zip(scores, items), reverse=True)
     sorted_items = [item for _, item in paired]
 
@@ -80,6 +89,7 @@ def reorder_lost_in_middle(items, scores):
 
 
 def score_relevance(query, documents):
+    """通过查询词与文档词的重叠比例计算相关性分数。"""
     query_words = set(query.lower().split())
     scores = []
     for doc in documents:
@@ -93,6 +103,8 @@ def score_relevance(query, documents):
 
 
 class ConversationManager:
+    """通过滑动窗口 + 摘要管理对话历史。"""
+
     def __init__(self, max_history_tokens=5000):
         self.turns = []
         self.summaries = []
@@ -201,6 +213,7 @@ TOOL_REGISTRY = {
 
 
 def classify_intent(query):
+    """通过关键词匹配对查询意图进行分类。"""
     query_lower = query.lower()
 
     intent_keywords = {
@@ -225,6 +238,7 @@ def classify_intent(query):
 
 
 def select_tools(query, token_budget=2000):
+    """仅选择与查询意图相关的工具，以节省 token。"""
     intents = classify_intent(query)
     relevant = {}
     total_tokens = 0
@@ -239,6 +253,8 @@ def select_tools(query, token_budget=2000):
 
 
 class ContextEngine:
+    """为每个查询动态组装最优上下文。"""
+
     def __init__(self, max_tokens=128000, generation_reserve=4000):
         self.max_tokens = max_tokens
         self.generation_reserve = generation_reserve

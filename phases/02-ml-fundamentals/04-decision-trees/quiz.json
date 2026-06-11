@@ -2,46 +2,46 @@
   {
     "id": "trees-pre-1",
     "stage": "pre",
-    "question": "What does Gini impurity measure at a decision tree node?",
+    "question": "Gini impurity（基尼不纯度）在决策树节点上衡量什么？",
     "options": [
-      "The depth of the node in the tree",
-      "The probability of misclassifying a randomly chosen sample given the class distribution at that node",
-      "The total number of samples at the node",
-      "The correlation between features"
+      "节点在树中的深度",
+      "如果根据该节点处的类别分布来标记样本，随机选取一个样本被误分类的概率",
+      "节点上的样本总数",
+      "特征之间的相关性"
     ],
     "correct": 1,
-    "explanation": "Gini impurity = 1 - sum(p_k^2). It measures how often a randomly chosen sample would be misclassified if labeled according to the class distribution at that node. Pure node = 0."
+    "explanation": "Gini impurity（基尼不纯度）= 1 - sum(p_k^2)。它衡量的是：如果根据该节点处的类别分布来随机标记样本，一个随机选取的样本被误分类的概率。纯节点 = 0。"
   },
   {
     "id": "trees-pre-2",
     "stage": "pre",
-    "question": "What is the main advantage of tree-based models over neural networks for tabular data?",
+    "question": "对于表格数据，树模型相比神经网络的主要优势是什么？",
     "options": [
-      "Trees can process images and text natively",
-      "Trees always have lower bias than neural networks",
-      "Trees handle mixed feature types, require less preprocessing, and are more interpretable",
-      "Trees train faster on GPU hardware"
+      "树可以原生处理图像和文本",
+      "树的 bias 总是比神经网络低",
+      "树能处理混合特征类型，需要更少的预处理，并且更具可解释性",
+      "树在 GPU 上训练更快"
     ],
     "correct": 2,
-    "explanation": "Trees natively handle numeric and categorical features without encoding, require minimal preprocessing, and produce interpretable rules. Neural networks excel at spatial/sequential data, not flat tables."
+    "explanation": "树模型原生支持数值型和类别型特征，无需编码，预处理需求极低，并能产生可解释的规则。神经网络在空间/序列数据上表现更好，而不是扁平的表格。"
   },
   {
     "id": "trees-post-1",
     "stage": "post",
-    "question": "Why does a random forest use both bootstrap sampling AND random feature subsets at each split?",
+    "question": "为什么 random forest（随机森林）在每个分裂点同时使用 bootstrap sampling（自助抽样）和随机特征子集？",
     "options": [
-      "To speed up training by reducing the dataset size",
-      "To create diverse, decorrelated trees so that averaging reduces variance without increasing bias",
-      "To ensure each tree sees every data point at least once",
-      "To reduce the depth of individual trees"
+      "通过减小数据集规模来加速训练",
+      "创建多样化、低相关性的树，使得取平均能在不增加 bias 的情况下降低 variance",
+      "确保每棵树至少看到每个数据点一次",
+      "减少单棵树的深度"
     ],
     "correct": 1,
-    "explanation": "Both sources of randomness make the trees diverse. Without feature randomization, all trees would split on the same dominant feature. Diversity is what makes averaging effective at reducing variance."
+    "explanation": "两种随机性来源使树变得多样化。没有特征随机化，所有树都会在同一个主导特征上分裂。多样性是取平均能有效降低 variance 的关键。"
   },
   {
     "id": "trees-post-2",
     "stage": "post",
-    "question": "A node contains 8 dogs and 2 cats. What is its Gini impurity?",
+    "question": "一个节点包含 8 只狗和 2 只猫。它的 Gini impurity（基尼不纯度）是多少？",
     "options": [
       "0.0",
       "0.20",
@@ -49,19 +49,19 @@
       "0.50"
     ],
     "correct": 2,
-    "explanation": "Gini = 1 - (0.8^2 + 0.2^2) = 1 - (0.64 + 0.04) = 0.32. The node is mostly dogs but not pure, so Gini is between 0 (pure) and 0.5 (max for binary)."
+    "explanation": "Gini = 1 - (0.8^2 + 0.2^2) = 1 - (0.64 + 0.04) = 0.32。该节点大部分是狗但不是纯的，所以 Gini 介于 0（纯）和 0.5（二分类最大不纯度）之间。"
   },
   {
     "id": "trees-post-3",
     "stage": "post",
-    "question": "MDI (Mean Decrease in Impurity) feature importance is biased toward which type of feature?",
+    "question": "MDI（Mean Decrease in Impurity，平均不纯度下降）feature importance（特征重要性）偏向哪类特征？",
     "options": [
-      "Binary features with only two values",
-      "Features with low variance",
-      "High-cardinality features with many possible split points",
-      "Features that are highly correlated with the target"
+      "只有两个取值的二值特征",
+      "方差低的特征",
+      "高基数特征（有很多可能分裂点的特征）",
+      "与目标高度相关的特征"
     ],
     "correct": 2,
-    "explanation": "MDI is biased toward high-cardinality features because they offer more possible split points, giving them more chances to reduce impurity by luck. Permutation importance is more reliable."
+    "explanation": "MDI 偏向高基数特征，因为它们提供更多可能的分裂点，从而有更多机会偶然降低不纯度。Permutation importance（置换重要性）更可靠。"
   }
 ]

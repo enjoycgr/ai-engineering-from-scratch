@@ -1,14 +1,14 @@
-"""Phase 13 Lesson 16 - OAuth 2.1 + PKCE + step-up state machine (SEP-835).
+"""Phase 13 Lesson 16 - OAuth 2.1 + PKCE + 升级状态机（SEP-835）。
 
-In-memory state machine that walks through:
-  1. Authorization code flow with PKCE
-  2. Token with resource indicator (RFC 8707)
-  3. Audience validation on the resource server
-  4. 403 insufficient_scope triggering step-up flow
+内存中的状态机走过：
+  1. 带 PKCE 的授权码流程
+  2. 带资源指示器的 token（RFC 8707）
+  3. 资源服务器上的受众验证
+  4. 触发升级流程的 403 insufficient_scope
 
-Stdlib only.
+仅标准库。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

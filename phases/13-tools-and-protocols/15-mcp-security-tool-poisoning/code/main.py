@@ -1,13 +1,13 @@
-"""Phase 13 Lesson 15 - tool-poisoning detector with hash pinning.
+"""Phase 13 Lesson 15 - 具备哈希固定的工具中毒检测器。
 
-Two-layer defense:
-  1. static detector: regex scan for injection patterns in descriptions
-  2. hash pinning: record SHA256 of approved descriptions; flag mutations
+双层防御：
+  1. 静态检测器：描述中注入模式的正则扫描
+  2. 哈希固定：记录已批准描述的 SHA256；标记变更
 
-Sample registry has a clean server, a poisoned server, and a server that
-rug-pulled its description after approval. All three defenses fire.
+样本注册表有一个干净服务器、一个中毒服务器和一个在批准后
+rug-pulled 其描述的服务器。三种防御都触发。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

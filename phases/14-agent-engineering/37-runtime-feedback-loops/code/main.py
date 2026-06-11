@@ -1,9 +1,9 @@
 """Wrap subprocess.run with structured capture, secret redaction, rotation, and command lineage.
 
-Every shell command goes through run_with_feedback. Records carry argv, redacted
-stdout/stderr tails, exit code, duration, started_at, agent note, and a
-command_id/parent_command_id pair so retries trace back to their origin. The
-JSONL file rotates at 1 MB to keep loader memory bounded.
+每条 shell 命令都经过 run_with_feedback。记录携带 argv、脱敏后的（redacted）
+stdout/stderr 尾部、退出码（exit code）、耗时、started_at、智能体备注，以及一个
+command_id/parent_command_id 对，以便重试可以追溯到其源头。
+JSONL 文件在 1 MB 时轮转，以保持加载器内存有界。
 
 Run: python3 code/main.py
 """
@@ -27,7 +27,7 @@ TAIL_LINES = 30
 ROTATE_BYTES = 1 * 1024 * 1024  # 1 MB
 MAX_ROTATIONS = 5
 
-# Secret patterns. Audit quarterly against the production runtime's observed leak shapes.
+# 机密模式。每季度根据生产运行时观察到的泄漏形状进行审计。
 REDACTION_PATTERNS = [
     (re.compile(r"(?i)bearer\s+[A-Za-z0-9._\-]+"), "Bearer [REDACTED]"),
     (re.compile(r"(?i)\b(password|passwd|secret|api[_-]?key|access[_-]?key|token)\s*[:=]\s*\S+"),
@@ -56,7 +56,7 @@ class FeedbackRecord:
 
 
 def redact(text: str) -> tuple[str, int]:
-    """Strip secrets before the JSONL append. Read-time redaction is a foot-gun."""
+    """在 JSONL 追加之前剥离机密。读取时脱敏是陷阱（foot-gun）。"""
     if not text:
         return text, 0
     hits = 0
@@ -68,6 +68,7 @@ def redact(text: str) -> tuple[str, int]:
 
 
 def deterministic_tail(text: str, head: int = HEAD_LINES, tail: int = TAIL_LINES) -> tuple[str, int]:
+    """确定性尾部截断。返回（截断后的文本，截断的行数）。"""
     lines = text.splitlines()
     if len(lines) <= head + tail:
         return text, 0
@@ -76,14 +77,14 @@ def deterministic_tail(text: str, head: int = HEAD_LINES, tail: int = TAIL_LINES
 
 
 def _process_capture(text: str) -> tuple[str, int, int]:
-    """Truncate first, then redact. Returns (text, cut_lines, redaction_hits)."""
+    """先截断，再脱敏。返回（文本，截断行数，脱敏命中数）。"""
     tailed, cut = deterministic_tail(text)
     redacted, hits = redact(tailed)
     return redacted, cut, hits
 
 
 def maybe_rotate() -> None:
-    """Cap the active file at ROTATE_BYTES; rotate .1 .. .MAX, drop oldest."""
+    """将活跃文件限制在 ROTATE_BYTES；轮转到 .1 .. .MAX，丢弃最旧的。"""
     if not RECORD.exists() or RECORD.stat().st_size < ROTATE_BYTES:
         return
     for idx in range(MAX_ROTATIONS, 0, -1):
@@ -157,12 +158,12 @@ def run_with_feedback(
 
 
 def loop_can_advance(record: FeedbackRecord) -> bool:
-    """Refuse to advance the loop when exit code is missing."""
+    """当退出码（exit code）缺失时拒绝推进循环。"""
     return record.exit_code is not None
 
 
 def load_all() -> list[FeedbackRecord]:
-    """Read active + rotated files so parent-command lineage survives rotation."""
+    """读取活跃文件 + 轮转文件，以便父命令血缘（parent-command lineage）在轮转后仍然保留。"""
     def _rotation_key(p: Path) -> int:
         suffix = p.name[len(RECORD.name):]
         if not suffix:
@@ -190,7 +191,7 @@ def load_all() -> list[FeedbackRecord]:
 
 
 def retry_chain(command_id: str) -> list[FeedbackRecord]:
-    """Walk parent_command_id pointers to reconstruct a retry chain."""
+    """沿着 parent_command_id 指针遍历以重建重试链。"""
     records = {r.command_id: r for r in load_all()}
     chain: list[FeedbackRecord] = []
     cursor: str | None = command_id

@@ -1,9 +1,9 @@
-"""Embodied VLA action format toys — stdlib.
+"""具身 VLA 动作格式玩具 — stdlib。
 
-Three mini-implementations:
-  1. Discrete-bin action tokenization (RT-2 / OpenVLA).
-  2. A FAST-style DCT-quantize compressor.
-  3. Token-count comparison across (discrete, FAST, continuous flow).
+三个迷你实现：
+  1. 离散 bin 动作 tokenization (RT-2 / OpenVLA)。
+  2. FAST 风格 DCT-量化压缩器。
+  3. (离散、FAST、连续 flow) 的 token 计数对比。
 """
 
 from __future__ import annotations

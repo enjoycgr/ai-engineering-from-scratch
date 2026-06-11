@@ -1,0 +1,2 @@
+{"task_id": "T-002", "finding_code": "scope.off_scope", "reason": "reviewer approved README update for the new signup contract", "user_id": "rohitg00", "head_commit": "b2c3d4e", "ts": 1780983727.758389, "signature": "7b96b13ac1c31863451cf4fd7171aaee"}
+{"task_id": "T-002", "finding_code": "scope.off_scope", "reason": "reviewer approved README update for the new signup contract", "user_id": "rohitg00", "head_commit": "b2c3d4e", "ts": 1780983887.180146, "signature": "481d8af3cd1a941bc79085041e1f5093"}

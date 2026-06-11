@@ -1,37 +1,37 @@
 [
   {
-    "question": "What is the fundamental design difference between PyTorch and JAX?",
-    "options": ["PyTorch is faster", "PyTorch mutates tensors eagerly while JAX compiles pure functions without side effects", "JAX doesn't support GPUs", "PyTorch doesn't support automatic differentiation"],
+    "question": "PyTorch 和 JAX 之间的根本设计差异是什么？",
+    "options": ["PyTorch 更快", "PyTorch 采用 eager mutation (即时修改) 可变 tensor (张量)，而 JAX 编译无副作用的 pure function (纯函数)", "JAX 不支持 GPU (图形处理器)", "PyTorch 不支持 automatic differentiation (自动微分)"],
     "correct": 1,
-    "explanation": "PyTorch uses eager execution with mutable state (e.g., tensor.grad is modified in place). JAX embraces functional programming: functions are pure, state is explicit, and jit compilation optimizes entire computation graphs.",
+    "explanation": "PyTorch 使用 eager execution (即时执行) 和可变状态（例如 tensor.grad 被就地修改）。JAX 拥抱函数式编程：函数是 pure function (纯函数)，状态是显式的，jit compilation (即时编译) 优化整个计算图。",
     "stage": "pre"
   },
   {
-    "question": "What does jax.jit do?",
-    "options": ["It adds dropout regularization", "It compiles a Python function into optimized XLA code that runs much faster than interpreted Python", "It initializes model weights", "It computes gradients"],
+    "question": "jax.jit 的作用是什么？",
+    "options": ["添加 dropout 正则化", "将 Python 函数编译为优化的 XLA (加速线性代数) 代码，运行速度远快于解释型 Python", "初始化模型权重", "计算 gradient (梯度)"],
     "correct": 1,
-    "explanation": "jax.jit traces a function and compiles it to XLA (Accelerated Linear Algebra) machine code. The first call is slow (compilation), but subsequent calls run the optimized compiled version.",
+    "explanation": "jax.jit trace (追踪) 一个函数并将其编译为 XLA (Accelerated Linear Algebra，加速线性代数) 机器码。第一次调用较慢（compilation (编译)），但后续调用运行优化后的编译版本。",
     "stage": "pre"
   },
   {
-    "question": "What does jax.vmap do?",
-    "options": ["Vectorizes a function to run over a batch dimension without writing explicit loops", "Validates model architecture", "Manages GPU memory", "Computes second-order gradients"],
+    "question": "jax.vmap 的作用是什么？",
+    "options": ["向量化一个函数，使其在 batch dimension (批量维度) 上运行而无需显式循环", "验证模型架构", "管理 GPU (图形处理器) 内存", "计算二阶 gradient (梯度)"],
     "correct": 0,
-    "explanation": "jax.vmap automatically vectorizes a function written for a single example to process an entire batch. You write code for one sample and vmap handles batching, often more efficiently than manual batch loops.",
+    "explanation": "jax.vmap 自动向量化一个为单个样本编写的函数，使其处理整个 batch (批量)。你编写单样本代码，vmap 处理 batching，通常比手动 batch 循环更高效。",
     "stage": "post"
   },
   {
-    "question": "How does JAX handle model state (weights) differently than PyTorch?",
-    "options": ["JAX stores weights on CPU only", "JAX requires explicit state passing -- weights are function arguments, not mutable object attributes", "JAX doesn't support trainable weights", "JAX and PyTorch handle state identically"],
+    "question": "JAX 处理模型状态（权重）的方式与 PyTorch 有何不同？",
+    "options": ["JAX 只将权重存储在 CPU 上", "JAX 需要显式传递状态——权重是函数参数，而不是可变对象的属性", "JAX 不支持可训练权重", "JAX 和 PyTorch 处理状态的方式完全相同"],
     "correct": 1,
-    "explanation": "In PyTorch, weights live inside nn.Module objects and are mutated in place. In JAX, weights are passed explicitly as function arguments and returned as new values. No mutation, no hidden state.",
+    "explanation": "在 PyTorch 中，权重存在于 nn.Module 对象内部并被就地修改。在 JAX 中，权重作为函数参数显式传入，并作为新值返回。没有修改，没有隐藏状态。",
     "stage": "post"
   },
   {
-    "question": "When would you choose JAX over PyTorch?",
-    "options": ["For quick prototyping of small models", "When training at massive scale on TPU pods, where compilation and functional transforms provide significant speedups", "When you need the largest ecosystem of pretrained models", "For deployment on mobile devices"],
+    "question": "什么时候应该选择 JAX 而不是 PyTorch？",
+    "options": ["快速原型开发小型模型", "在 TPU pod 上大规模训练时，compilation (编译) 和 functional transformation (函数变换) 能提供显著加速", "需要最大的预训练模型生态系统时", "部署到移动设备时"],
     "correct": 1,
-    "explanation": "JAX excels at scale: jit compilation eliminates Python overhead, pmap handles multi-device parallelism naturally, and XLA optimization across the full computation graph gives significant speedups on TPU clusters.",
+    "explanation": "JAX 在规模化方面表现出色：jit compilation (即时编译) 消除 Python 开销，pmap (并行映射) 自然地处理多设备并行，XLA (加速线性代数) 对整个计算图的优化在 TPU (张量处理器) 集群上带来显著加速。",
     "stage": "post"
   }
 ]

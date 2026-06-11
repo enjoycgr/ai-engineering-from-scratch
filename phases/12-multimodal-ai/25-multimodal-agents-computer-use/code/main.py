@@ -1,8 +1,8 @@
-"""Multimodal agent capstone — action schema + agent loop + 10-task benchmark.
+"""多模态 agent 顶点 — 动作 schema + agent 循环 + 10 任务基准。
 
-Stdlib. A mock browser with deterministic page transitions, a toy VLM that
-emits actions from a fixed policy table, an outer loop tracking progress
-across 10 synthetic booking-site tasks.
+Stdlib。带确定性页面转换的 mock 浏览器，从固定策略表
+发出动作的玩具 VLM，追踪 10 个合成预订网站任务进度的
+外循环。
 """
 
 from __future__ import annotations

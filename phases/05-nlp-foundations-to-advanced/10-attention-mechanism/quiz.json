@@ -4,99 +4,99 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What problem in seq2seq did Bahdanau attention solve?",
+      "question": "Bahdanau attention 解决了 seq2seq 中的什么问题？",
       "options": [
-        "Tokenization mismatch",
-        "The fixed-size context-vector bottleneck where the decoder only saw the encoder's final state",
-        "Vanishing gradients in encoders",
-        "Beam search latency"
+        "Tokenization mismatch (分词不匹配)",
+        "固定大小 context-vector (上下文向量) 的瓶颈，解码器只能看到编码器的最终状态",
+        "编码器中的 vanishing gradients (梯度消失)",
+        "Beam search (束搜索) 的延迟"
       ],
       "correct": 1,
-      "explanation": "Attention lets the decoder consult every encoder state, not just the last one."
+      "explanation": "Attention 让解码器可以查阅每一个编码器状态，而不只是最后一个。"
     },
     {
       "stage": "pre",
-      "question": "What is the attention context vector at decoder step t?",
+      "question": "在解码器步骤 t，attention context vector (上下文向量) 是什么？",
       "options": [
-        "The decoder's input embedding",
-        "A weighted average of encoder hidden states where the weights come from a query-key score",
-        "The encoder's final hidden state",
-        "A random projection"
+        "解码器的输入 embedding (嵌入)",
+        "编码器 hidden states 的加权平均，权重来自 query-key 分数",
+        "编码器的最终 hidden state",
+        "一个随机投影"
       ],
       "correct": 1,
-      "explanation": "Context = sum of alpha_i * h_i, a step-dependent weighted average of encoder states."
+      "explanation": "Context = alpha_i * h_i 的和，是编码器状态的步骤相关加权平均。"
     },
     {
       "stage": "check",
-      "question": "In Bahdanau (additive) attention, what role does the vector v_a play?",
+      "question": "在 Bahdanau (additive) attention 中，向量 v_a 的作用是什么？",
       "options": [
-        "It controls dropout",
-        "It is the projection that turns the attention-dim hidden combination into a scalar score per encoder position",
-        "It encodes positions",
-        "It biases the softmax"
+        "控制 dropout (随机失活)",
+        "将 attention-dim 的隐藏组合投影为每个编码器位置的标量分数",
+        "编码位置",
+        "偏置 softmax"
       ],
       "correct": 1,
-      "explanation": "v_a dot-products with tanh(W_a s + U_a h) to collapse a d_attn vector into a scalar score."
+      "explanation": "v_a 与 tanh(W_a s + U_a h) 做内积，将 d_attn 向量坍缩为标量分数。"
     },
     {
       "stage": "check",
-      "question": "In Luong's 'dot' attention variant, what constraint must hold?",
+      "question": "在 Luong 的 'dot' attention 变体中，必须满足什么约束？",
       "options": [
-        "Decoder state and encoder state must share the same dimensionality (d_s == d_h)",
-        "The encoder must be bidirectional",
-        "Softmax must be log-space",
-        "Beam search is required"
+        "Decoder state 和 encoder state 必须具有相同的维度 (d_s == d_h)",
+        "编码器必须是双向的",
+        "Softmax 必须在 log-space 中",
+        "必须使用 beam search"
       ],
       "correct": 0,
-      "explanation": "dot uses s^T h with no projection, so dimensions must match exactly."
+      "explanation": "dot 使用 s^T h 且没有投影，因此维度必须完全匹配。"
     },
     {
       "stage": "check",
-      "question": "Which Q/K/V mapping describes classical (Bahdanau/Luong) attention?",
+      "question": "哪种 Q/K/V 映射描述了经典 (Bahdanau/Luong) attention？",
       "options": [
-        "Q, K, V are three independent learned projections of the source",
-        "Q is random, K and V are learned",
-        "Q from encoder, K and V from decoder",
-        "Q = decoder state; K and V = encoder states (same tensor)"
+        "Q, K, V 是源序列的三个独立学习投影",
+        "Q 是随机的，K 和 V 是学习的",
+        "Q 来自编码器，K 和 V 来自解码器",
+        "Q = decoder state; K 和 V = encoder states (同一个张量)"
       ],
       "correct": 3,
-      "explanation": "In classical attention, keys and values are both encoder states; transformers split K and V via learned projections."
+      "explanation": "在经典 attention 中，keys 和 values 都是编码器状态；transformer 通过学习投影将 K 和 V 分开。"
     },
     {
       "stage": "post",
-      "question": "Why is reporting raw attention weights as 'explanation' considered fragile?",
+      "question": "为什么将原始 attention weights 报告为 'explanation' 被认为是脆弱的？",
       "options": [
-        "Attention weights leak labels",
-        "They are too small to plot",
-        "Research (e.g. Jain and Wallace, 2019) showed attention distributions can be permuted without changing predictions on some tasks",
-        "Attention weights are not differentiable"
+        "Attention weights 会泄露标签",
+        "它们太小无法绘制",
+        "研究（如 Jain and Wallace, 2019）表明，在某些任务上 attention distribution 可以被置换而不改变预测",
+        "Attention weights 不可微"
       ],
       "correct": 2,
-      "explanation": "Attention weights are correlated with predictions but not faithful explanations without ablation/counterfactual checks."
+      "explanation": "Attention weights 与预测相关，但没有消融/反事实检查时不是忠实的解释。"
     },
     {
       "stage": "post",
-      "question": "Which step bridges Bahdanau attention to transformer self-attention?",
+      "question": "哪一步将 Bahdanau attention 桥接到 transformer self-attention (自注意力)？",
       "options": [
-        "Dropping beam search",
-        "Adding more RNN layers",
-        "Replacing softmax with sigmoid",
-        "Querying a sequence against itself with separately learned Q, K, and V projections, run in parallel heads"
+        "丢弃 beam search",
+        "添加更多 RNN 层",
+        "用 sigmoid 替换 softmax",
+        "用独立学习的 Q, K, V 投影将序列查询自身，并在多个 head (头) 中并行运行"
       ],
       "correct": 3,
-      "explanation": "Self-attention queries the same sequence, with split K and V projections, parallelized across heads."
+      "explanation": "Self-attention 查询同一序列，拆分 K 和 V 投影，并在多个 head 中并行化。"
     },
     {
       "stage": "post",
-      "question": "What is one practical use case for masking in attention?",
+      "question": "Attention 中 masking (掩码) 的一个实际用例是什么？",
       "options": [
-        "Replacing dropout",
-        "Setting attention weight for padding tokens to zero so they do not contribute to the context vector",
-        "Encoding positions",
-        "Reducing model size"
+        "替换 dropout",
+        "将 padding token 的 attention weight 设为零，使其不贡献给 context vector",
+        "编码位置",
+        "减小模型大小"
       ],
       "correct": 1,
-      "explanation": "Masking padding (or future tokens in a decoder) prevents the softmax from spreading weight onto invalid positions."
+      "explanation": "Masking padding（或解码器中的未来 token）可防止 softmax 将权重分散到无效位置。"
     }
   ]
 }

@@ -1,17 +1,17 @@
 ---
 name: structured-output-picker
-description: Choose a structured output approach, schema design, and validation plan.
+description: 选择结构化输出方法、schema 设计和验证计划。
 version: 1.0.0
 phase: 5
 lesson: 20
 tags: [nlp, llm, structured-output]
 ---
 
-Given a use case (provider, latency budget, schema complexity, failure tolerance), output:
+给定用例（供应商、延迟预算、schema 复杂度、失败容忍度），输出：
 
-1. Mechanism. Native vendor structured output, Instructor retries, Outlines FSM, or XGrammar CFG. One-sentence reason.
-2. Schema design. Field order (reasoning first, answer last), nullable fields for "unknown", enum vs regex, required fields.
-3. Failure strategy. Max retries, fallback model, graceful `null` handling, out-of-distribution refusal.
-4. Validation plan. Schema compliance rate (target 100%), semantic validity (LLM-judge), field-coverage rate, latency p50/p99.
+1. Mechanism (机制). Native vendor structured output、Instructor retries、Outlines FSM 或 XGrammar CFG。一句话理由。
+2. Schema design (Schema 设计). 字段顺序（reasoning 在前，answer 在后）、"unknown" 的可空字段、enum vs regex、必填字段。
+3. Failure strategy (失败策略). 最大重试次数、回退模型、优雅的 `null` 处理、分布外拒绝。
+4. Validation plan (验证计划). Schema compliance rate (目标 100%)、semantic validity (语义有效性, LLM-judge)、字段覆盖率、latency p50/p99。
 
-Refuse any design that puts `answer` or `decision` before reasoning fields. Refuse to use bare JSON mode without a schema. Flag recursive schemas behind an FSM-only library.
+拒绝任何将 `answer` 或 `decision` 放在 reasoning 字段之前的设计。拒绝在没有 schema 的情况下使用裸 JSON mode。标记仅支持 FSM 的库背后的递归 schema。

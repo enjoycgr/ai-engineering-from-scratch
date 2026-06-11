@@ -86,21 +86,21 @@ def main():
     lengths = [500, 2000, 8000, 20000, 40000]
     depths = [0.1, 0.3, 0.5, 0.7, 0.9]
 
-    print("=== toy NIAH grid (mock model with effective capacity = 20k) ===")
-    print("marker: 1 = needle found in-context,  0 = needle missed")
+    print("=== 玩具级 NIAH 网格（mock model，effective capacity = 20k） ===")
+    print("marker: 1 = needle 在上下文中被找到,  0 = needle 被遗漏")
     print()
     run_niah_grid(lengths, depths)
 
     print()
-    print("=== multi-needle at length=10000, n=3 ===")
+    print("=== multi-needle，length=10000，n=3 ===")
     score = run_multi_needle(10000, n_needles=3)
     print(f"  found {score * 3:.0f} / 3 needles")
 
     print()
     print("notes:")
-    print("  mock model has hard effective-capacity cutoff; real LLMs degrade gradually.")
-    print("  real NIAH: sweep 5 depths × 6 lengths, produce heatmap per model.")
-    print("  always pair with one multi-hop / aggregation task (RULER) — single-needle is saturable.")
+    print("  mock model 有硬性的 effective-capacity 截断；真实 LLM 是逐渐退化的。")
+    print("  真实 NIAH：扫描 5 个深度 × 6 个长度，为每个模型生成 heatmap。")
+    print("  始终搭配一个 multi-hop / aggregation 任务（RULER）—— single-needle 是可饱和的。")
 
 
 if __name__ == "__main__":

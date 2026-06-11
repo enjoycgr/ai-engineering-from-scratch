@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the key behavioral difference between extractive and abstractive summarization?",
+      "question": "Extractive summarization（抽取式摘要）和 abstractive summarization（生成式摘要）之间的关键行为差异是什么？",
       "options": [
         "Extractive uses TF-IDF; abstractive uses Word2Vec",
         "Extractive returns sentences verbatim from the source; abstractive generates new text and can hallucinate",
@@ -12,11 +12,11 @@
         "Extractive is slower than abstractive"
       ],
       "correct": 1,
-      "explanation": "Extractive lifts sentences verbatim; abstractive rewrites and risks hallucination."
+      "explanation": "Extractive 逐字提取源文本句子；abstractive 进行重写并有幻觉风险。"
     },
     {
       "stage": "pre",
-      "question": "What does ROUGE measure?",
+      "question": "ROUGE 衡量什么？",
       "options": [
         "Embedding similarity",
         "N-gram and longest-common-subsequence overlap between system and reference summaries",
@@ -24,11 +24,11 @@
         "Token-level perplexity"
       ],
       "correct": 1,
-      "explanation": "ROUGE-1/2/L measure unigram, bigram, and LCS overlap with references."
+      "explanation": "ROUGE-1/2/L 分别测量 unigram、bigram 和 LCS 与 reference 的重叠。"
     },
     {
       "stage": "check",
-      "question": "How does TextRank score sentences in extractive summarization?",
+      "question": "TextRank 在抽取式摘要中如何为句子打分？",
       "options": [
         "By raw word count",
         "By comparing to a reference summary",
@@ -36,11 +36,11 @@
         "By embedding cosine to the question"
       ],
       "correct": 2,
-      "explanation": "TextRank uses PageRank over a sentence-similarity graph; highly connected sentences score highest."
+      "explanation": "TextRank 在句子相似度图上运行 PageRank；连接度高的句子得分最高。"
     },
     {
       "stage": "check",
-      "question": "Why enable stemming when computing ROUGE?",
+      "question": "计算 ROUGE 时为什么要启用 stemming（词干提取）？",
       "options": [
         "Without stemming, 'running' and 'run' count as different tokens and ROUGE undercounts true overlap",
         "To speed up ROUGE",
@@ -48,11 +48,11 @@
         "Stemming is required by the rouge-score package"
       ],
       "correct": 0,
-      "explanation": "Stemming merges morphological variants so ROUGE credits semantically equivalent forms."
+      "explanation": "Stemming 合并形态学变体，使 ROUGE 能为语义等价形式计分。"
     },
     {
       "stage": "check",
-      "question": "Which 2026 metric is purpose-built to detect summary hallucinations via NLI entailment?",
+      "question": "2026 年哪种 metric（指标）专门用于通过 NLI entailment 检测摘要幻觉？",
       "options": [
         "BLEU",
         "ROUGE-L",
@@ -60,11 +60,11 @@
         "chrF"
       ],
       "correct": 2,
-      "explanation": "NLI-based faithfulness scoring flags claims in the summary not entailed by the source."
+      "explanation": "基于 NLI 的 faithfulness scoring 能标记摘要中未被源文本蕴含的声明。"
     },
     {
       "stage": "post",
-      "question": "Why is extractive summarization preferred for compliance-adjacent content?",
+      "question": "为什么抽取式摘要更受合规相关内容的青睐？",
       "options": [
         "Outputs are lifted verbatim from the source, eliminating the abstractive hallucination class",
         "It is faster",
@@ -72,11 +72,11 @@
         "ROUGE scores are higher"
       ],
       "correct": 0,
-      "explanation": "Verbatim extraction cannot invent content, which matters where factuality is regulated."
+      "explanation": "逐字提取不会编造内容，这在 factuality 受监管的场景中至关重要。"
     },
     {
       "stage": "post",
-      "question": "Which of these is an abstractive hallucination type to monitor for?",
+      "question": "以下哪项是需要监控的 abstractive hallucination type（生成式幻觉类型）？",
       "options": [
         "Punctuation drift",
         "Stopword removal",
@@ -84,11 +84,11 @@
         "Entity swap (e.g. 'John Smith' rendered as 'John Brown'), number drift, polarity flip, or fact invention"
       ],
       "correct": 3,
-      "explanation": "Entity swaps, numeric drift, polarity flips, and invented facts are the canonical abstractive failure modes."
+      "explanation": "Entity swaps, numeric drift, polarity flips 和 invented facts 是经典的 abstractive failure modes。"
     },
     {
       "stage": "post",
-      "question": "When would you reach for a Pegasus checkpoint over BART-large-CNN?",
+      "question": "在什么情况下你会选择 Pegasus checkpoint 而不是 BART-large-CNN？",
       "options": [
         "When evaluating BLEU",
         "When the input is short",
@@ -96,7 +96,7 @@
         "For domains like scientific abstracts where Pegasus's gap-sentence pretraining objective is a closer fit"
       ],
       "correct": 3,
-      "explanation": "Pegasus's gap-sentence objective excels at long-form domain summarization (e.g. pubmed)."
+      "explanation": "Pegasus 的 gap-sentence objective 在长文本领域摘要（如 pubmed）上表现出色。"
     }
   ]
 }

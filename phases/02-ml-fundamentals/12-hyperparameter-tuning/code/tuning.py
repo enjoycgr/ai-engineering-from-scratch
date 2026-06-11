@@ -4,6 +4,7 @@ import time
 
 
 def make_data(n_samples=400, n_features=8, seed=42):
+    """生成用于回归问题的合成数据，包含非线性交互项。"""
     rng = np.random.RandomState(seed)
     X = rng.randn(n_samples, n_features)
     y = (
@@ -23,15 +24,19 @@ def make_data(n_samples=400, n_features=8, seed=42):
 
 
 class SimpleTree:
+    """用于梯度提升的极简决策树回归器。"""
+
     def __init__(self, max_depth=3, min_samples_split=5):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.root = None
 
     def fit(self, X, y):
+        """递归地构建树。"""
         self.root = self._build(X, y, 0)
 
     def _build(self, X, y, depth):
+        # 叶节点条件：达到最大深度或样本数不足
         if depth >= self.max_depth or len(y) < self.min_samples_split:
             return {"value": np.mean(y)}
 
@@ -41,6 +46,7 @@ class SimpleTree:
 
         n_features = X.shape[1]
         for f in range(n_features):
+            # 在当前特征的分布上分位数处尝试阈值
             thresholds = np.percentile(X[:, f], np.linspace(10, 90, 10))
             for t in thresholds:
                 left = y[X[:, f] <= t]
@@ -52,6 +58,7 @@ class SimpleTree:
                     best_gain = gain
                     best_f, best_t = f, t
 
+        # 如果没有找到有效分裂，返回叶节点
         if best_gain <= 0:
             return {"value": np.mean(y)}
 
@@ -64,6 +71,7 @@ class SimpleTree:
         }
 
     def predict(self, X):
+        """对样本矩阵进行预测。"""
         return np.array([self._predict_one(x, self.root) for x in X])
 
     def _predict_one(self, x, node):
@@ -75,6 +83,8 @@ class SimpleTree:
 
 
 class GBMForTuning:
+    """用于演示超参数调优的简化梯度提升机。"""
+
     def __init__(self, n_estimators=50, learning_rate=0.1, max_depth=3,
                  min_samples_split=5, subsample=1.0):
         self.n_estimators = n_estimators
@@ -86,6 +96,7 @@ class GBMForTuning:
         self.init_pred = None
 
     def fit(self, X, y):
+        """顺序拟合残差上的树。"""
         rng = np.random.RandomState(42)
         self.init_pred = np.mean(y)
         pred = np.full(len(y), self.init_pred)
@@ -93,6 +104,7 @@ class GBMForTuning:
         for _ in range(self.n_estimators):
             residuals = y - pred
 
+            # 子采样（如果启用）
             if self.subsample < 1.0:
                 n_sub = max(1, int(len(y) * self.subsample))
                 idx = rng.choice(len(y), n_sub, replace=False)
@@ -109,6 +121,7 @@ class GBMForTuning:
             self.trees.append(tree)
 
     def predict(self, X):
+        """累加所有树的预测结果。"""
         pred = np.full(X.shape[0], self.init_pred)
         for tree in self.trees:
             pred += self.learning_rate * tree.predict(X)
@@ -116,11 +129,13 @@ class GBMForTuning:
 
 
 def neg_mse(model, X, y):
+    """返回负均方误差（越高越好）。"""
     pred = model.predict(X)
     return -np.mean((pred - y) ** 2)
 
 
 def grid_search(param_grid, X_train, y_train, X_val, y_val):
+    """在参数网格上穷举搜索。"""
     keys = list(param_grid.keys())
     values = list(param_grid.values())
     best_score = -float("inf")
@@ -142,6 +157,7 @@ def grid_search(param_grid, X_train, y_train, X_val, y_val):
 
 
 def sample_param(spec, rng):
+    """根据规格采样单个超参数。"""
     if isinstance(spec, list):
         return rng.choice(spec)
     name, low, high = spec[0], spec[1], spec[2]
@@ -156,6 +172,7 @@ def sample_param(spec, rng):
 
 def random_search(param_distributions, X_train, y_train, X_val, y_val,
                   n_iter=50, seed=42):
+    """从分布中随机采样超参数。"""
     rng = np.random.RandomState(seed)
     best_score = -float("inf")
     best_params = None
@@ -183,6 +200,8 @@ def random_search(param_distributions, X_train, y_train, X_val, y_val,
 
 
 class SimpleBayesianOptimizer:
+    """使用高斯过程代理模型和期望改进采集函数的简化贝叶斯优化器。"""
+
     def __init__(self, param_space, n_initial=10, seed=42):
         self.param_space = param_space
         self.n_initial = n_initial
@@ -192,9 +211,11 @@ class SimpleBayesianOptimizer:
         self.param_names = list(param_space.keys())
 
     def _sample_random(self):
+        """从参数空间中随机采样。"""
         return {k: sample_param(v, self.rng) for k, v in self.param_space.items()}
 
     def _params_to_vec(self, params):
+        """将参数字典归一化为 [0,1] 向量。"""
         vec = []
         for k in self.param_names:
             v = params[k]
@@ -210,10 +231,12 @@ class SimpleBayesianOptimizer:
         return np.array(vec)
 
     def _rbf_kernel(self, X1, X2, length_scale=0.3):
+        """径向基函数（RBF）核。"""
         dists = np.sum((X1[:, None, :] - X2[None, :, :]) ** 2, axis=2)
         return np.exp(-0.5 * dists / length_scale ** 2)
 
     def _predict(self, X_new):
+        """使用高斯过程进行预测。"""
         if len(self.X_observed) == 0:
             return np.zeros(len(X_new)), np.ones(len(X_new))
 
@@ -240,6 +263,7 @@ class SimpleBayesianOptimizer:
         return mu, var
 
     def _expected_improvement(self, mu, var, best_y):
+        """计算期望改进（EI）采集函数。"""
         sigma = np.sqrt(var)
         z = (mu - best_y) / (sigma + 1e-10)
         ei = sigma * (z * self._norm_cdf(z) + self._norm_pdf(z))
@@ -247,13 +271,16 @@ class SimpleBayesianOptimizer:
 
     @staticmethod
     def _norm_cdf(x):
+        """标准正态累积分布函数（近似）。"""
         return 0.5 * (1 + np.vectorize(lambda v: np.tanh(v * 0.7978845608))(x))
 
     @staticmethod
     def _norm_pdf(x):
+        """标准正态概率密度函数。"""
         return np.exp(-0.5 * x ** 2) / np.sqrt(2 * np.pi)
 
     def suggest(self):
+        """建议下一个要评估的超参数配置。"""
         if len(self.X_observed) < self.n_initial:
             return self._sample_random()
 
@@ -269,10 +296,12 @@ class SimpleBayesianOptimizer:
         return candidates[best_idx]
 
     def observe(self, params, score):
+        """记录一次评估结果。"""
         self.X_observed.append(self._params_to_vec(params))
         self.y_observed.append(score)
 
     def optimize(self, objective, n_iter=50):
+        """运行完整的贝叶斯优化循环。"""
         best_score = -float("inf")
         best_params = None
         history = []
@@ -291,6 +320,7 @@ class SimpleBayesianOptimizer:
 
 
 def convergence_curve(history):
+    """根据历史记录计算收敛曲线（到目前为止的最佳值）。"""
     best_so_far = -float("inf")
     curve = []
     for _, score in history:
@@ -301,7 +331,7 @@ def convergence_curve(history):
 
 def demo_grid_search():
     print("=" * 60)
-    print("GRID SEARCH")
+    print("网格搜索 (GRID SEARCH)")
     print("=" * 60)
 
     X_tr, y_tr, X_val, y_val, X_te, y_te = make_data()
@@ -320,21 +350,21 @@ def demo_grid_search():
     for v in param_grid.values():
         total_combos *= len(v)
 
-    print(f"  Total combinations: {total_combos}")
-    print(f"  Best params: {best_params}")
-    print(f"  Best val neg_mse: {best_score:.4f} (MSE = {-best_score:.4f})")
-    print(f"  Time: {elapsed:.1f}s")
+    print(f"  总组合数: {total_combos}")
+    print(f"  最佳参数: {best_params}")
+    print(f"  最佳验证负MSE: {best_score:.4f} (MSE = {-best_score:.4f})")
+    print(f"  耗时: {elapsed:.1f}s")
 
     model = GBMForTuning(**best_params)
     model.fit(X_tr, y_tr)
     test_mse = -neg_mse(model, X_te, y_te)
-    print(f"  Test MSE: {test_mse:.4f}")
+    print(f"  测试集 MSE: {test_mse:.4f}")
     print()
 
 
 def demo_random_search():
     print("=" * 60)
-    print("RANDOM SEARCH")
+    print("随机搜索 (RANDOM SEARCH)")
     print("=" * 60)
 
     X_tr, y_tr, X_val, y_val, X_te, y_te = make_data()
@@ -362,7 +392,7 @@ def demo_random_search():
     best_params, best_score, _ = random_search(
         param_distributions, X_tr, y_tr, X_val, y_val, n_iter=100
     )
-    print(f"  Best params (100 trials):")
+    print(f"  最佳参数 (100 次试验):")
     for k, v in best_params.items():
         if isinstance(v, float):
             print(f"    {k}: {v:.4f}")
@@ -372,13 +402,13 @@ def demo_random_search():
     model = GBMForTuning(**best_params)
     model.fit(X_tr, y_tr)
     test_mse = -neg_mse(model, X_te, y_te)
-    print(f"  Test MSE: {test_mse:.4f}")
+    print(f"  测试集 MSE: {test_mse:.4f}")
     print()
 
 
 def demo_bayesian():
     print("=" * 60)
-    print("BAYESIAN OPTIMIZATION")
+    print("贝叶斯优化 (BAYESIAN OPTIMIZATION)")
     print("=" * 60)
 
     X_tr, y_tr, X_val, y_val, X_te, y_te = make_data()
@@ -405,13 +435,13 @@ def demo_bayesian():
     optimizer = SimpleBayesianOptimizer(param_space, n_initial=10, seed=42)
     best_params, best_score, history = optimizer.optimize(objective, n_iter=50)
 
-    print(f"  Best params (50 trials):")
+    print(f"  最佳参数 (50 次试验):")
     for k, v in best_params.items():
         if isinstance(v, float):
             print(f"    {k}: {v:.4f}")
         else:
             print(f"    {k}: {v}")
-    print(f"  Best val MSE: {-best_score:.4f}")
+    print(f"  最佳验证 MSE: {-best_score:.4f}")
 
     int_params = {}
     for k, v in best_params.items():
@@ -422,13 +452,13 @@ def demo_bayesian():
     model = GBMForTuning(**int_params)
     model.fit(X_tr, y_tr)
     test_mse = -neg_mse(model, X_te, y_te)
-    print(f"  Test MSE: {test_mse:.4f}")
+    print(f"  测试集 MSE: {test_mse:.4f}")
     print()
 
 
 def demo_comparison():
     print("=" * 60)
-    print("HEAD-TO-HEAD: GRID vs RANDOM vs BAYESIAN")
+    print("正面对比：网格搜索 vs 随机搜索 vs 贝叶斯优化")
     print("=" * 60)
 
     X_tr, y_tr, X_val, y_val, X_te, y_te = make_data()
@@ -468,10 +498,10 @@ def demo_comparison():
     optimizer = SimpleBayesianOptimizer(param_space, n_initial=10, seed=42)
     _, bayes_score, bayes_history = optimizer.optimize(objective, n_iter=n_grid)
 
-    print(f"  Budget: {n_grid} evaluations each")
-    print(f"  Grid search   best MSE: {-grid_score:.4f}")
-    print(f"  Random search best MSE: {-rand_score:.4f}")
-    print(f"  Bayesian opt  best MSE: {-bayes_score:.4f}")
+    print(f"  预算: 每种方法 {n_grid} 次评估")
+    print(f"  网格搜索   最佳 MSE: {-grid_score:.4f}")
+    print(f"  随机搜索 最佳 MSE: {-rand_score:.4f}")
+    print(f"  贝叶斯优化 最佳 MSE: {-bayes_score:.4f}")
     print()
 
     grid_curve = convergence_curve(grid_history)
@@ -479,7 +509,7 @@ def demo_comparison():
     bayes_curve = convergence_curve(bayes_history)
 
     checkpoints = [5, 10, 20, n_grid - 1]
-    print(f"  {'Eval':>6}  {'Grid MSE':>10}  {'Random MSE':>10}  {'Bayes MSE':>10}")
+    print(f"  {'评估':>6}  {'网格 MSE':>10}  {'随机 MSE':>10}  {'贝叶斯 MSE':>10}")
     print(f"  {'-'*6}  {'-'*10}  {'-'*10}  {'-'*10}")
     for cp in checkpoints:
         if cp < len(grid_curve):
@@ -489,23 +519,23 @@ def demo_comparison():
             )
 
     print()
-    print("Random search explores the full continuous space (better coverage).")
-    print("Bayesian optimization learns from past results (better convergence).")
-    print("Grid search is only competitive with few hyperparameters.")
+    print("随机搜索探索完整的连续空间（覆盖更好）。")
+    print("贝叶斯优化从过去结果中学习（收敛更好）。")
+    print("网格搜索只在超参数很少时有竞争力。")
     print()
 
 
 def demo_optuna():
     print("=" * 60)
-    print("OPTUNA (if installed)")
+    print("OPTUNA（如果已安装）")
     print("=" * 60)
 
     try:
         import optuna
         optuna.logging.set_verbosity(optuna.logging.WARNING)
     except ImportError:
-        print("  Optuna not installed. Install with: pip install optuna")
-        print("  Skipping Optuna demo.")
+        print("  Optuna 未安装。请使用: pip install optuna")
+        print("  跳过 Optuna 演示。")
         print()
         return
 
@@ -531,13 +561,13 @@ def demo_optuna():
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=50)
 
-    print(f"  Best params:")
+    print(f"  最佳参数:")
     for k, v in study.best_params.items():
         if isinstance(v, float):
             print(f"    {k}: {v:.4f}")
         else:
             print(f"    {k}: {v}")
-    print(f"  Best val MSE: {study.best_value:.4f}")
+    print(f"  最佳验证 MSE: {study.best_value:.4f}")
 
     best = study.best_params
     model = GBMForTuning(
@@ -549,11 +579,11 @@ def demo_optuna():
     )
     model.fit(X_tr, y_tr)
     test_mse = np.mean((model.predict(X_te) - y_te) ** 2)
-    print(f"  Test MSE: {test_mse:.4f}")
+    print(f"  测试集 MSE: {test_mse:.4f}")
 
     try:
         importances = optuna.importance.get_param_importances(study)
-        print(f"\n  Hyperparameter importances:")
+        print(f"\n  超参数重要性:")
         for k, v in importances.items():
             bar = "#" * int(v * 40)
             print(f"    {k:>20s}: {v:.3f} {bar}")
@@ -569,4 +599,4 @@ if __name__ == "__main__":
     demo_bayesian()
     demo_comparison()
     demo_optuna()
-    print("All tuning demos complete.")
+    print("所有调优演示完成。")

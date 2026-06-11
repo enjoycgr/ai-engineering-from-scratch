@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What license does Langfuse ship under after the June 2025 open-sourcing of formerly commercial modules?",
+      "question": "在 2025 年 6 月将原先商业模块开源后，Langfuse 采用什么 license（许可证）？",
       "options": [
         "GPLv3",
         "MIT",
@@ -12,23 +12,23 @@
         "Apache 2.0"
       ],
       "correct": 1,
-      "explanation": "Langfuse is MIT, including LLM-as-a-judge, annotation queues, prompt experiments, and Playground after June 2025."
+      "explanation": "Langfuse 是 MIT，包括 LLM-as-a-judge、annotation queues（标注队列）、prompt experiments（提示词实验）和 Playground，自 2025 年 6 月起。"
     },
     {
       "stage": "pre",
-      "question": "What is Arize Phoenix strongest at according to the lesson?",
+      "question": "根据课程，Arize Phoenix 最强之处是什么？",
       "options": [
-        "Prompt versioning",
-        "Deep agent-specific evaluation: trace clustering, anomaly detection, RAG retrieval relevancy, OpenInference auto-instrumentation",
-        "Automated optimization loop",
-        "Static analysis of code"
+        "Prompt versioning（提示词版本控制）",
+        "Deep agent-specific evaluation（深度智能体专属评估）：trace clustering（追踪聚类）、anomaly detection（异常检测）、RAG retrieval relevancy（RAG 检索相关性）、OpenInference auto-instrumentation（自动仪器）",
+        "Automated optimization loop（自动优化闭环）",
+        "代码静态分析"
       ],
       "correct": 1,
-      "explanation": "Phoenix focuses on behavioral drift and RAG evaluation with OpenInference auto-instrumentation."
+      "explanation": "Phoenix 专注于 behavioral drift（行为漂移）和 RAG evaluation（RAG 评估），with OpenInference auto-instrumentation（自动仪器）。"
     },
     {
       "stage": "check",
-      "question": "Which platform pairs automated prompt optimization with guardrails (PII redaction, topical constraints) and LLM-judge hallucination detection?",
+      "question": "哪款平台将 automated prompt optimization（自动提示词优化）与 guardrails（护栏）（PII redaction PII 脱敏、topical constraints 主题约束）和 LLM-judge hallucination detection（幻觉检测）配对？",
       "options": [
         "Langfuse",
         "Phoenix",
@@ -36,11 +36,11 @@
         "Jaeger"
       ],
       "correct": 2,
-      "explanation": "Opik centers on the optimization + guardrail loop."
+      "explanation": "Opik 以 optimization + guardrail loop（优化 + 护栏闭环）为核心。"
     },
     {
       "stage": "check",
-      "question": "Which platform does the lesson recommend for an all-in-one with prompt management?",
+      "question": "课程推荐哪款平台作为带 prompt management（提示词管理）的一体化方案？",
       "options": [
         "Langfuse",
         "Phoenix",
@@ -48,43 +48,43 @@
         "Datadog APM"
       ],
       "correct": 0,
-      "explanation": "Langfuse covers tracing + prompt management + evals + session replay end-to-end."
+      "explanation": "Langfuse 端到端覆盖 tracing（追踪）+ prompt management（提示词管理）+ evals（评估）+ session replay（会话回放）。"
     },
     {
       "stage": "check",
-      "question": "What does the lesson say about vendor-published platform benchmarks?",
+      "question": "课程对 vendor-published platform benchmarks（厂商发布的平台基准测试）怎么说？",
       "options": [
-        "They are definitive",
-        "Take them as directional; measure your own corpus",
-        "They are forbidden by OpenTelemetry",
-        "Only Opik's are reliable"
+        "它们是 definitive（决定性的）",
+        "Take them as directional（视为方向性参考）；measure your own corpus（测量你自己的语料库）",
+        "OpenTelemetry 禁止它们",
+        "只有 Opik 的可靠"
       ],
       "correct": 1,
-      "explanation": "Even the cited 14x gap between Opik and Langfuse should be measured on your own data before deciding."
+      "explanation": "即使是引用的 Opik 与 Langfuse 之间 14 倍的差距，也应在决定前在你自己的数据上测量。"
     },
     {
       "stage": "post",
-      "question": "Why is tracing without evaluation considered expensive logging?",
+      "question": "为什么 tracing without evaluation（无评估的追踪）被认为是昂贵的日志？",
       "options": [
-        "Disk costs more than CPU",
-        "You see runs but you do not score them, so regressions are invisible and bisection is impossible",
-        "Providers charge for spans",
-        "Spans cannot be replayed"
+        "磁盘比 CPU 贵",
+        "你能看到 runs（运行）但不为它们打分，因此 regressions（回退）不可见且 bisection（二分定位）不可能",
+        "提供商按 spans 收费",
+        "Spans 无法回放"
       ],
       "correct": 1,
-      "explanation": "Evals are what turn traces into actionable quality signals."
+      "explanation": "Evals（评估）将 traces 转化为 actionable quality signals（可操作的质量信号）。"
     },
     {
       "stage": "post",
-      "question": "What is the lesson's warning about self-rolled LLM-judges?",
+      "question": "课程对 self-rolled LLM-judges（自研 LLM 评委）的警告是什么？",
       "options": [
-        "They are forbidden by Apache 2.0",
-        "CRITIC applies: judges need external grounding for factual verification or they rubber-stamp",
-        "They only work in TypeScript",
-        "They must run on GPUs"
+        "Apache 2.0 禁止它们",
+        "CRITIC 适用：judges 需要 external grounding（外部依据）进行 factual verification（事实验证），否则它们会 rubber-stamp（橡皮图章式通过）",
+        "它们只在 TypeScript 中工作",
+        "它们必须在 GPU 上运行"
       ],
       "correct": 1,
-      "explanation": "Without external tool-grounded verification, LLM-judges drift toward rubber-stamping (CRITIC, Lesson 5)."
+      "explanation": "没有 external tool-grounded verification（外部工具依据验证），LLM-judges 会 drift toward rubber-stamping（趋向橡皮图章式通过）（CRITIC，Lesson 5）。"
     }
   ]
 }

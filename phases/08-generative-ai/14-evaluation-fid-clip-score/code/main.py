@@ -103,17 +103,17 @@ def main():
     rng = random.Random(29)
     d = 4
 
-    print("=== FID bias at small N ===")
+    print("=== 小 N 下的 FID 偏差 ===")
     for n in [50, 200, 1000]:
         real = make_features(0.0, n, d, rng)
         gen = make_features(0.0, n, d, rng)  # same distribution
         score = fid(real, gen)
-        print(f"  N={n:5d}: FID (identical distributions) = {score:.4f}  (lower = more similar)")
+        print(f"  N={n:5d}: FID (identical distributions) = {score:.4f}  (越低 = 越相似)")
 
-    print("  -> FID should be 0 for identical distributions but is biased up at small N")
+    print("  -> 相同分布的 FID 应为 0，但在小 N 下存在向上偏差")
     print()
 
-    print("=== FID separates different distributions ===")
+    print("=== FID 区分不同分布 ===")
     real = make_features(0.0, 500, d, rng)
     for shift in [0.0, 0.2, 0.5, 1.0]:
         gen = make_features(shift, 500, d, rng)
@@ -121,7 +121,7 @@ def main():
         print(f"  shift={shift:.1f}: FID = {score:.3f}")
 
     print()
-    print("=== CLIP-like cosine similarity ===")
+    print("=== 类 CLIP 余弦相似度 ===")
     prompt = [1.0, 0.5, -0.2, 0.3]
     for image_center in [1.0, 0.5, 0.0, -0.5]:
         image = [image_center + rng.gauss(0, 0.1) for _ in range(d)]
@@ -129,17 +129,17 @@ def main():
         print(f"  image center {image_center:+.1f}: CLIP-like score = {score:+.3f}")
 
     print()
-    print("=== Elo from synthetic A/B preferences ===")
+    print("=== 合成 A/B 偏好的 Elo ===")
     r_a, r_b = 1000, 1000
     for i in range(200):
-        # Suppose model A wins 70% of the time
+        # 假设模型 A 70% 的时间获胜
         winner = "a" if rng.random() < 0.7 else "b"
         r_a, r_b = elo_update(r_a, r_b, winner)
-    print(f"  after 200 pairs (A wins 70%): r_A = {r_a:.0f}, r_B = {r_b:.0f}")
+    print(f"  200 对之后 (A 获胜 70%): r_A = {r_a:.0f}, r_B = {r_b:.0f}")
 
     print()
-    print("takeaway: FID is a distance; CLIP is an adherence score; Elo aggregates preferences.")
-    print("          production evaluation uses all three plus qualitative failure audits.")
+    print("要点: FID 是距离; CLIP 是遵循度分数; Elo 聚合偏好。")
+    print("          生产评估使用全部三种加上定性失效审计。")
 
 
 if __name__ == "__main__":

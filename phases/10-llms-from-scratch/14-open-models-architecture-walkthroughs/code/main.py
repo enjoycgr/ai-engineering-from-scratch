@@ -1,4 +1,4 @@
-"""Architecture calculator for open LLMs.
+"""Architecture calculator for open LLMs (开源 LLM 架构计算器).
 
 Given a HuggingFace-style config dict, compute parameter counts by component,
 KV cache at max context, MLP ratio, and a verdict on the architecture. Ships

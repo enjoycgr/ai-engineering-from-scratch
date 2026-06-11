@@ -1,8 +1,8 @@
-"""Emu3 token-count + CFG-sampling toys — stdlib.
+"""Emu3 token-count + CFG-sampling toys — stdlib。
 
-Two mini-tools:
-  1. Token-count calculator for images + video at various resolutions and FPS.
-  2. Autoregressive sampler with classifier-free guidance (CFG).
+两个迷你工具：
+  1. 各种分辨率和 FPS 下图像 + 视频的 Token-count 计算器。
+  2. 带 classifier-free guidance (CFG) 的自回归采样器。
 """
 
 from __future__ import annotations

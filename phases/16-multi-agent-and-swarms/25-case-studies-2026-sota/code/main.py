@@ -1,8 +1,6 @@
-"""Case-study mapper: pick the closest 2026 reference for a proposed design.
+"""案例研究映射器：为提议的设计选择最接近的2026年参考。
 
-Stdlib only. Scripted mapping from design attributes to one of three case
-studies (Anthropic Research, MetaGPT/ChatDev, OpenClaw/Moltbook) and the
-framework-of-choice recommendation.
+仅使用标准库。从设计属性到三个案例研究之一（Anthropic Research、MetaGPT/ChatDev、OpenClaw/Moltbook）的脚本化映射，以及首选框架推荐。
 """
 from __future__ import annotations
 

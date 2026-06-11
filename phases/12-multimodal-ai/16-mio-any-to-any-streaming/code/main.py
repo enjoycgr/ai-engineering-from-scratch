@@ -1,7 +1,7 @@
-"""MIO-style four-modality tokenizer allocation + streaming decode latency calc.
+"""MIO 风格四模态 tokenizer 分配 + 流式解码延迟计算。
 
-Stdlib. Prints the vocab layout and a step-by-step latency trace for a
-spoken-dialogue request where MIO consumes speech, generates speech.
+Stdlib。打印词汇布局和对口语对话请求的逐步延迟追踪，
+MIO 消费语音、生成语音。
 """
 
 from __future__ import annotations

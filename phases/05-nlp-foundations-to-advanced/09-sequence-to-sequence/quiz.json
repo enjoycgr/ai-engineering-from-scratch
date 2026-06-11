@@ -4,99 +4,99 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the role of the encoder in a 2014-style seq2seq model?",
+      "question": "在 2014 风格的 seq2seq 模型中，encoder (编码器) 的作用是什么？",
       "options": [
-        "Computes attention weights",
-        "Performs beam search",
-        "Reads the source and produces a fixed-size context vector summarizing it",
-        "Generates target tokens"
+        "计算 attention weights (注意力权重)",
+        "执行 beam search (束搜索)",
+        "读取源序列并生成一个固定大小的 context vector (上下文向量) 来总结它",
+        "生成目标 token"
       ],
       "correct": 2,
-      "explanation": "The encoder RNN compresses the source into a final hidden state used by the decoder."
+      "explanation": "Encoder RNN 将源序列压缩成最终 hidden state，供 decoder 使用。"
     },
     {
       "stage": "pre",
-      "question": "What is teacher forcing during seq2seq training?",
+      "question": "在 seq2seq 训练中，teacher forcing (教师强制) 是什么？",
       "options": [
-        "Adding a teacher network during inference",
-        "Doubling the batch size",
-        "Feeding the ground-truth previous token (instead of the model's prediction) as decoder input",
-        "Manually labeling each decoder step"
+        "在 inference (推理) 时添加一个教师网络",
+        "将 batch size (批量大小) 翻倍",
+        "将 ground-truth 的前一个 token（而不是模型的预测）作为 decoder 的输入",
+        "手动标注每个 decoder 步骤"
       ],
       "correct": 2,
-      "explanation": "Teacher forcing stabilizes training by using true previous tokens; without it early errors cascade."
+      "explanation": "Teacher forcing 通过使用真实的前一个 token 来稳定训练；没有它，早期错误会级联。"
     },
     {
       "stage": "check",
-      "question": "Why does fixed context-vector seq2seq accuracy fall as input length grows?",
+      "question": "为什么固定 context vector (上下文向量) 的 seq2seq 准确率会随着输入长度增长而下降？",
       "options": [
-        "Padding tokens accumulate",
-        "Cross-entropy diverges",
-        "All information about the source must fit in a single fixed-size encoder hidden state, which loses detail on long inputs",
-        "Vocabulary becomes too large"
+        "Padding token 累积",
+        "Cross-entropy (交叉熵) 发散",
+        "所有关于源序列的信息必须塞进单个固定大小的 encoder hidden state，长输入会丢失细节",
+        "词表变得太大"
       ],
       "correct": 2,
-      "explanation": "The fixed context-vector bottleneck means long inputs cannot be losslessly summarized."
+      "explanation": "固定的 context-vector bottleneck (上下文向量瓶颈) 意味着长输入无法被无损总结。"
     },
     {
       "stage": "check",
-      "question": "What is exposure bias?",
+      "question": "什么是 exposure bias (暴露偏差)？",
       "options": [
-        "Bias from class imbalance",
-        "Bias in encoder embeddings",
-        "Annotator disagreement",
-        "The train/inference gap from training on ground-truth tokens but generating from the model's own predictions at inference"
+        "来自类别不平衡的偏差",
+        "Encoder embedding 中的偏差",
+        "标注者分歧",
+        "训练时使用 ground-truth token，但 inference (推理) 时使用模型自己预测的 token，导致的训练/推理差距"
       ],
       "correct": 3,
-      "explanation": "The model never practiced recovering from its own mistakes during training, so errors cascade at inference."
+      "explanation": "模型在训练时从未练习过从自己的错误中恢复，因此错误在 inference 时会级联。"
     },
     {
       "stage": "check",
-      "question": "Why does beam search often outperform greedy decoding for generation?",
+      "question": "为什么 beam search (束搜索) 在生成任务中通常优于 greedy decoding (贪心解码)？",
       "options": [
-        "Beam search keeps the top-k partial sequences alive at each step instead of irrevocably committing to one token",
-        "Beam search avoids exposure bias",
-        "Beam search is faster",
-        "Beam search lowers the loss"
+        "Beam search 在每一步保持前 k 个部分序列活跃，而不是不可撤销地只选一个 token",
+        "Beam search 避免了 exposure bias",
+        "Beam search 更快",
+        "Beam search 降低了 loss"
       ],
       "correct": 0,
-      "explanation": "Greedy commits per step; beam search explores multiple hypotheses, then picks the best complete one."
+      "explanation": "Greedy 每步提交一个 token；beam search 探索多个假设，然后选择最佳完整序列。"
     },
     {
       "stage": "post",
-      "question": "Which architectural family replaced RNN seq2seq for general generation tasks?",
+      "question": "哪个架构家族取代了 RNN seq2seq，成为通用生成任务的主流？",
       "options": [
-        "Transformer encoder-decoder models (BART, T5, mBART, NLLB)",
-        "Graph neural networks",
-        "Naive Bayes",
-        "1D CNNs"
+        "Transformer encoder-decoder 模型 (BART, T5, mBART, NLLB)",
+        "图神经网络",
+        "朴素贝叶斯",
+        "1D CNN"
       ],
       "correct": 0,
-      "explanation": "Transformer encoder-decoders dropped recurrence and now dominate generation tasks."
+      "explanation": "Transformer encoder-decoder 放弃了循环结构，现在主导生成任务。"
     },
     {
       "stage": "post",
-      "question": "What does scheduled sampling do?",
+      "question": "Scheduled sampling (计划采样) 的作用是什么？",
       "options": [
-        "Anneals the teacher-forcing ratio downward during training so the model learns to recover from its own predictions",
-        "Schedules learning-rate decay",
-        "Reorders the training set",
-        "Adds random noise to embeddings"
+        "在训练过程中退火 teacher-forcing ratio，使模型学会从自己的预测中恢复",
+        "调度学习率衰减",
+        "重新排序训练集",
+        "向 embedding 添加随机噪声"
       ],
       "correct": 0,
-      "explanation": "Scheduled sampling gradually mixes in model predictions to close the train/inference gap."
+      "explanation": "Scheduled sampling 逐渐混入模型预测，以缩小训练/推理差距。"
     },
     {
       "stage": "post",
-      "question": "Why does greedy decoding alone often fail for user-facing generation?",
+      "question": "为什么 greedy decoding (贪心解码) 单独使用时常在面向用户的生成任务中失败？",
       "options": [
-        "It cannot use embeddings",
-        "It always picks <EOS> first",
-        "Greedy can repeat or loop and cannot backtrack from a locally good but globally poor token choice",
-        "It requires more memory"
+        "它无法使用 embedding",
+        "它总是先选 <EOS>",
+        "Greedy 可能重复或循环，无法从局部好但全局差的 token 选择中回溯",
+        "它需要更多内存"
       ],
       "correct": 2,
-      "explanation": "Greedy decoding's irrevocable per-step choice causes loops and repetition without beam search or sampling."
+      "explanation": "Greedy decoding 不可撤销的每步选择会导致循环和重复，没有 beam search 或采样时尤为明显。"
     }
   ]
 }

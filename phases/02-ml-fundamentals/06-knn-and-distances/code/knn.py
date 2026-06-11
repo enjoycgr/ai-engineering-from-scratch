@@ -3,14 +3,17 @@ import random
 
 
 def l2_distance(a, b):
+    """Euclidean distance (欧氏距离): L2 norm of the difference."""
     return math.sqrt(sum((ai - bi) ** 2 for ai, bi in zip(a, b)))
 
 
 def l1_distance(a, b):
+    """Manhattan distance (曼哈顿距离): sum of absolute differences."""
     return sum(abs(ai - bi) for ai, bi in zip(a, b))
 
 
 def cosine_distance(a, b):
+    """Cosine distance (余弦距离): 1 - cosine similarity."""
     dot_val = sum(ai * bi for ai, bi in zip(a, b))
     norm_a = math.sqrt(sum(ai ** 2 for ai in a))
     norm_b = math.sqrt(sum(bi ** 2 for bi in b))
@@ -20,12 +23,14 @@ def cosine_distance(a, b):
 
 
 def minkowski_distance(a, b, p=2):
+    """Minkowski distance (闵可夫斯基距离): generalizes L1 and L2."""
     if p == float("inf"):
         return max(abs(ai - bi) for ai, bi in zip(a, b))
     return sum(abs(ai - bi) ** p for ai, bi in zip(a, b)) ** (1 / p)
 
 
 def standardize(X):
+    """Feature scaling (特征缩放): zero mean, unit variance per feature."""
     n = len(X)
     d = len(X[0])
     means = [sum(X[i][j] for i in range(n)) / n for j in range(d)]
@@ -43,10 +48,13 @@ def standardize(X):
 
 
 def apply_standardize(X, means, stds):
+    """Apply previously computed feature scaling (特征缩放) to new data."""
     return [[(x[j] - means[j]) / stds[j] for j in range(len(x))] for x in X]
 
 
 class KNN:
+    """K-Nearest Neighbors (K近邻): lazy learning (惰性学习) classifier/regressor."""
+
     def __init__(self, k=5, distance_fn=l2_distance, weighted=False,
                  task="classification"):
         self.k = k
@@ -57,6 +65,7 @@ class KNN:
         self.y_train = None
 
     def fit(self, X, y):
+        """Lazy learning (惰性学习): just store the data, no training."""
         self.X_train = list(X)
         self.y_train = list(y)
 
@@ -64,6 +73,7 @@ class KNN:
         return [self._predict_one(x) for x in X]
 
     def _predict_one(self, x):
+        """Find K nearest neighbors and predict."""
         distances = []
         for i in range(len(self.X_train)):
             d = self.distance_fn(x, self.X_train[i])
@@ -76,6 +86,7 @@ class KNN:
         return self._regress(neighbors)
 
     def _classify(self, neighbors):
+        """Classification: majority vote (多数投票) or weighted vote."""
         if self.weighted:
             votes = {}
             for dist, label in neighbors:
@@ -88,6 +99,7 @@ class KNN:
         return max(votes, key=votes.get)
 
     def _regress(self, neighbors):
+        """Regression: average or weighted average of neighbor values."""
         if self.weighted:
             w_sum = 0.0
             val_sum = 0.0
@@ -99,6 +111,7 @@ class KNN:
         return sum(val for _, val in neighbors) / len(neighbors)
 
     def predict_with_neighbors(self, x):
+        """Predict and return the K nearest neighbors for inspection."""
         distances = []
         for i in range(len(self.X_train)):
             d = self.distance_fn(x, self.X_train[i])
@@ -110,6 +123,8 @@ class KNN:
 
 
 class KDNode:
+    """Node in a KD-tree (KD树)."""
+
     def __init__(self, point, index, axis, left=None, right=None):
         self.point = point
         self.index = index
@@ -119,12 +134,15 @@ class KDNode:
 
 
 class KDTree:
+    """KD-tree (KD树) for efficient nearest neighbor search in low dimensions."""
+
     def __init__(self, X):
         self.dim = len(X[0])
         indexed = [(X[i], i) for i in range(len(X))]
         self.root = self._build(indexed, depth=0)
 
     def _build(self, points, depth):
+        """Recursively build KD-tree (KD树) by splitting on median."""
         if not points:
             return None
         axis = depth % self.dim
@@ -139,12 +157,14 @@ class KDTree:
         )
 
     def query(self, point, k=1):
+        """Find k nearest neighbors using KD-tree (KD树) search."""
         best = []
         self._search(self.root, point, k, best)
         best.sort(key=lambda x: x[0])
         return best
 
     def _search(self, node, point, k, best):
+        """Recursive KD-tree (KD树) search with backtracking."""
         if node is None:
             return
 
@@ -181,6 +201,7 @@ def mse(y_true, y_pred):
 
 
 def generate_classification_data(n_samples=200, n_classes=3, seed=42):
+    """Generate synthetic 2D classification data with Gaussian clusters."""
     random.seed(seed)
     X = []
     y = []
@@ -199,6 +220,7 @@ def generate_classification_data(n_samples=200, n_classes=3, seed=42):
 
 
 def generate_regression_data(n_samples=200, seed=42):
+    """Generate 1D regression data: y = sin(x) + noise."""
     random.seed(seed)
     X = []
     y = []
@@ -211,6 +233,7 @@ def generate_regression_data(n_samples=200, seed=42):
 
 
 def generate_high_dim_data(n_samples=500, n_dims=2, seed=42):
+    """Generate high-dimensional data to demonstrate curse of dimensionality (维度灾难)."""
     random.seed(seed)
     X = []
     y = []
@@ -223,6 +246,7 @@ def generate_high_dim_data(n_samples=500, n_dims=2, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """Split data into train and test sets."""
     random.seed(seed)
     n = len(X)
     indices = list(range(n))

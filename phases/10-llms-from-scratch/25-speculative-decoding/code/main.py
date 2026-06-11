@@ -1,23 +1,18 @@
 """Speculative decoding harness: exact rejection rule, alpha sweep, tree mask.
 
-Three things this file proves, on synthetic toy distributions so the math
-stays visible:
+该文件在合成玩具分布上证明三件事，使数学保持可见：
 
-1. The Leviathan-Kalai-Matias rejection rule preserves the target's
-   sampling distribution. Empirical total-variation distance between
-   plain target sampling and speculative-with-draft sampling is < 0.01
-   over 50_000 draws.
-2. The expected-tokens-per-verify formula holds. For acceptance rate
-   alpha and draft length K, E[tokens] = (1 - alpha^(K+1)) / (1 - alpha)
-   matches the measured throughput within sampling noise.
-3. Tree drafting verifies multiple candidate paths in a single target
-   forward via a topological causal mask. We build a depth-K tree, emit
-   the verification mask, and confirm every node attends only to its
-   ancestors.
+1. Leviathan-Kalai-Matias 拒绝规则保留目标采样分布。
+   纯目标采样与 speculative-with-draft 采样之间的经验总变差距离
+   在 50_000 次抽取中 < 0.01。
+2. 每次验证的预期 token 公式成立。对于接受率 alpha 和 draft 长度 K，
+   E[tokens] = (1 - alpha^(K+1)) / (1 - alpha) 在采样噪声内匹配测量吞吐量。
+3. 树形 drafting 通过拓扑因果掩码在单次目标前向中验证多条候选路径。
+   我们构建深度 K 树，发出验证掩码，并确认每个节点只 attends 其祖先。
 
-Stdlib + numpy only.
+仅 stdlib + numpy。
 
-Run:
+运行：
     python main.py
     python main.py --vocab 64 --alpha 0.75 --k 4 --samples 50000
 """
@@ -36,15 +31,9 @@ def make_target(vocab: int, rng: np.random.Generator) -> np.ndarray:
 
 def make_draft(target: np.ndarray, alpha_hint: float,
                rng: np.random.Generator) -> np.ndarray:
-    """A draft distribution whose expected token-level acceptance is near
-    alpha_hint. We linearly blend target with a uniform distribution; the
-    blend ratio controls how close the draft is to the target."""
-    vocab = target.size
-    uniform = np.full(vocab, 1.0 / vocab)
-    draft = alpha_hint * target + (1.0 - alpha_hint) * uniform
-    noise = rng.uniform(0.95, 1.05, size=vocab)
-    draft = draft * noise
-    return draft / draft.sum()
+    """预期 token 级接受率接近 alpha_hint 的 draft 分布。
+    我们将 target 与均匀分布线性混合；混合比例控制
+    draft 与 target 的接近程度。"""
 
 
 def sample(probs: np.ndarray, rng: np.random.Generator) -> int:
@@ -53,7 +42,7 @@ def sample(probs: np.ndarray, rng: np.random.Generator) -> int:
 
 def speculative_step(target: np.ndarray, draft: np.ndarray, K: int,
                      rng: np.random.Generator) -> list[int]:
-    """One round. Returns 1..K+1 tokens whose distribution equals target."""
+    """一轮。返回 1..K+1 个 token，其分布等于 target。"""
     proposed: list[int] = []
     q_at: list[float] = []
     for _ in range(K):
@@ -90,8 +79,8 @@ def empirical_dist(samples: list[int], vocab: int) -> np.ndarray:
 def verify_distribution(target: np.ndarray, draft: np.ndarray, K: int,
                         n_samples: int, rng: np.random.Generator
                         ) -> tuple[float, float]:
-    """Compare next-token distributions under plain target sampling and
-    speculative sampling. They must be statistically indistinguishable."""
+    """比较纯目标采样和 speculative 采样下的下一 token 分布。
+    它们必须在统计上不可区分。"""
     vocab = target.size
     plain = [sample(target, rng) for _ in range(n_samples)]
     spec_first: list[int] = []
@@ -129,7 +118,7 @@ def measure_throughput(target: np.ndarray, draft: np.ndarray, K: int,
 
 
 def build_tree(branch_factor: tuple[int, ...]) -> list[tuple[int, list[int]]]:
-    """Return nodes as (parent_index, depth-path). Index 0 is root."""
+    """返回节点为 (parent_index, depth-path)。索引 0 是根。"""
     tree: list[tuple[int, list[int]]] = [(-1, [])]
     frontier = [0]
     for depth, b in enumerate(branch_factor):
@@ -143,7 +132,7 @@ def build_tree(branch_factor: tuple[int, ...]) -> list[tuple[int, list[int]]]:
 
 
 def tree_attention_mask(tree: list[tuple[int, list[int]]]) -> np.ndarray:
-    """N x N causal mask where each row attends to its ancestors only."""
+    """N x N 因果掩码，每行只 attends 其祖先。"""
     n = len(tree)
     mask = np.zeros((n, n), dtype=np.int8)
     for i in range(n):
@@ -186,13 +175,13 @@ def _unit_float(value: str) -> float:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--vocab", type=lambda v: _positive_int(v, minimum=2), default=32,
-                        help="vocab size (>= 2)")
+                        help="词表大小 (>= 2)")
     parser.add_argument("--alpha", type=_unit_float, default=0.75,
-                        help="target acceptance rate in (0, 1]")
+                        help="目标接受率，范围 (0, 1]")
     parser.add_argument("--k", type=lambda v: _positive_int(v, minimum=1), default=4,
-                        help="draft length (>= 1)")
+                        help="draft 长度 (>= 1)")
     parser.add_argument("--samples", type=lambda v: _positive_int(v, minimum=2), default=20000,
-                        help="sample count (>= 2)")
+                        help="样本数量 (>= 2)")
     parser.add_argument("--seed", type=int, default=0)
     return parser.parse_args()
 

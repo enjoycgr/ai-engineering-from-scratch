@@ -1,3 +1,13 @@
+"""Gradient checkpointing demo: full vs selective, with cost model.
+
+非生产训练器。演示：
+  - 存储所有激活 vs 每 k 层检查点
+  - 后向期间重计算段
+  - FLOP 开销和内存权衡
+  - 选择性检查点（仅 attention）
+
+运行: python main.py
+"""
 import numpy as np
 
 
@@ -47,6 +57,7 @@ def model_backward(grad_output, activations, params):
 
 
 def model_forward_checkpointed(x, params, k=4):
+    """每 k 层保存段输入，丢弃中间激活。"""
     saved_inputs = [x]
     h = x
     for i, (w1, b1, w2, b2) in enumerate(params):
@@ -58,6 +69,7 @@ def model_forward_checkpointed(x, params, k=4):
 
 
 def model_backward_checkpointed(grad_output, saved_inputs, params, k=4):
+    """重计算每个段的前向以恢复 backward 所需的中间值。"""
     grads = [None] * len(params)
     g = grad_output
     n_seg = (len(params) + k - 1) // k
@@ -74,6 +86,7 @@ def model_backward_checkpointed(grad_output, saved_inputs, params, k=4):
 
 def checkpoint_cost(n_layers, segment_size=1, flops_per_layer=1.0,
                     attention_fraction=0.15, selective=False):
+    """计算 checkpointing 的 FLOP 开销。"""
     fwd = n_layers * flops_per_layer
     if selective:
         recompute = n_layers * attention_fraction * flops_per_layer
@@ -95,22 +108,26 @@ def checkpoint_cost(n_layers, segment_size=1, flops_per_layer=1.0,
 
 def activation_memory_mb(n_layers, hidden=8192, seq=8192, batch=1,
                          bytes_per_value=2):
+    """无 checkpointing 时的总激活内存（MB）。"""
     per_layer = 12 * batch * seq * hidden * bytes_per_value
     return n_layers * per_layer / 1e6
 
 
 def memory_after_checkpoint(n_layers, segment_size, hidden=8192,
                             seq=8192, batch=1, bytes_per_value=2):
+    """有 checkpointing 时保存的激活内存（MB）。"""
     n_seg = (n_layers + segment_size - 1) // segment_size
     saved = (n_seg + segment_size) * batch * seq * hidden * bytes_per_value
     return saved / 1e6
 
 
 def optimal_segment(n_layers):
+    """对于均匀成本层，经典最优段大小为 sqrt(L)。"""
     return max(1, int(round(np.sqrt(n_layers))))
 
 
 def should_recompute(layer_type, activation_bytes_mb, recompute_flops_ratio):
+    """选择性检查点启发式：当激活昂贵且重计算便宜时重计算。"""
     if layer_type == "attention" and activation_bytes_mb > 100:
         return True
     if layer_type == "ffn" and activation_bytes_mb > 500:
@@ -119,6 +136,7 @@ def should_recompute(layer_type, activation_bytes_mb, recompute_flops_ratio):
 
 
 def make_params(n_layers, hidden, inner, seed=0):
+    """为玩具模型生成随机参数。"""
     rng = np.random.default_rng(seed)
     params = []
     for _ in range(n_layers):
@@ -131,6 +149,7 @@ def make_params(n_layers, hidden, inner, seed=0):
 
 
 def verify_equivalence(n_layers=6, hidden=16, inner=32, batch=4, k=2):
+    """验证 checkpointed 后向与完整后向产生相同的梯度。"""
     rng = np.random.default_rng(1)
     x = rng.standard_normal((batch, hidden)).astype(np.float32)
     params = make_params(n_layers, hidden, inner)

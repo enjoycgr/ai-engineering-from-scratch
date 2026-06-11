@@ -1,8 +1,8 @@
-"""Managed LLM platform comparator — stdlib Python.
+"""托管 LLM 平台比较器 —— 纯 Python 标准库。
 
-Models three platforms (Bedrock on-demand, Azure PTU, Vertex on-demand) on the
-same synthetic workload. Reports per-day cost, TTFT median / P99, and attribution
-fidelity. Pedagogical: prices and latencies are 2026 public-domain approximations.
+对三个平台（Bedrock 按需、Azure PTU、Vertex 按需）在相同合成工作负载下进行建模。
+报告每日成本、TTFT 中位数 / P99、以及归因保真度。
+教学用途：价格和延迟为 2026 年公开近似值。
 """
 
 from __future__ import annotations
@@ -15,14 +15,14 @@ import statistics
 @dataclass
 class Platform:
     name: str
-    per_mtok_input: float        # $/M input tokens on-demand
-    per_mtok_output: float       # $/M output tokens on-demand
-    ptu_hourly: float | None     # $/hour for one reservation unit (None = not offered)
-    ptu_tokens_per_hour: int     # tokens/hour a single PTU delivers
-    ttft_median_ms: float        # median TTFT on shared capacity
-    ttft_p99_ms: float           # P99 TTFT on shared capacity
-    ttft_median_ptu_ms: float    # median TTFT on dedicated PTU
-    attribution: str             # qualitative FinOps surface grade
+    per_mtok_input: float        # 按需输入 token $/M
+    per_mtok_output: float       # 按需输出 token $/M
+    ptu_hourly: float | None     # 单个预留单元 $/小时（None = 不提供）
+    ptu_tokens_per_hour: int     # 单个 PTU 每小时交付的 token 数
+    ttft_median_ms: float        # 共享容量上的 TTFT 中位数
+    ttft_p99_ms: float           # 共享容量上的 P99 TTFT
+    ttft_median_ptu_ms: float    # 专属 PTU 上的 TTFT 中位数
+    attribution: str             # 定性 FinOps 界面评级
 
 
 PLATFORMS = [

@@ -185,7 +185,7 @@ class LossComparisonNetwork:
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("STEP 1: MSE Loss")
+    print("步骤 1: MSE Loss (均方误差损失)")
     print("=" * 60)
     preds = [0.9, 0.1, 0.7, 0.4]
     targets = [1.0, 0.0, 1.0, 0.0]
@@ -195,21 +195,21 @@ if __name__ == "__main__":
     print(f"  MSE Grads:   {[f'{g:.4f}' for g in mse_gradient(preds, targets)]}")
 
     print("\n" + "=" * 60)
-    print("STEP 2: Binary Cross-Entropy")
+    print("步骤 2: Binary Cross-Entropy (二元交叉熵)")
     print("=" * 60)
     print(f"  Predictions: {preds}")
     print(f"  Targets:     {targets}")
     print(f"  BCE Loss:    {binary_cross_entropy(preds, targets):.6f}")
     print(f"  BCE Grads:   {[f'{g:.4f}' for g in bce_gradient(preds, targets)]}")
 
-    print("\n  CE loss at different confidence levels (true label = 1):")
+    print("\n  不同置信度下的 CE loss (真实标签 = 1):")
     for conf in [0.01, 0.1, 0.5, 0.9, 0.99]:
         ce = -(1.0 * math.log(max(1e-15, conf)))
         ms = (conf - 1.0) ** 2
         print(f"    p={conf:.2f}: CE={ce:.4f}, MSE={ms:.4f}, ratio={ce/max(0.0001, ms):.1f}x")
 
     print("\n" + "=" * 60)
-    print("STEP 3: Categorical Cross-Entropy + Softmax")
+    print("步骤 3: Categorical Cross-Entropy + Softmax (分类交叉熵 + 软最大值)")
     print("=" * 60)
     logits = [2.0, 1.0, 0.1, -1.0, 3.0]
     target_idx = 4
@@ -221,7 +221,7 @@ if __name__ == "__main__":
     print(f"  Gradient: {[f'{g:.4f}' for g in cce_gradient(logits, target_idx)]}")
 
     print("\n" + "=" * 60)
-    print("STEP 4: Label Smoothing")
+    print("步骤 4: Label Smoothing (标签平滑)")
     print("=" * 60)
     num_classes = 5
     hard_loss = categorical_cross_entropy(logits, target_idx)
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     print(f"  This prevents overconfidence by targeting 0.9 instead of 1.0")
 
     print("\n" + "=" * 60)
-    print("STEP 5: Contrastive Loss")
+    print("步骤 5: Contrastive Loss (对比损失)")
     print("=" * 60)
     random.seed(42)
     anchor = [random.gauss(0, 1) for _ in range(8)]
@@ -251,7 +251,7 @@ if __name__ == "__main__":
     print(f"  Lower temperature = sharper = higher loss for imperfect separation")
 
     print("\n" + "=" * 60)
-    print("STEP 6: MSE vs Cross-Entropy on Classification")
+    print("步骤 6: MSE vs Cross-Entropy on Classification (分类任务上 MSE 与交叉熵的对比)")
     print("=" * 60)
     data = make_circle_data()
 

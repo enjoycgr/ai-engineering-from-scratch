@@ -1,7 +1,7 @@
-// Guardrails in TypeScript: input + output validation wrapper. Three-layer
-// pipeline (validate inputs, constrain execution, filter outputs). Mirrors
-// code/guardrails.py and the OWASP LLM defense-in-depth pattern.
-// Sources:
+// TypeScript 中的 Guardrails：输入 + 输出验证包装器。三层
+// pipeline（验证输入、约束执行、过滤输出）。对应
+// code/guardrails.py 和 OWASP LLM defense-in-depth (纵深防御) 模式。
+// 来源：
 //   https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html
 //   https://github.com/presidio-oss/hai-guardrails
 //   https://github.com/protectai/llm-guard

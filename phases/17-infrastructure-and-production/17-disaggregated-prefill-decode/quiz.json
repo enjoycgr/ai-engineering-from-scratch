@@ -1,61 +1,61 @@
 {
   "lesson": "17-disaggregated-prefill-decode",
-  "title": "Disaggregated Prefill/Decode — NVIDIA Dynamo and llm-d",
+  "title": "Disaggregated Prefill/Decode（分离式预填充/解码）—— NVIDIA Dynamo 与 llm-d",
   "questions": [
     {
       "stage": "pre",
-      "question": "Why do prefill and decode want different optimal GPU configurations?",
+      "question": "为什么 prefill 和 decode 需要不同的最优 GPU 配置？",
       "options": [
-        "Prefill must run on AMD and decode on NVIDIA",
-        "Prefill is compute-bound on matmul throughput; decode is memory-bound on HBM bandwidth, so colocating them wastes one resource",
-        "They use different model weights",
-        "Decode requires more network bandwidth"
+        "Prefill 必须跑 AMD，decode 必须跑 NVIDIA",
+        "Prefill 是 matmul throughput 的计算密集型；decode 是 HBM bandwidth 的内存密集型，同机部署会浪费一种资源",
+        "它们使用不同的模型权重",
+        "Decode 需要更多网络带宽"
       ],
       "correct": 1,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "What transport does NVIDIA Dynamo use to move KV cache between the prefill and decode pools?",
+      "question": "NVIDIA Dynamo 用什么传输层在 prefill 和 decode pool 之间移动 KV cache？",
       "options": [
         "Plain HTTP",
-        "gRPC bidi only",
-        "Shared filesystem on NFS",
-        "NIXL (RDMA/InfiniBand when available, TCP fallback)"
+        "仅 gRPC bidi",
+        "NFS 共享文件系统",
+        "NIXL（可用时用 RDMA/InfiniBand，否则 TCP fallback）"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "When does disaggregation NOT pay off according to the lesson?",
+      "question": "按课程，disaggregation 在什么情况下不划算？",
       "options": [
-        "MoE workloads on Blackwell",
-        "Multi-tenant serving with shared system prompts",
-        "RAG with 8K+ prefixes",
-        "Prompts under 512 tokens and outputs under 200 tokens, where the KV transfer tax dominates the gain"
+        "Blackwell 上的 MoE 工作负载",
+        "多租户 serving 共享系统提示",
+        "8K+ 前缀的 RAG",
+        "提示低于 512 token 且输出低于 200 token，KV transfer tax 超过收益"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "What is the core architectural difference between Dynamo and llm-d?",
+      "question": "Dynamo 与 llm-d 的核心架构差异是什么？",
       "options": [
-        "Dynamo is open source; llm-d is closed",
-        "Dynamo runs on CPU; llm-d on GPU",
-        "Dynamo is a stack-above orchestrator over vLLM/SGLang/TRT-LLM; llm-d is Kubernetes-native with prefill/decode/router as independent Services",
-        "Dynamo requires AMD; llm-d requires NVIDIA"
+        "Dynamo 开源；llm-d 闭源",
+        "Dynamo 跑 CPU；llm-d 跑 GPU",
+        "Dynamo 是 vLLM/SGLang/TRT-LLM 之上的 stack-above orchestrator；llm-d 是 Kubernetes-native，prefill/decode/router 为独立 Services",
+        "Dynamo 需要 AMD；llm-d 需要 NVIDIA"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Which Dynamo components automatically tune the prefill:decode ratio for an SLO?",
+      "question": "Dynamo 的哪些组件自动为 SLO 调优 prefill:decode 比例？",
       "options": [
-        "Sidecar proxy and Envoy filter",
-        "Planner Profiler and SLA Planner",
+        "Sidecar proxy 和 Envoy filter",
+        "Planner Profiler 和 SLA Planner",
         "Cluster Autoscaler",
         "Marlin kernels"
       ],
@@ -64,12 +64,12 @@
     },
     {
       "stage": "post",
-      "question": "How does disaggregation interact with cache-aware routing from Phase 17 · 11?",
+      "question": "Disaggregation 如何与 Phase 17 · 11 的 cache-aware routing 交互？",
       "options": [
-        "Disaggregation disables KV cache reuse entirely",
-        "The cache-aware router can land a request on the decode pool already holding its prefix; on miss it flows prefill -> decode, so the two compound",
-        "They are mutually exclusive",
-        "Cache-aware routing is only for colocated serving"
+        "Disaggregation 完全禁用 KV cache 复用",
+        "Cache-aware router 可将请求落到已持有其前缀的 decode pool；未命中时走 prefill -> decode，两者叠加",
+        "它们互斥",
+        "Cache-aware routing 仅用于 colocated serving"
       ],
       "correct": 1,
       "explanation": ""

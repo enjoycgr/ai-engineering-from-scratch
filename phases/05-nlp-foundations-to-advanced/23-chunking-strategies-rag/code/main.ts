@@ -1,7 +1,7 @@
-// Chunking strategies for RAG in TypeScript: fixed, recursive, semantic,
-// sentence, parent-child. Mirrors code/main.py and follows the splitter
-// hierarchy from LangChain.js (RecursiveCharacterTextSplitter).
-// Sources:
+// RAG 分块策略的 TypeScript 实现：固定分块、递归分块、语义分块、
+// 句子分块、父文档分块。与 code/main.py 对应，并遵循
+// LangChain.js 的分割器层级（RecursiveCharacterTextSplitter）。
+// 来源：
 //   https://docs.langchain.com/oss/javascript/integrations/splitters
 //   https://philna.sh/blog/2024/09/18/how-to-chunk-text-in-javascript-for-rag-applications/
 //   https://github.com/langchain-ai/langchainjs (textsplitters package)
@@ -24,9 +24,8 @@ function tokenize(text: string): string[] {
 
 function hashEmbed(text: string, dim = 256): Vec {
   if (dim <= 0) throw new Error("dim must be positive");
-  // Hashing-trick embedder: every token contributes +/-1 to a hashed dim.
-  // Deterministic, no training, useful as a stand-in for production
-  // embedders (BGE-M3, text-embedding-3-small, voyage-3).
+  // Hashing-trick 嵌入器：每个 token 向一个哈希维度贡献 +/-1。
+  // 确定性、无需训练，可作为生产级嵌入器（BGE-M3、text-embedding-3-small、voyage-3）的替代品。
   const vec = new Array<number>(dim).fill(0);
   for (const tok of tokenize(text)) {
     const digest = createHash("md5").update(tok).digest();
@@ -66,9 +65,8 @@ function chunkRecursive(
   seps: readonly string[] = ["\n\n", "\n", ". ", " "],
 ): string[] {
   if (size <= 0) throw new Error("size must be positive");
-  // Mirrors LangChain.js RecursiveCharacterTextSplitter: try the strongest
-  // separator first (paragraph), drop to weaker ones (sentence, word) when
-  // the current pass leaves chunks larger than `size`.
+  // 与 LangChain.js RecursiveCharacterTextSplitter 对应：先尝试最强的分隔符（段落），
+  // 当当前轮次产生的 chunk 大于 `size` 时，降级到较弱的分隔符（句子、词）。
   if (text.length <= size) {
     const t = text.trim();
     return t.length > 0 ? [t] : [];
@@ -102,6 +100,8 @@ function splitSentences(text: string): string[] {
 }
 
 function chunkSemantic(text: string, threshold = 0.3, minChars = 40): string[] {
+  // 语义分块：在相邻句子 embedding (嵌入) 相似度低于阈值处切分。
+  // threshold 过高会产生碎片；过低会产生一个巨大 chunk。
   const sentences = splitSentences(text);
   if (sentences.length === 0) return [];
   const embs = sentences.map((s) => hashEmbed(s));
@@ -121,6 +121,7 @@ function chunkSemantic(text: string, threshold = 0.3, minChars = 40): string[] {
 
 function chunkSentence(text: string, sentencesPerChunk = 3): string[] {
   if (sentencesPerChunk <= 0) throw new Error("sentencesPerChunk must be positive");
+  // 句子分块：每个 chunk N 个句子。成本仅为语义分块的一小部分。
   const sentences = splitSentences(text);
   const out: string[] = [];
   for (let i = 0; i < sentences.length; i += sentencesPerChunk) {
@@ -130,6 +131,7 @@ function chunkSentence(text: string, sentencesPerChunk = 3): string[] {
 }
 
 function chunkParentChild(text: string, parentSize = 800, childSize = 200): ParentChildPair[] {
+  // 父文档分块：存储小的子 chunk 用于检索，大的父 chunk 用于上下文。
   const parents = chunkRecursive(text, parentSize);
   const pairs: ParentChildPair[] = [];
   parents.forEach((parent, parentIdx) => {
@@ -147,6 +149,7 @@ function retrieveRecall(
   goldSubstrings: readonly string[],
   topK = 3,
 ): boolean {
+  // 计算 recall@k：top-k chunk 中是否包含任一 gold 子串。
   const embs = chunks.map((c) => hashEmbed(c));
   const qEmb = hashEmbed(query);
   const scored = embs.map((e, i) => ({ score: cosine(e, qEmb), idx: i }));

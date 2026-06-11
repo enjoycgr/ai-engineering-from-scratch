@@ -1,14 +1,14 @@
-"""Toy continuous-batching scheduler — stdlib Python.
+"""玩具级 continuous-batching 调度器 —— 纯 Python 标准库。
 
-Simulates four serving modes on the same workload:
-  NAIVE            : one request at a time, no batching
-  STATIC           : pad to batch boundary, wait for slowest
-  CONTINUOUS       : iteration-level admit/release
-  CONTINUOUS+CHUNK : continuous + chunked prefill (512-token slices)
+在相同工作负载上模拟四种服务模式：
+  NAIVE            : 一次一个请求，无 batching
+  STATIC           : 填充到 batch 边界，等待最慢的
+  CONTINUOUS       : 迭代级准入/释放
+  CONTINUOUS+CHUNK : continuous + chunked prefill（512-token 切片）
 
-Reports throughput (tok / virt-sec), mean TTFT, and P99 ITL so you can
-reproduce the shape of the vLLM benchmarks without a GPU. Pedagogical:
-the latency constants are illustrative, not measured.
+报告吞吐量（tok / virt-sec）、平均 TTFT 和 P99 ITL，
+让你无需 GPU 即可复现 vLLM 基准的形状。
+教学用途：延迟常数为示意值，非实测。
 """
 
 from __future__ import annotations
@@ -19,12 +19,12 @@ import random
 import statistics
 
 
-FORWARD_LATENCY_PER_TOKEN = 0.0005   # 0.5 ms per decode token in the batch
-PREFILL_LATENCY_PER_TOKEN = 0.00004  # prefill ~12x cheaper per token than decode
-BATCH_OVERHEAD = 0.0002              # fixed overhead per forward call
+FORWARD_LATENCY_PER_TOKEN = 0.0005   # batch 中每个 decode token 0.5 ms
+PREFILL_LATENCY_PER_TOKEN = 0.00004  # prefill 每 token 比 decode 便宜约 12 倍
+BATCH_OVERHEAD = 0.0002              # 每次前向调用的固定开销
 CHUNK_SIZE = 512
 KV_BLOCK_SIZE = 16
-KV_BLOCKS_AVAILABLE = 1800           # toy KV block budget
+KV_BLOCKS_AVAILABLE = 1800           # 玩具 KV block 预算
 
 
 @dataclass
@@ -57,7 +57,7 @@ def make_workload(n: int = 60, seed: int = 7) -> list[Request]:
     reqs = []
     now = 0.0
     for i in range(n):
-        now += rng.expovariate(40.0)   # ~40 req/s arrival
+        now += rng.expovariate(40.0)   # ~40 req/s 到达率
         prompt_len = rng.choice([128, 256, 512, 2048, 8192])
         out_len = rng.randint(50, 300)
         reqs.append(Request(i, prompt_len, out_len, now))
@@ -77,7 +77,7 @@ def report(label: str, reqs: list[Request], sim_end: float) -> None:
 
 
 def simulate_naive(reqs: list[Request]) -> float:
-    """One at a time. Prefill the whole prompt, then decode until done."""
+    """一次一个。先完整 prefill，再 decode 到结束。"""
     now = 0.0
     for r in reqs:
         if now < r.arrived_at:
@@ -96,7 +96,7 @@ def simulate_naive(reqs: list[Request]) -> float:
 
 
 def simulate_static(reqs: list[Request], batch: int = 16) -> float:
-    """Group into fixed batches; wait for the slowest to finish."""
+    """分成固定 batch；等待最慢的完成。"""
     now = 0.0
     i = 0
     while i < len(reqs):

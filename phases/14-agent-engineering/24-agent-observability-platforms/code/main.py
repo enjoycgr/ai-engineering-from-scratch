@@ -1,7 +1,7 @@
 """Stdlib trace collector + LLM-judge evaluator.
 
-Mirrors what Langfuse / Phoenix / Opik do with richer UIs: ingest spans,
-group by session, score with an LLM judge, surface failure categories.
+模拟 Langfuse / Phoenix / Opik 在更丰富的 UI 中所做的：摄取 spans（跨度），
+按 session（会话）分组，用 LLM judge（LLM 评委）打分，呈现 failure categories（失败类别）。
 """
 
 from __future__ import annotations
@@ -130,7 +130,7 @@ def main() -> None:
     for span in ok_spans + err_spans + slow_spans:
         collector.ingest(span)
 
-    print("\nsummary per session (what Langfuse/Phoenix/Opik show)")
+    print("\nsummary per session（Langfuse/Phoenix/Opik 会展示的内容）")
     for summary in summarize(collector):
         score, verdict = scripted_llm_judge(collector.by_session()[summary.session_id])
         print(f"  {summary.session_id}  verdict={verdict}  score={score:.2f}  "
@@ -141,11 +141,11 @@ def main() -> None:
 
     total_errors = sum(s.error_count for s in summarize(collector))
     total_sessions = len(collector.by_session())
-    print(f"\naggregate: {total_errors} errors across {total_sessions} sessions")
+    print(f"\naggregate（汇总）: {total_errors} errors across {total_sessions} sessions")
     print()
-    print("Langfuse: prompt versions tied to traces.")
-    print("Phoenix: RAG relevancy + drift/clustering.")
-    print("Opik: optimization + guardrail enforcement.")
+    print("Langfuse: prompt versions（提示词版本）tied to traces（绑定到追踪）。")
+    print("Phoenix: RAG relevancy（RAG 相关性）+ drift/clustering（漂移/聚类）。")
+    print("Opik: optimization（优化）+ guardrail enforcement（护栏执行）。")
 
 
 if __name__ == "__main__":

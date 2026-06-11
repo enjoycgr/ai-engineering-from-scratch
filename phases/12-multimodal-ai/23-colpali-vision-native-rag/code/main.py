@@ -1,7 +1,7 @@
-"""ColPali toy: patch encoder + MaxSim retrieval — stdlib.
+"""ColPali 玩具：patch 编码器 + MaxSim 检索 — stdlib。
 
-Five mock "pages" of patch embeddings, three text queries with token embeddings,
-MaxSim scoring with top-k retrieval. Prints ranked pages + interpretation.
+五个 mock "页面" 的 patch embedding，三个带 token embedding 的文本查询，
+MaxSim 评分与 top-k 检索。打印排名页面 + 解释。
 """
 
 from __future__ import annotations

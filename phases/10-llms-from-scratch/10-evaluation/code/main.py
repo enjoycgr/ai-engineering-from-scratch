@@ -5,6 +5,8 @@ import numpy as np
 
 
 class EvalCase:
+    """单个评估用例：输入、预期输出和可选元数据。"""
+
     def __init__(self, input_text, expected, metadata=None):
         self.input_text = input_text
         self.expected = expected
@@ -12,6 +14,11 @@ class EvalCase:
 
 
 class EvalSuite:
+    """评估套件：一组测试用例和评分函数。
+
+    运行模型函数，针对每个用例计算所有评分函数的分数。
+    """
+
     def __init__(self, name, cases, scorers):
         self.name = name
         self.cases = cases
@@ -34,10 +41,15 @@ class EvalSuite:
 
 
 def exact_match(prediction, expected):
+    """如果预测与预期完全匹配（忽略大小写和首尾空白）则返回 1.0。"""
     return 1.0 if prediction.strip().lower() == expected.strip().lower() else 0.0
 
 
 def token_f1(prediction, expected):
+    """计算预测与预期之间的 token-level F1 分数。
+
+    对提取任务和开放式问答很有用，其中部分匹配有价值。
+    """
     pred_tokens = set(prediction.lower().split())
     exp_tokens = set(expected.lower().split())
     if not pred_tokens or not exp_tokens:
@@ -51,6 +63,11 @@ def token_f1(prediction, expected):
 
 
 def llm_judge_simulated(prediction, expected):
+    """LLM-as-judge 的模拟实现。
+
+    真实实现会调用 GPT-4o / Claude 并传入评分标准。
+    这里我们使用词汇重叠和长度惩罚作为代理。
+    """
     pred_words = set(prediction.lower().split())
     exp_words = set(expected.lower().split())
     if not exp_words:
@@ -61,6 +78,11 @@ def llm_judge_simulated(prediction, expected):
 
 
 class ELOTracker:
+    """基于成对比较结果的 ELO 评分系统。
+
+    Chatbot Arena 使用相同的系统对 100+ 模型进行排名。
+    """
+
     def __init__(self, k=32, initial_rating=1500):
         self.ratings = {}
         self.k = k
@@ -103,6 +125,10 @@ class ELOTracker:
 
 
 def perplexity(log_probs):
+    """从 token log-probabilities 计算 perplexity。
+
+    越低越好。用作模型健康检查，而非最终评估指标。
+    """
     if not log_probs:
         return float("inf")
     avg_neg_log_prob = -np.mean(log_probs)
@@ -110,6 +136,10 @@ def perplexity(log_probs):
 
 
 def token_log_probs_simulated(text, model_quality=0.8):
+    """模拟 token log-probabilities 用于演示。
+
+    真实实现会从模型 logits 中提取这些值。
+    """
     np.random.seed(hash(text) % 2**31)
     tokens = text.split()
     log_probs = []
@@ -125,6 +155,7 @@ def token_log_probs_simulated(text, model_quality=0.8):
 
 
 def summarize_results(results, threshold=0.8):
+    """汇总评估结果：均值、中位数、标准差、通过率和范围。"""
     all_scores = {}
     for r in results:
         for metric, score in r["scores"].items():
@@ -160,6 +191,7 @@ def print_summary(summary, suite_name="Eval"):
 
 
 def demo_model_good(prompt):
+    """模拟一个给出精确、简洁答案的模型。"""
     responses = {
         "What is the capital of France?": "Paris",
         "What is 2 + 2?": "4",
@@ -174,6 +206,7 @@ def demo_model_good(prompt):
 
 
 def demo_model_bad(prompt):
+    """模拟一个给出冗长、改写答案的模型。"""
     responses = {
         "What is the capital of France?": "Paris is the capital city of France",
         "What is 2 + 2?": "The answer is four",
@@ -188,6 +221,7 @@ def demo_model_bad(prompt):
 
 
 def demo_model_random(prompt):
+    """模拟一个产生随机输出的模型。"""
     np.random.seed(hash(prompt) % 2**31)
     words = ["yes", "no", "maybe", "42", "Paris", "unknown", "error"]
     return words[np.random.randint(len(words))]

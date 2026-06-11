@@ -1,7 +1,10 @@
 """Why Transformers - demonstrate the serial-depth gap between RNN-style
 recurrence and attention-style parallel reduction.
 
+演示 RNN 风格的循环与 attention 风格的并行归约之间的串行深度差距。
+
 Runs in pure stdlib. No numpy, no torch.
+使用纯标准库运行。无需 numpy，无需 torch。
 """
 
 import math
@@ -9,7 +12,8 @@ import time
 
 
 def rnn_style(xs, decay=0.9):
-    """Sequential recurrence: h_t depends on h_{t-1}. Cannot parallelize."""
+    """Sequential recurrence: h_t depends on h_{t-1}. Cannot parallelize.
+    顺序循环：h_t 依赖于 h_{t-1}。无法并行化。"""
     h = 0.0
     for x in xs:
         h = decay * h + x
@@ -17,12 +21,14 @@ def rnn_style(xs, decay=0.9):
 
 
 def attention_style(xs):
-    """Order-independent reduction: every element is independent."""
+    """Order-independent reduction: every element is independent.
+    与顺序无关的归约：每个元素都是独立的。"""
     return sum(xs) / len(xs)
 
 
 def serial_scan(xs):
-    """Prefix sum computed serially. Depth O(N)."""
+    """Prefix sum computed serially. Depth O(N).
+    串行计算的前缀和。深度 O(N)。"""
     out = []
     acc = 0.0
     for x in xs:
@@ -33,12 +39,15 @@ def serial_scan(xs):
 
 def parallel_scan(xs):
     """Hillis-Steele parallel prefix sum. Depth O(log N).
+    Hillis-Steele 并行前缀和。深度 O(log N)。
 
     In pure Python each step is still serial, but the data-dependency
     graph has depth log2(N). On real hardware with N-wide SIMD this
     gets you a log-depth scan; on a CPU it's the same wall-clock but
     the graph shape is what matters for GPU kernels.
-    """
+    在纯 Python 中，每一步仍然是串行的，但数据依赖图的深度为 log2(N)。
+    在具有 N 宽 SIMD 的真实硬件上，这可以实现对数深度的扫描；
+    在 CPU 上，实际耗时相同，但图的形状对 GPU kernel 至关重要。"""
     out = list(xs)
     step = 1
     n = len(out)
@@ -70,7 +79,8 @@ def benchmark(n, reps=3):
 
 
 def depth(n):
-    """Serial-depth count for RNN vs attention-style reductions."""
+    """Serial-depth count for RNN vs attention-style reductions.
+    RNN 与 attention 风格归约的串行深度计数。"""
     rnn_depth = n
     attn_depth = max(1, math.ceil(math.log2(n)))
     return rnn_depth, attn_depth

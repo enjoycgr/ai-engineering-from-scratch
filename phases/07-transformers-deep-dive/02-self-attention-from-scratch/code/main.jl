@@ -1,6 +1,6 @@
-# Self-attention from scratch in Julia. Scaled dot-product attention,
-# numerically-stable row-wise softmax, single-head and multi-head
-# self-attention. Stdlib only. Sources:
+# 从零实现 Self-attention（Julia 版本）。包含缩放点积注意力、
+# 数值稳定的逐行 softmax、单头与多头自注意力。仅使用标准库。
+# 参考资料：
 #   https://arxiv.org/abs/1706.03762
 #   https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/
 #   https://docs.julialang.org/en/v1/stdlib/Random/
@@ -11,6 +11,7 @@ using Printf
 
 
 function softmax_rows(M::Matrix{Float64})::Matrix{Float64}
+    # 逐行计算 softmax，通过减去行最大值保证数值稳定性
     out = similar(M)
     for i in 1:size(M, 1)
         row = M[i, :]
@@ -25,6 +26,7 @@ end
 
 function scaled_dot_product_attention(Q::Matrix{Float64}, K::Matrix{Float64},
                                       V::Matrix{Float64})
+    # 缩放点积注意力：Q @ K^T / sqrt(dk)，softmax，然后 @ V
     dk = size(Q, 2)
     scores = (Q * transpose(K)) ./ sqrt(dk)
     weights = softmax_rows(scores)
@@ -42,6 +44,7 @@ end
 
 
 function SelfAttention(d_model::Int, dk::Int, dv::Int; seed::Int=42)
+    # 初始化单头自注意力，使用类似 Xavier 的缩放
     rng = MersenneTwister(seed)
     scale_qk = sqrt(2.0 / (d_model + dk))
     scale_v = sqrt(2.0 / (d_model + dv))
@@ -53,6 +56,7 @@ end
 
 
 function forward(attn::SelfAttention, X::Matrix{Float64})
+    # 通过权重矩阵投影得到 Q、K、V，然后计算注意力
     Q = X * attn.Wq
     K = X * attn.Wk
     V = X * attn.Wv
@@ -68,6 +72,7 @@ end
 
 
 function MultiHeadSelfAttention(d_model::Int, n_heads::Int; seed::Int=42)
+    # 初始化多头自注意力
     @assert n_heads > 0 "n_heads must be > 0"
     @assert d_model > 0 "d_model must be > 0"
     @assert d_model % n_heads == 0 "d_model must be divisible by n_heads"
@@ -82,6 +87,7 @@ end
 
 
 function forward(mha::MultiHeadSelfAttention, X::Matrix{Float64})
+    # 并行运行所有注意力头，拼接结果后通过 Wo 投影
     head_outputs = Matrix{Float64}[]
     weights_per_head = Matrix{Float64}[]
     for head in mha.heads
@@ -95,6 +101,7 @@ end
 
 
 function print_attention_matrix(weights::Matrix{Float64}, tokens::Vector{String})
+    # 以表格形式打印注意力权重矩阵
     print("\n      ")
     for token in tokens
         @printf("%6s", token)
@@ -112,6 +119,7 @@ end
 
 function ascii_heatmap(weights::Matrix{Float64}, tokens::Vector{String};
                        chars::String=" .:-=+*#%@")
+    # 使用 ASCII 字符将注意力权重可视化为热力图
     print("\n      ")
     for t in tokens
         @printf("%6s", t)
@@ -132,6 +140,7 @@ end
 
 
 function demo_softmax_stability()
+    # 演示数值稳定的 softmax：即使输入很大也不会溢出
     println("\n" * "=" ^ 60)
     println("SOFTMAX NUMERIC STABILITY")
     println("=" ^ 60)
@@ -153,6 +162,7 @@ end
 
 
 function demo_self_attention()
+    # 演示单头自注意力的前向传播
     println("=" ^ 60)
     println("SELF-ATTENTION FROM SCRATCH")
     println("=" ^ 60)
@@ -182,6 +192,7 @@ end
 
 
 function demo_multi_head(tokens::Vector{String}, X::Matrix{Float64}, d_model::Int)
+    # 演示多头自注意力的前向传播
     println("\n" * "=" ^ 60)
     println("MULTI-HEAD SELF-ATTENTION")
     println("=" ^ 60)

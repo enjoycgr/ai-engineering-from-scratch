@@ -3,6 +3,7 @@ import random
 
 
 def min_max_scale(values):
+    """Min-max scaling (最小最大缩放): 将数值缩放到 [0, 1] 范围。"""
     min_val = min(values)
     max_val = max(values)
     if max_val == min_val:
@@ -11,6 +12,7 @@ def min_max_scale(values):
 
 
 def standardize(values):
+    """Standardization (标准化): z-score 标准化，使均值为 0、标准差为 1。"""
     n = len(values)
     mean = sum(values) / n
     variance = sum((v - mean) ** 2 for v in values) / n
@@ -19,10 +21,12 @@ def standardize(values):
 
 
 def log_transform(values):
+    """Log transform (对数变换): 压缩右偏分布，将乘法关系转为加法关系。"""
     return [math.log(v + 1) for v in values]
 
 
 def bin_values(values, n_bins=5):
+    """Binning (分箱): 将连续值划分为离散的区间（箱）。"""
     min_val = min(values)
     max_val = max(values)
     bin_width = (max_val - min_val) / n_bins
@@ -37,6 +41,7 @@ def bin_values(values, n_bins=5):
 
 
 def polynomial_features(row, degree=2):
+    """生成多项式特征：包含平方项和交互项，使线性模型能捕捉非线性关系。"""
     n = len(row)
     result = list(row)
     if degree >= 2:
@@ -49,6 +54,7 @@ def polynomial_features(row, degree=2):
 
 
 def one_hot_encode(values):
+    """One-hot encoding (独热编码): 为每个类别创建一个二进制列。"""
     categories = sorted(set(values))
     cat_to_idx = {cat: i for i, cat in enumerate(categories)}
     n_cats = len(categories)
@@ -63,12 +69,18 @@ def one_hot_encode(values):
 
 
 def label_encode(values):
+    """Label encoding (标签编码): 将每个类别映射为一个整数。"""
     categories = sorted(set(values))
     cat_to_int = {cat: i for i, cat in enumerate(categories)}
     return [cat_to_int[v] for v in values], cat_to_int
 
 
 def target_encode(feature_values, target_values, smoothing=10):
+    """Target encoding (目标编码): 用该类别的目标均值替换每个类别。
+
+    注意：存在 data leakage (数据泄漏) 风险，必须仅在训练集上计算编码映射，
+    然后应用于测试集。
+    """
     global_mean = sum(target_values) / len(target_values)
 
     category_stats = {}
@@ -88,6 +100,7 @@ def target_encode(feature_values, target_values, smoothing=10):
 
 
 def count_vectorize(documents):
+    """Count vectorizer (计数向量化器): 统计每个词在文档中的出现次数。"""
     vocab = {}
     idx = 0
     for doc in documents:
@@ -107,6 +120,7 @@ def count_vectorize(documents):
 
 
 def tfidf(documents):
+    """TF-IDF: 词频-逆文档频率。对常见词降低权重，对罕见、有区分度的词提高权重。"""
     n_docs = len(documents)
 
     vocab = {}
@@ -144,6 +158,7 @@ def tfidf(documents):
 
 
 def impute_mean(values):
+    """均值插补 (Mean imputation): 用均值填充缺失值。"""
     present = [v for v in values if v is not None]
     if not present:
         return [0.0] * len(values), 0.0
@@ -152,6 +167,7 @@ def impute_mean(values):
 
 
 def impute_median(values):
+    """中位数插补 (Median imputation): 用中位数填充缺失值，对异常值更稳健。"""
     present = sorted(v for v in values if v is not None)
     if not present:
         return [0.0] * len(values), 0.0
@@ -164,6 +180,7 @@ def impute_median(values):
 
 
 def impute_mode(values):
+    """众数插补 (Mode imputation): 用出现频率最高的值填充缺失值，适用于类别特征。"""
     present = [v for v in values if v is not None]
     if not present:
         return values, None
@@ -175,10 +192,12 @@ def impute_mode(values):
 
 
 def add_missing_indicator(values):
+    """添加缺失指示列：标记哪些位置原本缺失，缺失本身可能包含有用信息。"""
     return [0 if v is not None else 1 for v in values]
 
 
 def correlation(x, y):
+    """计算两个变量之间的 Pearson correlation (相关性) 系数。"""
     n = len(x)
     mean_x = sum(x) / n
     mean_y = sum(y) / n
@@ -191,6 +210,7 @@ def correlation(x, y):
 
 
 def mutual_information(feature, target, n_bins=10):
+    """Mutual information (互信息): 衡量知道特征 X 后，对目标 Y 的不确定性减少程度。"""
     feat_min = min(feature)
     feat_max = max(feature)
     bin_width = (feat_max - feat_min) / n_bins if feat_max != feat_min else 1.0
@@ -224,6 +244,7 @@ def mutual_information(feature, target, n_bins=10):
 
 
 def variance_threshold(features, threshold=0.01):
+    """Variance threshold (方差阈值): 移除方差低于阈值的特征（几乎不变的特征）。"""
     n_features = len(features[0])
     n_samples = len(features)
     selected = []
@@ -239,6 +260,7 @@ def variance_threshold(features, threshold=0.01):
 
 
 def remove_correlated(features, threshold=0.9):
+    """移除高度相关的特征：当两个特征的 correlation (相关性) 绝对值超过阈值时，删除其中一个。"""
     n_features = len(features[0])
     n_samples = len(features)
 
@@ -259,6 +281,7 @@ def remove_correlated(features, threshold=0.9):
 
 
 def make_housing_data(n=200, seed=42):
+    """生成包含缺失值的合成房价数据集，用于演示特征工程管道。"""
     random.seed(seed)
     data = []
     for _ in range(n):
@@ -294,7 +317,7 @@ def make_housing_data(n=200, seed=42):
 if __name__ == "__main__":
     data = make_housing_data(200)
 
-    print("=== Raw Data Sample ===")
+    print("=== 原始数据样本 ===")
     for row in data[:3]:
         print(f"  {row}")
 
@@ -302,42 +325,42 @@ if __name__ == "__main__":
     age_raw = [d["age"] for d in data]
     prices = [d["price"] for d in data]
 
-    print("\n=== Missing Value Handling ===")
+    print("\n=== 缺失值处理 ===")
     sqft_missing = sum(1 for v in sqft_raw if v is None)
     age_missing = sum(1 for v in age_raw if v is None)
-    print(f"  sqft missing: {sqft_missing}/{len(sqft_raw)}")
-    print(f"  age missing: {age_missing}/{len(age_raw)}")
+    print(f"  sqft 缺失: {sqft_missing}/{len(sqft_raw)}")
+    print(f"  age 缺失: {age_missing}/{len(age_raw)}")
 
     sqft_indicator = add_missing_indicator(sqft_raw)
     age_indicator = add_missing_indicator(age_raw)
     sqft_imputed, sqft_fill = impute_median(sqft_raw)
     age_imputed, age_fill = impute_mean(age_raw)
-    print(f"  sqft filled with median: {sqft_fill:.0f}")
-    print(f"  age filled with mean: {age_fill:.1f}")
+    print(f"  sqft 用中位数填充: {sqft_fill:.0f}")
+    print(f"  age 用均值填充: {age_fill:.1f}")
 
-    print("\n=== Numerical Transforms ===")
+    print("\n=== 数值变换 ===")
     sqft_scaled = standardize(sqft_imputed)
     age_scaled = min_max_scale(age_imputed)
     sqft_log = log_transform(sqft_imputed)
     age_binned = bin_values(age_imputed, n_bins=5)
-    print(f"  sqft standardized: mean={sum(sqft_scaled)/len(sqft_scaled):.4f}, std={math.sqrt(sum(v**2 for v in sqft_scaled)/len(sqft_scaled)):.4f}")
-    print(f"  age min-max: [{min(age_scaled):.2f}, {max(age_scaled):.2f}]")
-    print(f"  age bins: {sorted(set(age_binned))}")
+    print(f"  sqft 标准化: mean={sum(sqft_scaled)/len(sqft_scaled):.4f}, std={math.sqrt(sum(v**2 for v in sqft_scaled)/len(sqft_scaled)):.4f}")
+    print(f"  age 最小最大缩放: [{min(age_scaled):.2f}, {max(age_scaled):.2f}]")
+    print(f"  age 分箱: {sorted(set(age_binned))}")
 
-    print("\n=== Categorical Encoding ===")
+    print("\n=== 类别编码 ===")
     neighborhoods = [d["neighborhood"] for d in data]
 
     ohe, ohe_cats = one_hot_encode(neighborhoods)
-    print(f"  One-hot categories: {ohe_cats}")
-    print(f"  Sample encoding: {neighborhoods[0]} -> {ohe[0]}")
+    print(f"  独热编码类别: {ohe_cats}")
+    print(f"  样本编码: {neighborhoods[0]} -> {ohe[0]}")
 
     le, le_map = label_encode(neighborhoods)
-    print(f"  Label encoding map: {le_map}")
+    print(f"  标签编码映射: {le_map}")
 
     te, te_map = target_encode(neighborhoods, prices, smoothing=10)
-    print(f"  Target encoding: {({k: round(v) for k, v in te_map.items()})}")
+    print(f"  目标编码: {({k: round(v) for k, v in te_map.items()})}")
 
-    print("\n=== Text Features ===")
+    print("\n=== 文本特征 ===")
     descriptions = [
         "large modern house with pool",
         "small cozy cottage near downtown",
@@ -346,45 +369,45 @@ if __name__ == "__main__":
         "rustic cabin in rural area",
     ]
     cv, cv_vocab = count_vectorize(descriptions)
-    print(f"  Vocabulary size: {len(cv_vocab)}")
-    print(f"  Doc 0 non-zero features: {sum(1 for v in cv[0] if v > 0)}")
+    print(f"  词汇表大小: {len(cv_vocab)}")
+    print(f"  文档 0 非零特征数: {sum(1 for v in cv[0] if v > 0)}")
 
     tf, tf_vocab = tfidf(descriptions)
-    print(f"  TF-IDF vocabulary size: {len(tf_vocab)}")
+    print(f"  TF-IDF 词汇表大小: {len(tf_vocab)}")
     top_words = sorted(tf_vocab.keys(), key=lambda w: tf[0][tf_vocab[w]], reverse=True)[:3]
-    print(f"  Doc 0 top TF-IDF words: {top_words}")
+    print(f"  文档 0  top TF-IDF 词: {top_words}")
 
-    print("\n=== Polynomial Features ===")
+    print("\n=== 多项式特征 ===")
     sample_row = [sqft_scaled[0], age_scaled[0]]
     poly = polynomial_features(sample_row, degree=2)
-    print(f"  Input: {[round(v, 4) for v in sample_row]}")
-    print(f"  Polynomial: {[round(v, 4) for v in poly]}")
-    print(f"  Features: [x1, x2, x1^2, x2^2, x1*x2]")
+    print(f"  输入: {[round(v, 4) for v in sample_row]}")
+    print(f"  多项式: {[round(v, 4) for v in poly]}")
+    print(f"  特征: [x1, x2, x1^2, x2^2, x1*x2]")
 
-    print("\n=== Feature Selection ===")
+    print("\n=== 特征选择 ===")
     feature_matrix = [
         [sqft_scaled[i], age_scaled[i], float(sqft_indicator[i]), float(age_indicator[i])]
         + ohe[i]
         for i in range(len(data))
     ]
 
-    print(f"  Total features: {len(feature_matrix[0])}")
+    print(f"  总特征数: {len(feature_matrix[0])}")
 
     surviving_var = variance_threshold(feature_matrix, threshold=0.01)
-    print(f"  After variance threshold (0.01): {len(surviving_var)} features kept")
+    print(f"  方差阈值 (0.01) 后: 保留 {len(surviving_var)} 个特征")
 
     surviving_corr = remove_correlated(feature_matrix, threshold=0.9)
-    print(f"  After correlation filter (0.9): {len(surviving_corr)} features kept")
+    print(f"  相关性过滤 (0.9) 后: 保留 {len(surviving_corr)} 个特征")
 
     binary_prices = [1 if p > sum(prices) / len(prices) else 0 for p in prices]
-    print("\n  Mutual information with target:")
+    print("\n  与目标的互信息 (mutual information):")
     feature_names = ["sqft", "age", "sqft_missing", "age_missing"] + [f"neigh_{c}" for c in ohe_cats]
     for j in range(len(feature_matrix[0])):
         col = [feature_matrix[i][j] for i in range(len(feature_matrix))]
         mi = mutual_information(col, binary_prices, n_bins=10)
         print(f"    {feature_names[j]}: MI={mi:.4f}")
 
-    print("\n  Correlation with price:")
+    print("\n  与 price 的相关性 (correlation):")
     for j in range(len(feature_matrix[0])):
         col = [feature_matrix[i][j] for i in range(len(feature_matrix))]
         corr = correlation(col, prices)

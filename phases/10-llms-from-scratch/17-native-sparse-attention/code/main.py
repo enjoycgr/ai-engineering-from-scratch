@@ -1,13 +1,13 @@
 """Native Sparse Attention (DeepSeek NSA) in stdlib Python.
 
-Implements the three parallel branches from Yuan et al. 2025:
-  - compressed branch: coarse-grained attention over block-averaged keys
-  - selected branch: fine-grained attention over top-k uncompressed blocks
-  - sliding-window branch: attention over the last W tokens
+实现 Yuan 等人 2025 的三个并行分支：
+  - compressed branch（压缩分支）：对块平均键的粗粒度 attention
+  - selected branch（选择分支）：对 top-k 未压缩块的细粒度 attention
+  - sliding-window branch（滑动窗口分支）：对最后 W 个 token 的 attention
 
-Combines them with a gate and prints the per-query key count for each branch
-vs. full attention. Scales the key-count report to 64k and 128k contexts to
-show the long-sequence savings NSA targets.
+通过门控组合它们，并打印每个分支每个查询的键数量
+与完整 attention 对比。将键数量报告缩放到 64k 和 128k 上下文，
+以展示 NSA 针对的长序列节省。
 """
 
 from __future__ import annotations
@@ -42,8 +42,8 @@ def attention(q: List[float], K: List[List[float]],
 
 
 def compress_mean(K: List[List[float]], l: int) -> List[List[float]]:
-    """Collapse every l consecutive keys into their mean. Real NSA uses a
-    learned MLP here — mean-pool is the pedagogical baseline."""
+    """将每 l 个连续键折叠为它们的均值。真正的 NSA 在这里使用
+    可学习的 MLP —— mean-pool 是教学基线。"""
     n = len(K)
     d = len(K[0])
     n_blocks = (n + l - 1) // l
@@ -63,7 +63,7 @@ def top_k_blocks(scores: List[float], k: int) -> List[int]:
 
 def fine_grained_keys(K: List[List[float]], V: List[List[float]], l: int,
                       block_indices: List[int]) -> tuple[List[List[float]], List[List[float]]]:
-    """Load the raw (uncompressed) tokens from the selected blocks."""
+    """从选定的块加载原始（未压缩）token。"""
     k_out, v_out = [], []
     for b in block_indices:
         start, end = b * l, min((b + 1) * l, len(K))
@@ -80,7 +80,7 @@ def sliding_window(K: List[List[float]], V: List[List[float]],
 
 
 def gate(q: List[float], Wg: List[List[float]]) -> List[float]:
-    """Gate MLP: 1-layer linear + sigmoid, produces 3 branch weights."""
+    """门控 MLP：1 层线性 + sigmoid，产生 3 个分支权重。"""
     logits = [dot(q, Wg[i]) for i in range(3)]
     return [1.0 / (1.0 + math.exp(-x)) for x in logits]
 
@@ -126,8 +126,8 @@ def nsa_step(q: List[float], K: List[List[float]], V: List[List[float]],
 
 def synthesize_sequence(n: int, d: int, signal_blocks: List[int], l: int,
                         rng: random.Random) -> tuple[List[List[float]], List[List[float]], List[float]]:
-    """Build K, V where `signal_blocks` carry a shared pattern and the query
-    is aligned to that pattern. The rest is Gaussian noise."""
+    """构建 K, V，其中 `signal_blocks` 携带共享模式，查询
+    与该模式对齐。其余是高斯噪声。"""
     pattern = [rng.gauss(0, 1) for _ in range(d)]
     norm = math.sqrt(sum(x * x for x in pattern))
     pattern = [x / norm for x in pattern]
@@ -214,11 +214,10 @@ def main() -> None:
             print(f"  {l_p:>4} {k_p:>4}  {cost:>8,}  {65_536/cost:>7.1f}x")
     print()
 
-    print("takeaway: NSA's 3-branch decomposition turns O(N^2) attention into")
-    print("          O(N * (N/l + k*l + W)). At 64k-128k context, 25x-36x")
-    print("          fewer keys per query. Gradient flows through the")
-    print("          compressed-branch scores, so top-k selection is natively")
-    print("          trainable.")
+    print("takeaway: NSA 的 3 分支分解将 O(N^2) attention 转为")
+    print("          O(N * (N/l + k*l + W))。在 64k-128k 上下文，每个查询")
+    print("          少 25x-36x 个键。梯度通过压缩分支分数流动，")
+    print("          因此 top-k 选择是原生可训练的。")
 
 
 if __name__ == "__main__":

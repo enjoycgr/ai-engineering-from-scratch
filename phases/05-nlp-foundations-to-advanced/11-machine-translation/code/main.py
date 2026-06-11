@@ -90,7 +90,9 @@ def main():
         print(f"{hyp:40s}  {ref:25s}  {b:6.1f}  {c:6.1f}")
     print()
     print(simple_bleu_note())
+    # BLEU 低于 1 分属于噪声。chrF 能捕捉到 BLEU 遗漏的形态学部分匹配。
     print("BLEU under 1 point is noise. chrF catches morphological partials BLEU misses.")
+    # 实际工作中请使用 sacrebleu（pip install sacrebleu），而非本教学版本。
     print("For real work, use sacrebleu (pip install sacrebleu) instead of this teaching version.")
 
 

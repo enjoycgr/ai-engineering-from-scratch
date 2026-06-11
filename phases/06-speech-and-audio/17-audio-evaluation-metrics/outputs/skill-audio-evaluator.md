@@ -1,29 +1,29 @@
 ---
 name: audio-evaluator
-description: Pick metrics, benchmarks, normalization rules, and reporting format for any audio model release.
+description: 为任何音频模型发布选择指标、基准、归一化规则和报告格式。
 version: 1.0.0
 phase: 6
 lesson: 17
 tags: [evaluation, wer, mos, utmos, eer, der, fad, mmau, leaderboard]
 ---
 
-Given the task (ASR / TTS / cloning / speaker-verif / diarization / classification / music / LALM / streaming S2S), output:
+给定任务（ASR / TTS / 克隆 / 说话人验证 / 说话人分割 / 分类 / 音乐 / LALM / 流式 S2S），输出：
 
-1. Primary metric. WER · MOS · UTMOS · SECS · EER · DER · mAP · FAD · MMAU-Pro accuracy · latency P95. One choice.
-2. Secondary metrics. 1-3 additional axes (speed, diversity, robustness) and reason.
-3. Normalization rule. Lowercase, punctuation-strip, number expansion, whitespace collapse. Use Whisper-normalizer or custom, document it.
-4. Public benchmark. The canonical leaderboard to report against (Open ASR, TTS Arena, MMAU-Pro, VoxCeleb1-O, AudioSet, LongAudioBench, etc.).
-5. In-house set. Held-out domain data with N samples; demographic / acoustic slice breakdown.
-6. Reporting format. Distribution (P50/P95/P99 for latency; per-class recall for classification; per-category for MMAU). Release notes template.
+1. 主要指标。WER · MOS · UTMOS · SECS · EER · DER · mAP · FAD · MMAU-Pro 准确率 · 延迟 P95。选择一个。
+2. 次要指标。1-3 个额外维度（速度、多样性、鲁棒性）及原因。
+3. 归一化规则。小写、去除标点、数字展开、空白折叠。使用 Whisper-normalizer 或自定义，并记录。
+4. 公共基准。报告所对照的标准排行榜（Open ASR、TTS Arena、MMAU-Pro、VoxCeleb1-O、AudioSet、LongAudioBench 等）。
+5. 内部集。N 个样本的留出领域数据；人口统计 / 声学切片细分。
+6. 报告格式。分布（延迟的 P50/P95/P99；分类的每类召回率；MMAU 的每类别）。发布说明模板。
 
-Refuse single-number evaluation for latency (report percentiles). Refuse aggregate-only for classification (report per-class). Refuse TTS releases without both MOS/UTMOS and SECS (when cloning). Refuse ASR releases without a WER normalization spec. Refuse music releases with only FAD — always pair with human MOS panel.
+拒绝延迟的单数字评估（报告百分位数）。拒绝分类的仅总体（报告每类）。拒绝没有 MOS/UTMOS 和 SECS（克隆时）的 TTS 发布。拒绝没有 WER 归一化规范的 ASR 发布。拒绝只有 FAD 的音乐发布——始终与人类 MOS panel 配对。
 
-Example input: "Release of a new English-Spanish conversational TTS. Need to convince the team it's better than the existing Cartesia-Sonic baseline."
+示例输入："发布新的英西对话 TTS。需要说服团队它比现有 Cartesia-Sonic 基线更好。"
 
-Example output:
-- Primary: UTMOS (paired audio samples on 50 prompts per language) + human-panel MOS (20 listeners per language, blind A/B vs baseline).
-- Secondary: TTFA median & P95 (must match baseline); SECS &gt; 0.80 vs a fixed voice reference (no speaker regression); CER on round-trip ASR (Whisper-large-v3-turbo) &lt; 2%.
-- Normalization: Whisper-normalizer English + Hugging Face multilingual-normalizer Spanish for round-trip WER.
-- Public benchmark: TTS Arena (English) and Artificial Analysis Speech for relative ELO positioning. Target: within 50 ELO of the closest competitor.
-- In-house: 200 held-out prompts (100 per lang) covering money, dates, product names, 2-sentence narration, emotional read, code-switched. 10 demographic voices.
-- Reporting: release note with headline (UTMOS + MOS), P50/P95 TTFA histogram, SECS CDF, CER per-category breakdown, failure-mode callouts (code-switched prompts failed at X%).
+示例输出：
+- 主要：UTMOS（每种语言 50 个提示的成对音频样本）+ 人工 panel MOS（每种语言 20 名听众，与基线盲测 A/B）。
+- 次要：TTFA 中位数 & P95（必须匹配基线）；SECS > 0.80 vs 固定声音参考（无说话人回归）；往返 ASR（Whisper-large-v3-turbo）CER < 2%。
+- 归一化：英语用 Whisper-normalizer + 西班牙语用 Hugging Face multilingual-normalizer 用于往返 WER。
+- 公共基准：TTS Arena（英语）和 Artificial Analysis Speech 用于相对 ELO 定位。目标：在最近的竞争对手 50 ELO 以内。
+- 内部集：200 个留出提示（每种语言 100 个），涵盖金额、日期、产品名、两句叙述、情感朗读、代码切换。10 个人口统计声音。
+- 报告：发布说明带标题（UTMOS + MOS）、P50/P95 TTFA 直方图、SECS CDF、CER 每类别细分、故障模式标注（代码切换提示在 X% 处失败）。

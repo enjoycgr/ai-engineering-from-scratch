@@ -1,16 +1,16 @@
-// Phase 14 Lesson 06 — tool use and function calling, in TypeScript.
+// 第 14 阶段第 06 课 —— TypeScript 版的工具使用与函数调用。
 //
-// Stdlib tool registry with JSON Schema subset validation and parallel dispatch.
-// Subset: required fields, string/integer/number/boolean/array/object,
-// enum, minimum/maximum. Every validation failure becomes a structured
-// observation so an agent can retry.
+// 基于标准库的工具注册表，支持 JSON Schema 子集校验和并行分发。
+// 子集：required fields、string/integer/number/boolean/array/object、
+// enum、minimum/maximum。每次校验失败都变成结构化 observation，
+// 以便智能体重试。
 //
-// References:
+// 参考资料：
 //   OpenAI function-calling   https://platform.openai.com/docs/guides/function-calling
 //   Anthropic tool-use        https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 //   JSON Schema 2020-12       https://json-schema.org/draft/2020-12
 //
-// Run: npx tsx code/main.ts
+// 运行：npx tsx code/main.ts
 
 type Primitive = "integer" | "number" | "boolean" | "string" | "array" | "object";
 

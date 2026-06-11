@@ -1,7 +1,7 @@
-"""Voyager-shaped skill library: register, retrieve, compose, refine.
+"""Voyager 风格的技能库：注册、检索、组合、精炼。
 
-Stdlib only. Action space is code; skills are retrievable and composable;
-failures feed back into the next version.
+仅标准库。动作空间是代码；skills 可检索、可组合；
+失败反馈驱动下一版本。
 """
 
 from __future__ import annotations

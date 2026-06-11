@@ -10,6 +10,7 @@ ALIAS_INDEX = {
     "python": ["Q28865", "Q83320"],
 }
 
+# KB 描述：每个 QID 对应一段用于消歧的文本
 KB_DESC = {
     "Q41421":  "Michael Jordan American basketball player Chicago Bulls six championships",
     "Q810":    "Jordan country Middle East kingdom capital Amman Arabic",
@@ -27,6 +28,7 @@ KB_DESC = {
     "Q83320":  "Python snake nonvenomous constrictor species Asia Africa large",
 }
 
+# 先验概率 (popularity prior)：在缺少上下文时各实体的流行度
 PRIORS = {
     "Q41421":  0.50, "Q810":    0.20, "Q254110": 0.20, "Q3308285": 0.10,
     "Q90":     0.85, "Q663094": 0.05, "Q55411":  0.10,
@@ -37,10 +39,15 @@ PRIORS = {
 
 
 def tokenize(text):
+    """将文本拆分为小写 token 集合。"""
     return set(re.findall(r"[a-z0-9]+", text.lower()))
 
 
 def disambiguate(mention, context, use_prior=True):
+    """
+    基于 Jaccard 相似度 + 可选先验对候选实体进行消歧。
+    返回 (最佳 QID, 得分)。
+    """
     candidates = ALIAS_INDEX.get(mention.lower(), [])
     if not candidates:
         return None, 0.0
@@ -62,8 +69,9 @@ def disambiguate(mention, context, use_prior=True):
 
 
 def run_eval(test_cases, use_prior):
+    """在一组测试用例上运行消歧并打印结果。"""
     correct = 0
-    print(f"=== disambiguation {'with' if use_prior else 'without'} prior ===")
+    print(f"=== 消歧 {'使用' if use_prior else '不使用'}先验 ===")
     for mention, context, gold in test_cases:
         pred, score = disambiguate(mention, context, use_prior=use_prior)
         ok = pred == gold
@@ -77,6 +85,7 @@ def run_eval(test_cases, use_prior):
 
 
 def main():
+    # 测试用例：(mention, 上下文, 黄金 QID)
     test_cases = [
         ("Jordan", "Jordan scored 45 points against the Lakers last night.", "Q41421"),
         ("Jordan", "Jordan borders Syria, Iraq, and Saudi Arabia in the Middle East.", "Q810"),
@@ -94,8 +103,8 @@ def main():
     run_eval(test_cases, use_prior=True)
     run_eval(test_cases, use_prior=False)
 
-    print("note: toy 11-case test set.")
-    print("production EL uses Wikipedia alias dumps (~18M aliases) and encoder-based disambiguation.")
+    print("注意：这是仅 11 个用例的 toy 测试集。")
+    print("生产级 EL 使用 Wikipedia 别名 dump（约 1800 万别名）和基于编码器的消歧。")
 
 
 if __name__ == "__main__":

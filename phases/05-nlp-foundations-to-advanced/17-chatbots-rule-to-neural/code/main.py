@@ -18,6 +18,7 @@ PATTERNS = [
 
 
 def rule_based_respond(user_input):
+    """基于规则的模式匹配响应（ELIZA 风格）。"""
     for p in PATTERNS:
         m = p.regex.match(user_input.strip())
         if m:
@@ -34,10 +35,12 @@ FAQ = [
 
 
 def token_set(text):
+    """将文本拆分为小写词元集合，用于 Jaccard 相似度计算。"""
     return set(re.findall(r"[a-z]+", text.lower()))
 
 
 def faq_respond(user_input, threshold=0.3):
+    """基于 Jaccard 相似度的 FAQ 检索响应。"""
     user_tokens = token_set(user_input)
     best_score = 0.0
     best_answer = None
@@ -55,11 +58,16 @@ def faq_respond(user_input, threshold=0.3):
 
 
 def is_destructive(text):
+    """检测用户输入是否包含破坏性操作关键词。"""
     danger_words = ["delete", "cancel", "charge", "refund", "transfer"]
     return any(w in text.lower() for w in danger_words)
 
 
 def hybrid_respond(user_input):
+    """
+    混合路由：破坏性操作 -> 规则；FAQ -> 检索；其他 -> LLM 智能体。
+    返回 (response, route_label)。
+    """
     if is_destructive(user_input):
         return "Destructive action detected. Routing to structured confirmation flow.", "rule"
 

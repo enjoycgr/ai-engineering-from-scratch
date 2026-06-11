@@ -1,12 +1,12 @@
-"""Minimal AlphaEvolve-like evolutionary loop — stdlib Python.
+"""极简 AlphaEvolve 风格进化循环 —— stdlib Python。
 
-Toy symbolic regression. The "LLM" proposes a small mutation to a candidate
-expression (change a constant, change an operator, add a term). The
-"evaluator" scores the expression on training and held-out test points.
+玩具符号回归 (symbolic regression)。"LLM" 对候选表达式提出小型变异
+（改变常数、改变运算符、添加项）。"评估器" (evaluator) 在训练集和
+留出测试集 (held-out test) 上为表达式打分。
 
-MAP-elites grid keeps diverse candidates: cell keyed by (expression depth,
-constant magnitude bucket). Without a held-out split the loop overfits
-aggressively; with one the best candidate generalizes.
+MAP-elites 网格保持多样化候选：按（表达式深度、常数量级桶）作为单元格键。
+没有留出集 (held-out split) 时循环会严重过拟合；有了留出集后最佳候选
+才能泛化。
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from dataclasses import dataclass
 DEFAULT_SEED = 1
 
 
-# Target function the loop tries to rediscover.
+# 循环试图重新发现的目标函数。
 def target(x: float) -> float:
     return 2.0 * x * x + 3.0 * x - 1.0
 
@@ -58,7 +58,7 @@ def max_const(e: Expr) -> float:
 
 
 def mutate(e: Expr) -> Expr:
-    """Stand-in for the LLM's targeted edit."""
+    """LLM 针对性编辑的替身。"""
     choice = random.random()
     if choice < 0.25:
         return random_leaf()
@@ -164,9 +164,9 @@ def run_loop(
         best_trace.append(best.train_score)
         test_trace.append(best.test_score)
 
-    # Final selection must use the same signal as the search: using the
-    # held-out test here when use_holdout=False would silently leak the
-    # holdout back into Run B and mask the overfitting the lesson shows.
+    # 最终选择必须使用与搜索相同的信号：当 use_holdout=False 时
+    # 在这里使用留出测试会悄无声息地将留出集泄露回 Run B，
+    # 并掩盖本课展示的过拟合现象。
     best = min(archive.values(), key=signal_of)
     return best, best_trace, test_trace
 
@@ -176,7 +176,7 @@ def main() -> None:
     parser.add_argument(
         "--no-holdout",
         action="store_true",
-        help="skip the held-out test evaluator (Run B only; forces reward-hacking demo)",
+        help="跳过留出测试评估器 (仅 Run B；强制展示 reward-hacking)",
     )
     args = parser.parse_args()
 
@@ -186,7 +186,7 @@ def main() -> None:
     print("target: 2x^2 + 3x - 1")
 
     if not args.no_holdout:
-        print("\nRun A: held-out test included in evaluator signal")
+        print("\nRun A: 评估信号中包含留出测试")
         best, train_trace, _ = run_loop(
             generations=1500, pop=20, use_holdout=True, seed=DEFAULT_SEED
         )
@@ -210,13 +210,13 @@ def main() -> None:
 
     print()
     print("=" * 70)
-    print("HEADLINE: the evaluator is the architecture")
+    print("HEADLINE: 评估器就是架构本身")
     print("-" * 70)
-    print("  Run A converges to low train AND low test MSE.")
-    print("  Run B converges to low train MSE; test MSE stays loose or worse.")
-    print("  A held-out evaluator is the difference between discovery and")
-    print("  reward hacking. AlphaEvolve's wins are in domains where such an")
-    print("  evaluator exists. Picking those domains is the hard part.")
+    print("  Run A 收敛到低训练 MSE 且低测试 MSE。")
+    print("  Run B 收敛到低训练 MSE；测试 MSE 保持松散或更差。")
+    print("  留出评估器 (held-out evaluator) 是发现 (discovery) 与")
+    print("  reward hacking 之间的区别。AlphaEvolve 的胜利在于")
+    print("  存在此类评估器的领域。挑选这些领域才是难点。")
 
 
 if __name__ == "__main__":

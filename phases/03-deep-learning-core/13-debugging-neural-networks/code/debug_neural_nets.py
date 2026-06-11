@@ -5,6 +5,8 @@ import copy
 
 
 class NetworkDebugger:
+    """Hook 到 PyTorch 模型以记录每层的 activation (激活) 和 gradient (梯度) 统计。"""
+
     def __init__(self, model):
         self.model = model
         self.activation_stats = {}
@@ -14,6 +16,7 @@ class NetworkDebugger:
         self._register_hooks()
 
     def _register_hooks(self):
+        """为 Linear、Conv2d、ReLU 和 LeakyReLU 层注册 forward 和 backward hooks。"""
         for name, module in self.model.named_modules():
             if isinstance(module, (nn.Linear, nn.Conv2d, nn.ReLU, nn.LeakyReLU)):
                 hook = module.register_forward_hook(self._make_activation_hook(name))
@@ -22,6 +25,7 @@ class NetworkDebugger:
                 self.hooks.append(hook)
 
     def _make_activation_hook(self, name):
+        """创建一个 hook 以捕获 activation (激活) 统计（mean、std、zero fraction）。"""
         def hook(module, input, output):
             with torch.no_grad():
                 out = output.detach().float()
@@ -35,6 +39,7 @@ class NetworkDebugger:
         return hook
 
     def _make_gradient_hook(self, name):
+        """创建一个 hook 以捕获 gradient (梯度) 统计（mean、std、abs_mean、max）。"""
         def hook(module, grad_input, grad_output):
             if grad_output[0] is not None:
                 with torch.no_grad():
@@ -48,9 +53,15 @@ class NetworkDebugger:
         return hook
 
     def record_loss(self, loss_value):
+        """记录一个 loss 值供后续分析。"""
         self.loss_history.append(loss_value)
 
     def check_loss_health(self):
+        """检查 loss history 中是否有 NaN/Inf、平台期或振荡。
+
+        返回:
+            "HEALTHY" | "NOT_ENOUGH_DATA" | "NAN_OR_INF" | "NOT_DECREASING" | "OSCILLATING"
+        """
         if len(self.loss_history) < 2:
             return "NOT_ENOUGH_DATA"
         recent = self.loss_history[-10:]
@@ -68,6 +79,11 @@ class NetworkDebugger:
         return "HEALTHY"
 
     def check_activations(self):
+        """检查 dead neurons (死亡神经元)、exploding (爆炸) 或 collapsed (坍塌) activations (激活)。
+
+        返回:
+            诊断字符串列表，如果没有问题则为 ["HEALTHY"]。
+        """
         issues = []
         for name, stats in self.activation_stats.items():
             if stats["fraction_zero"] > 0.5:
@@ -85,6 +101,11 @@ class NetworkDebugger:
         return issues if issues else ["HEALTHY"]
 
     def check_gradients(self):
+        """检查 vanishing (消失) 或 exploding (爆炸) gradients (梯度) 以及层间比率。
+
+        返回:
+            诊断字符串列表，如果没有问题则为 ["HEALTHY"]。
+        """
         issues = []
         grad_magnitudes = []
         for name, stats in self.gradient_stats.items():
@@ -107,6 +128,7 @@ class NetworkDebugger:
         return issues if issues else ["HEALTHY"]
 
     def print_report(self):
+        """打印包含 loss health、activation (激活) 和 gradient (梯度) 诊断的完整报告。"""
         print("\n=== NETWORK DEBUGGER REPORT ===")
         print(f"\nLoss health: {self.check_loss_health()}")
         if self.loss_history:
@@ -132,12 +154,28 @@ class NetworkDebugger:
             )
 
     def remove_hooks(self):
+        """移除所有已注册的 hooks 以防止内存泄漏。"""
         for hook in self.hooks:
             hook.remove()
         self.hooks.clear()
 
 
 def overfit_one_batch(model, x_batch, y_batch, criterion, lr=0.01, steps=200):
+    """在单个小 batch 上训练以验证模型 CAN 学习。
+
+    如果 loss 在 {steps} 步后未收敛到 <0.1，则模型或训练循环有 bug。
+
+    参数:
+        model: 要测试的 PyTorch 模型。
+        x_batch: 输入张量 (batch_size, ...)。
+        y_batch: 目标张量。
+        criterion: Loss function (损失函数)（例如 nn.CrossEntropyLoss()）。
+        lr: 用于 Adam optimizer (优化器) 的 learning rate (学习率)。
+        steps: 训练步数。
+
+    返回:
+        如果 loss 收敛则返回 True，否则返回 False。
+    """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     model.train()
     print("\n=== OVERFIT ONE BATCH TEST ===")
@@ -174,6 +212,23 @@ def overfit_one_batch(model, x_batch, y_batch, criterion, lr=0.01, steps=200):
 def find_learning_rate(
     model, x_data, y_data, criterion, start_lr=1e-7, end_lr=10, steps=100
 ):
+    """执行 learning rate (学习率) 范围测试（Leslie Smith 方法）。
+
+    从 {start_lr} 到 {end_lr} 指数级增加 LR，记录 loss，并建议一个 LR。
+    模型状态在扫描后恢复。
+
+    参数:
+        model: 要测试的 PyTorch 模型。
+        x_data: 用于测试的输入数据。
+        y_data: 用于测试的目标数据。
+        criterion: Loss function (损失函数)。
+        start_lr: 扫描的起始 learning rate (学习率)（非常小）。
+        end_lr: 扫描的结束 learning rate (学习率)（非常大）。
+        steps: 扫描的步数。
+
+    返回:
+        (lr, loss) 元组列表。
+    """
     original_state = copy.deepcopy(model.state_dict())
     optimizer = torch.optim.SGD(model.parameters(), lr=start_lr)
     lr_mult = (end_lr / start_lr) ** (1 / steps)
@@ -224,6 +279,7 @@ def find_learning_rate(
 
 
 def _flat_to_multi_index(flat_idx, shape):
+    """将扁平索引转换为多维索引（用于 gradient checking (梯度检查)）。"""
     multi_idx = []
     remaining = flat_idx
     for dim in reversed(shape):
@@ -233,6 +289,22 @@ def _flat_to_multi_index(flat_idx, shape):
 
 
 def gradient_check(model, x, y, criterion, eps=1e-4):
+    """通过有限差分验证反向传播梯度。
+
+    将 analytical gradients (解析梯度)（来自 .backward()）与 numerical gradients (数值梯度)
+    （来自 (loss(w+eps) - loss(w-eps)) / 2eps）进行比较。
+    如果 relative difference (相对差异) < 1e-5，则梯度正确。
+
+    参数:
+        model: 要检查的 PyTorch 模型。
+        x: 输入张量。
+        y: 目标张量。
+        criterion: Loss function (损失函数)。
+        eps: 有限差分的 epsilon（步长）。
+
+    返回:
+        所有已检查参数中的最大 relative difference (相对差异)。
+    """
     model.train()
     x_double = x.double()
     y_double = y.double()
@@ -295,6 +367,8 @@ def gradient_check(model, x, y, criterion, eps=1e-4):
 
 
 def demo_broken_networks():
+    """演示常见 bug 的诊断：learning rate (学习率) 过高、dead ReLU (死亡ReLU)、
+    缺少 zero_grad，以及 healthy network (健康网络) 基线。"""
     torch.manual_seed(42)
     x = torch.randn(64, 10)
     y = (x[:, 0] > 0).long()

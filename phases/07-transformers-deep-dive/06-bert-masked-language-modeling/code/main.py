@@ -1,7 +1,7 @@
-"""BERT-style masked language modeling — the masking rules demystified.
+"""BERT-style masked language modeling (掩码语言建模) —— 掩码规则揭秘。
 
-Pure stdlib. Shows the 80/10/10 rule, whole-word masking, and
-distribution sanity checks over a large batch of tokens.
+纯标准库实现。展示 80/10/10 规则、whole-word masking (整词掩码)，
+以及对大批量 token 的分布合理性检查。
 """
 
 import random
@@ -16,10 +16,10 @@ IGNORE_INDEX = -100
 
 
 def create_mlm_batch(tokens, vocab_size, mask_prob=0.15, rng=None):
-    """Apply BERT masking.
+    """应用 BERT 掩码。
 
-    Returns (input_ids, labels). labels[i] = original token if position was
-    selected for prediction, IGNORE_INDEX otherwise.
+    返回 (input_ids, labels)。labels[i] = 如果该位置被选中用于预测则为原始 token，
+    否则为 IGNORE_INDEX。
     """
     if rng is None:
         rng = random.Random()
@@ -43,9 +43,9 @@ def create_mlm_batch(tokens, vocab_size, mask_prob=0.15, rng=None):
 
 
 def whole_word_mlm(tokens, word_spans, vocab_size, mask_prob=0.15, rng=None):
-    """Mask whole words: if any subword in a span is selected, mask all.
+    """整词掩码：如果一个 span 中的任意 subword (子词) 被选中，则掩码全部。
 
-    word_spans: list of (start, end) half-open ranges into tokens.
+    word_spans: 指向 token 的 (start, end) 半开区间列表。
     """
     if rng is None:
         rng = random.Random()
@@ -95,8 +95,8 @@ def distribution_check(n_tokens, vocab_size, mask_prob=0.15, seed=42):
 
 
 def toy_predict(masked_inputs, vocab):
-    """Pretend MLM head: returns a uniform distribution over vocab.
-    Real BERT uses the encoder output at each position, projected to vocab.
+    """模拟 MLM head (输出头)：返回在 vocab (词表) 上的均匀分布。
+    真实的 BERT 使用每个位置的 encoder (编码器) 输出，投影到 vocab 上。
     """
     V = len(vocab)
     return [[1.0 / V for _ in range(V)] for _ in masked_inputs]
@@ -132,7 +132,7 @@ def main():
 
     print()
     print("=== whole-word masking demo ===")
-    # Treat "quick brown" and "lazy dog" as two-subword words for demo
+    # 将 "quick brown" 和 "lazy dog" 视为两个 subword (子词) 组成的词，用于演示
     tokens2 = [id_of[w] for w in sentence]
     spans = [(0, 1), (1, 2), (2, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 10), (10, 11)]
     rng2 = random.Random(7)
@@ -140,7 +140,7 @@ def main():
     print("spans:        " + " ".join(f"[{s}:{e}]" for s, e in spans))
     print("input words:  " + " ".join(vocab_words[t] for t in inp2))
     print("label mask:   " + " ".join(("P" if l != IGNORE_INDEX else ".") for l in labels2))
-    print("P = position has a label, . = ignored")
+    print("P = 该位置有 label，. = 被忽略")
 
 
 if __name__ == "__main__":

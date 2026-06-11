@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore")
 
 
 def make_mixed_data(n_samples=500, seed=42):
+    """生成包含数值型和分类型特征的合成数据集，用于演示 ML pipeline (机器学习流水线)。"""
     rng = np.random.RandomState(seed)
 
     age = rng.normal(35, 12, n_samples).clip(18, 80)
@@ -16,6 +17,7 @@ def make_mixed_data(n_samples=500, seed=42):
     plans = np.array(["free", "basic", "premium"])
     plan = rng.choice(plans, n_samples, p=[0.5, 0.3, 0.2])
 
+    # 在数值列中引入缺失值，用于演示 Imputer (填充器)
     mask = rng.random(n_samples) < 0.05
     age_with_missing = age.copy()
     age_with_missing[mask] = np.nan
@@ -24,6 +26,7 @@ def make_mixed_data(n_samples=500, seed=42):
     income_with_missing = income.copy()
     income_with_missing[mask2] = np.nan
 
+    # 基于特征构建目标变量
     boundary = (
         0.01 * (age - 35)
         + 0.00001 * (income - 40000)
@@ -45,6 +48,7 @@ def make_mixed_data(n_samples=500, seed=42):
 
 
 def train_test_split_dict(data, test_ratio=0.2, seed=42):
+    """将字典格式的数据集拆分为训练集和测试集。"""
     rng = np.random.RandomState(seed)
     n = len(data["target"])
     idx = rng.permutation(n)
@@ -57,6 +61,7 @@ def train_test_split_dict(data, test_ratio=0.2, seed=42):
 
 
 class MedianImputer:
+    """中位数填充器：用每列的中位数填充缺失值。"""
     def __init__(self):
         self.medians = None
 
@@ -76,6 +81,7 @@ class MedianImputer:
 
 
 class StandardScaler:
+    """标准缩放器：将每列缩放为零均值、单位方差。"""
     def __init__(self):
         self.means = None
         self.stds = None
@@ -94,6 +100,11 @@ class StandardScaler:
 
 
 class OneHotEncoder:
+    """独热编码器：将分类型变量转换为二进制列。
+
+    handle_unknown="ignore" 对生产环境至关重要：
+    遇到训练时未见过的新类别时，生成零向量而不是报错。
+    """
     def __init__(self, handle_unknown="ignore"):
         self.categories = None
         self.handle_unknown = handle_unknown
@@ -117,6 +128,12 @@ class OneHotEncoder:
 
 
 class PipelineFromScratch:
+    """从零实现的 ML pipeline (机器学习流水线)。
+
+    将一系列转换步骤和最终模型串联起来。
+    fit() 在训练数据上拟合所有转换器并训练模型。
+    predict() 使用已拟合的转换器转换新数据并生成预测。
+    """
     def __init__(self, steps):
         self.steps = steps
 
@@ -141,6 +158,11 @@ class PipelineFromScratch:
 
 
 class ColumnTransformerScratch:
+    """从零实现的 ColumnTransformer (列转换器)。
+
+    对不同的列子集应用不同的转换 pipeline，
+    然后将结果水平拼接（hstack）。
+    """
     def __init__(self, transformers):
         self.transformers = transformers
 
@@ -162,6 +184,7 @@ class ColumnTransformerScratch:
 
 
 class TransformerPipeline:
+    """仅包含转换步骤的 pipeline（无最终模型）。"""
     def __init__(self, steps):
         self.steps = steps
 
@@ -182,6 +205,7 @@ class TransformerPipeline:
 
 
 class LogisticRegressionSimple:
+    """简单的逻辑回归实现（梯度下降）。"""
     def __init__(self, lr=0.01, n_iter=1000):
         self.lr = lr
         self.n_iter = n_iter
@@ -215,6 +239,7 @@ class LogisticRegressionSimple:
 
 
 class DecisionTreeSimple:
+    """简单的决策树实现（基于基尼不纯度）。"""
     def __init__(self, max_depth=5):
         self.max_depth = max_depth
         self.root = None
@@ -271,6 +296,11 @@ class DecisionTreeSimple:
 
 
 def cross_validate_pipeline(pipeline_factory, data, n_folds=5, seed=42):
+    """执行带 pipeline 的 cross-validation (交叉验证)。
+
+    每个 fold 在自己的训练数据上单独拟合转换器，
+    防止 data leakage (数据泄漏)。
+    """
     rng = np.random.RandomState(seed)
     n = len(data["target"])
     idx = rng.permutation(n)
@@ -296,6 +326,11 @@ def cross_validate_pipeline(pipeline_factory, data, n_folds=5, seed=42):
 
 
 class FullPipeline:
+    """完整的生产级 pipeline，处理混合数据类型。
+
+    数值列：中位数填充 + StandardScaler (标准缩放)
+    分类型列：OneHotEncoder (独热编码，忽略未知类别)
+    """
     def __init__(self, model, numeric_cols, categorical_cols):
         self.model = model
         self.numeric_cols = numeric_cols
@@ -335,14 +370,16 @@ class FullPipeline:
 
 
 def demo_data_leakage():
+    """演示 data leakage (数据泄漏)：在拆分前对整个数据集拟合 scaler。"""
     print("=" * 60)
-    print("DATA LEAKAGE DEMONSTRATION")
+    print("DATA LEAKAGE DEMONSTRATION (数据泄漏演示)")
     print("=" * 60)
 
     rng = np.random.RandomState(42)
     X = rng.randn(200, 5)
     y = (X[:, 0] + 0.5 * X[:, 1] > 0).astype(int)
 
+    # 泄漏做法：在拆分前对整个数据拟合 scaler
     scaler_leaky = StandardScaler()
     X_scaled_leaky = scaler_leaky.fit_transform(X)
     X_train_leaky = X_scaled_leaky[:160]
@@ -353,6 +390,7 @@ def demo_data_leakage():
     model_leaky.fit(X_train_leaky, y_train)
     acc_leaky = np.mean(model_leaky.predict(X_test_leaky) == y_test)
 
+    # 正确做法：只在训练数据上拟合 scaler
     X_train = X[:160]
     X_test = X[160:]
     scaler_clean = StandardScaler()
@@ -374,8 +412,9 @@ def demo_data_leakage():
 
 
 def demo_pipeline_from_scratch():
+    """演示从零实现的 pipeline (流水线)。"""
     print("=" * 60)
-    print("PIPELINE FROM SCRATCH")
+    print("PIPELINE FROM SCRATCH (从零实现流水线)")
     print("=" * 60)
 
     rng = np.random.RandomState(42)
@@ -401,8 +440,9 @@ def demo_pipeline_from_scratch():
 
 
 def demo_full_pipeline():
+    """演示处理混合数据类型的完整 pipeline (流水线)。"""
     print("=" * 60)
-    print("FULL PIPELINE WITH MIXED DATA TYPES")
+    print("FULL PIPELINE WITH MIXED DATA TYPES (混合数据类型的完整流水线)")
     print("=" * 60)
 
     data = make_mixed_data(n_samples=500)
@@ -425,8 +465,9 @@ def demo_full_pipeline():
 
 
 def demo_cross_validation():
+    """演示带 pipeline 的 cross-validation (交叉验证)。"""
     print("=" * 60)
-    print("CROSS-VALIDATION WITH PIPELINE")
+    print("CROSS-VALIDATION WITH PIPELINE (带流水线的交叉验证)")
     print("=" * 60)
 
     data = make_mixed_data(n_samples=500)
@@ -449,8 +490,9 @@ def demo_cross_validation():
 
 
 def demo_unknown_categories():
+    """演示 OneHotEncoder 如何处理未知类别（生产环境常见问题）。"""
     print("=" * 60)
-    print("HANDLING UNKNOWN CATEGORIES")
+    print("HANDLING UNKNOWN CATEGORIES (处理未知类别)")
     print("=" * 60)
 
     train_cats = np.array([["new_york"], ["chicago"], ["la"], ["houston"]])
@@ -470,8 +512,9 @@ def demo_unknown_categories():
 
 
 def demo_model_comparison():
+    """使用 cross-validation (交叉验证) 比较多个模型。"""
     print("=" * 60)
-    print("MODEL COMPARISON VIA PIPELINE")
+    print("MODEL COMPARISON VIA PIPELINE (通过流水线比较模型)")
     print("=" * 60)
 
     data = make_mixed_data(n_samples=500)
@@ -498,8 +541,9 @@ def demo_model_comparison():
 
 
 def demo_sklearn_pipeline():
+    """演示等效的 sklearn Pipeline (scikit-learn 流水线)（如果已安装）。"""
     print("=" * 60)
-    print("SKLEARN PIPELINE (if installed)")
+    print("SKLEARN PIPELINE (if installed) (sklearn 流水线，如果已安装)")
     print("=" * 60)
 
     try:
@@ -560,8 +604,9 @@ def demo_sklearn_pipeline():
 
 
 def demo_experiment_tracking():
+    """手动实验追踪演示（生产环境中应使用 MLflow 或 wandb）。"""
     print("=" * 60)
-    print("EXPERIMENT TRACKING (manual log)")
+    print("EXPERIMENT TRACKING (manual log) (实验追踪——手动日志)")
     print("=" * 60)
 
     data = make_mixed_data(n_samples=500)
@@ -614,8 +659,9 @@ def demo_experiment_tracking():
 
 
 def demo_reproducibility():
+    """演示 reproducibility (可复现性)：相同种子产生相同结果。"""
     print("=" * 60)
-    print("REPRODUCIBILITY CHECK")
+    print("REPRODUCIBILITY CHECK (可复现性检查)")
     print("=" * 60)
 
     data = make_mixed_data(n_samples=500, seed=42)

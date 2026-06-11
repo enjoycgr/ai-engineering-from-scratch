@@ -1,10 +1,10 @@
-"""Capstone: decoder-only transformer from scratch.
+"""终极项目：从零构建仅解码器（decoder-only）Transformer。
 
-Uses PyTorch. If torch is not installed, prints a friendly message and
-degrades to a parameter-count estimator so the script still runs cleanly.
+使用 PyTorch。如果未安装 torch，会打印友好提示，并降级为参数数量估算器，
+以便脚本仍能干净地运行。
 
-Default: 4 layers, 4 heads, d_model=128, seq_len=128, 500 steps on a
-tiny built-in Shakespeare excerpt. Finishes in ~2 minutes on a laptop.
+默认配置：4 层、4 头、d_model=128、seq_len=128、在内置的莎士比亚片段上训练 500 步。
+在笔记本电脑上约 2 分钟完成。
 """
 
 import math
@@ -58,15 +58,15 @@ speak this in hunger for bread, not in thirst for revenge.
 def param_count(vocab_size, d_model, n_layers, n_heads, ffn_expansion=2.67, block_size=128):
     # token emb + pos emb
     emb = vocab_size * d_model + block_size * d_model
-    # per-layer: 4*d*d (attn) + 3*d*(exp*d) (SwiGLU) + 2*d (RMSNorm)
+    # 每层: 4*d*d (attn) + 3*d*(exp*d) (SwiGLU) + 2*d (RMSNorm)
     per_layer = 4 * d_model * d_model + 3 * d_model * int(d_model * ffn_expansion) + 2 * d_model
-    # final norm + lm head tied to token emb (so 0 extra if tied)
+    # final norm + lm head 与 token emb 绑定（因此如果绑定则为 0 额外参数）
     final = 2 * d_model
     return emb + per_layer * n_layers + final
 
 
 def run_param_preview():
-    print("=== parameter counts for capstone configs ===")
+    print("=== 终极项目各配置的参数数量 ===")
     print(f"{'name':<16}  {'V':>5}  {'L':>3}  {'H':>3}  {'d':>5}  {'~params':>10}")
     configs = [
         ("nano",    65,   4,  4,  128),
@@ -85,15 +85,15 @@ def try_train():
         import torch.nn as nn
         import torch.nn.functional as F
     except ImportError:
-        print("torch not installed. install with: pip install torch")
-        print("once installed, rerunning will train a 4-layer char-level GPT")
-        print("on the embedded Shakespeare excerpt and sample from it.")
+        print("torch 未安装。请使用以下命令安装: pip install torch")
+        print("安装完成后，重新运行将训练一个 4 层的字符级 GPT，")
+        print("基于内置的莎士比亚片段进行训练并从中采样。")
         return
 
     torch.manual_seed(42)
     random.seed(42)
 
-    # --- data ---
+    # --- 数据 ---
     data_path = os.path.join(os.path.dirname(__file__), "tinyshakespeare.txt")
     if os.path.exists(data_path):
         with open(data_path) as f:
@@ -110,7 +110,7 @@ def try_train():
     train_data = data[:n]
     val_data = data[n:]
 
-    # --- config ---
+    # --- 配置 ---
     block_size = 64
     d_model = 64
     n_heads = 4
@@ -122,7 +122,7 @@ def try_train():
     lr = 3e-4
     device = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 
-    # --- model ---
+    # --- 模型 ---
     class RMSNorm(nn.Module):
         def __init__(self, d, eps=1e-6):
             super().__init__()
@@ -187,7 +187,7 @@ def try_train():
             self.blocks = nn.ModuleList([Block(d, h, block_size, expansion) for _ in range(n_layers)])
             self.norm_f = RMSNorm(d)
             self.lm_head = nn.Linear(d, vocab_size, bias=False)
-            self.lm_head.weight = self.tok_emb.weight  # tied
+            self.lm_head.weight = self.tok_emb.weight  # 绑定（tied）
             self.block_size = block_size
 
         def forward(self, idx, targets=None):
@@ -227,7 +227,7 @@ def try_train():
 
     model = GPT(vocab_size, d_model, n_heads, n_layers, block_size, ffn_expansion).to(device)
     n_params = sum(p.numel() for p in model.parameters())
-    print(f"=== capstone transformer ===")
+    print(f"=== 终极项目 Transformer ===")
     print(f"device:        {device}")
     print(f"vocab_size:    {vocab_size}")
     print(f"block_size:    {block_size}")

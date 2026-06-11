@@ -1,7 +1,7 @@
-# Toy reverse-mode autodiff in Julia. Builds a computation graph from
-# operator overloads on a mutable Value type, runs a topological sort,
-# then walks backward applying local chain-rule closures.
-# Stdlib only. Sources:
+# Julia 中的玩具反向模式自动微分. 从可变的 Value 类型
+# 上的运算符重载构建计算图, 运行拓扑排序,
+# 然后向后遍历应用局部链式法则闭包.
+# 仅使用标准库. 来源:
 #   https://docs.julialang.org/en/v1/manual/methods/
 #   https://docs.julialang.org/en/v1/manual/constructors/
 #   https://docs.julialang.org/en/v1/base/base/#Base.@kwdef
@@ -137,7 +137,7 @@ end
 
 
 function demo_basic()
-    println("=== Basic: y = relu(x1 * x2 + 1) ===")
+    println("=== 基础: y = relu(x1 * x2 + 1) ===")
     x1 = Value(2.0)
     x2 = Value(3.0)
     y = relu(x1 * x2 + 1.0)
@@ -153,7 +153,7 @@ end
 
 
 function demo_power()
-    println("=== Power: y = x^3, dy/dx at x=2 ===")
+    println("=== 幂运算: y = x^3, dy/dx at x=2 ===")
     x = Value(2.0)
     y = x ^ 3
     backward!(y)
@@ -166,7 +166,7 @@ end
 
 
 function demo_complex()
-    println("=== Complex: f = relu(a*b + c) ===")
+    println("=== 复杂: f = relu(a*b + c) ===")
     a = Value(2.0)
     b = Value(-3.0)
     c = Value(10.0)
@@ -185,7 +185,7 @@ end
 
 
 function demo_neuron()
-    println("=== Single neuron: y = relu(w1*x1 + w2*x2 + b) ===")
+    println("=== 单个神经元: y = relu(w1*x1 + w2*x2 + b) ===")
     w1 = Value(0.5)
     w2 = Value(-1.5)
     x1 = Value(3.0)
@@ -211,7 +211,7 @@ end
 
 
 function demo_exp_log()
-    println("=== Exp and Log operations ===")
+    println("=== Exp 和 Log 操作 ===")
     x = Value(2.0)
     y = _exp(x)
     backward!(y)
@@ -245,7 +245,7 @@ end
 
 
 function demo_gradient_check()
-    println("=== Gradient Checking ===")
+    println("=== 梯度检查 ===")
     cases = [
         ("x^3 + 2x + 1", x -> x ^ 3 + x * 2 + 1.0),
         ("tanh(x^2)", x -> _tanh(x ^ 2)),
@@ -253,7 +253,7 @@ function demo_gradient_check()
         ("exp(x) * x", x -> _exp(x) * x),
         ("log(x^2 + 1)", x -> _log(x ^ 2 + 1.0)),
     ]
-    @printf("  %-22s %12s %12s %12s\n", "Expression", "Autodiff", "Numerical", "Diff")
+    @printf("  %-22s %12s %12s %12s\n", "表达式", "Autodiff", "数值", "差异")
     println("  " * "-" ^ 60)
     all_passed = true
     for (name, expr) in cases
@@ -264,11 +264,11 @@ function demo_gradient_check()
         end
         @printf("  %-22s %12.8f %12.8f %12.2e  %s\n", name, ad, num, diff, status)
     end
-    println(all_passed ? "  ALL CHECKS PASSED\n" : "  SOME CHECKS FAILED\n")
+    println(all_passed ? "  所有检查通过\n" : "  部分检查失败\n")
 end
 
 
-# Tiny MLP using our autodiff.
+# 使用我们的 autodiff 构建微型 MLP.
 struct Neuron
     w::Vector{Value}
     b::Value
@@ -323,7 +323,7 @@ parameters(m::MLP) = vcat([parameters(l) for l in m.layers]...)
 
 
 function demo_mlp_training()
-    println("=== Mini MLP Training on XOR ===")
+    println("=== 在 XOR 上训练微型 MLP ===")
     Random.seed!(42)
     model = MLP(Int[2, 4, 1])
 
@@ -350,11 +350,11 @@ function demo_mlp_training()
         end
 
         if step % 20 == 0 || step == 99
-            @printf("  step %3d  loss = %.4f\n", step, loss.data)
+            @printf("  步 %3d  loss = %.4f\n", step, loss.data)
         end
     end
 
-    println("\n  Predictions after training:")
+    println("\n  训练后的预测:")
     for (x, y) in zip(xs, ys)
         pred = model(x)
         sign = pred.data > 0 ? "+" : "-"
@@ -373,7 +373,7 @@ function main()
     demo_exp_log()
     demo_gradient_check()
     demo_mlp_training()
-    println("All demos passed.")
+    println("所有演示通过。")
 end
 
 

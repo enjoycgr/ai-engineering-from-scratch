@@ -1,9 +1,15 @@
 """Multi-tenant LLM FinOps simulator with enforcement ladder — stdlib Python.
 
+多租户 LLM FinOps 模拟器，带执行阶梯 —— 仅使用 Python 标准库。
+
 Three-tier enforcement:
   1. rate limit per tenant
   2. daily spend cap per tenant
   3. kill switch on spend z-score > 4
+三级执行：
+  1. 每个租户的 rate limit（速率限制）
+  2. 每个租户的 daily spend cap（每日支出上限）
+  3. 当 spend z-score > 4 时触发 kill switch（紧急切断）
 """
 
 from __future__ import annotations
@@ -63,6 +69,7 @@ def simulate_day(day: int, verbose: bool) -> None:
 def main() -> None:
     print("=" * 95)
     print("FINOPS ENFORCEMENT — three tenants over 10 days, abusive tenant triggers kill switch")
+    print("=" * 95)
     print("=" * 95)
     random.seed(7)
 

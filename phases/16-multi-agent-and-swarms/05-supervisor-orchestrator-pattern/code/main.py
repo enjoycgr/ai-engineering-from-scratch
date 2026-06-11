@@ -1,9 +1,9 @@
-"""Supervisor / Orchestrator-Worker pattern (Anthropic Research style).
+"""Supervisor / Orchestrator-Worker 模式（Anthropic Research 风格）。
 
-Lead agent decomposes a query, spawns workers in parallel threads, synthesizes.
-No real LLM calls -- workers are scripted fetch-and-summarize simulations.
+主导智能体（lead agent）分解查询，在并行线程中生成工作智能体（worker），然后综合结果。
+没有真实的 LLM 调用——工作智能体是脚本化的 fetch-and-summarize 模拟。
 
-The point is the wall-clock win from parallel subagents, plus the pattern.
+重点是并行子智能体带来的 wall-clock 收益，以及该模式本身。
 """
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ class Trace:
 
 
 def fake_web_fetch(query: str) -> str:
-    """Simulate web fetch + summarization latency."""
+    """模拟 web fetch + summarization 的延迟。"""
     time.sleep(0.3)
     return f"Summary for '{query}': 3 key findings from 5 sources."
 
@@ -66,13 +66,13 @@ class Worker:
 
 
 class Lead:
-    """Supervisor. Plans, spawns workers in parallel, synthesizes."""
+    """Supervisor。规划、在并行中生成工作智能体、综合结果。"""
 
     def __init__(self, trace: Trace) -> None:
         self.trace = trace
 
     def plan(self, query: str) -> list[str]:
-        """Decompose. Real lead uses an LLM; this splits by heuristic."""
+        """分解。真实的主导智能体使用 LLM；这里使用启发式拆分。"""
         return [
             f"{query} -- historical origins",
             f"{query} -- state of the art 2026",

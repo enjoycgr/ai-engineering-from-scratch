@@ -1,7 +1,6 @@
-"""LangGraph-shaped stateful graph in stdlib, with checkpoint and resume.
+"""LangGraph 风格的有状态图，基于标准库实现，支持 checkpoint (检查点) 和 resume (恢复)。
 
-State is a typed dict. Nodes return update dicts. Runtime serializes state
-after every node so resume picks up exactly where it left off.
+State (状态) 是一个 typed dict (类型化字典)。Nodes (节点) 返回 update dicts (更新字典)。Runtime (运行时) 在每个节点后序列化 state，以便 resume 能精确地从断点继续。
 """
 
 from __future__ import annotations

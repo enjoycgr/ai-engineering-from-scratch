@@ -56,7 +56,7 @@ class BPETokenizer:
         return len(self.vocab)
 
     def get_token_str(self, token_id):
-        return self.vocab.get(token_id, b"<?>")
+        return self.vocab.get(token_id, b"<?>").decode("utf-8", errors="replace")
 
 
 def demo_bpe():

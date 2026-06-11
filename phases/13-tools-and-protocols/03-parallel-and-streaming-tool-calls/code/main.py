@@ -1,13 +1,13 @@
-"""Phase 13 Lesson 03 - parallel and streaming tool calls.
+"""Phase 13 Lesson 03 - 并行和流式工具调用。
 
-Two demos, stdlib only:
-  1. Three-city weather run, sequential vs parallel (thread pool).
-     Measures wall-clock and shows the max vs sum pattern.
-  2. Stream accumulator for out-of-order argument chunks.
-     Replays a fake OpenAI-shaped stream of three interleaved parallel calls
-     and reassembles each per-id before executing.
+两个演示，仅标准库：
+  1. 三城市天气运行，串行 vs 并行（线程池）。
+     测量挂钟时间并展示 max vs sum 模式。
+  2. 用于乱序参数块的流式累加器。
+     重放一个模拟的 OpenAI 形状的三条交错并行调用流，
+     并在执行前按 id 重组每个调用。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 
 
 # ------------------------------------------------------------------
-# demo 1: sequential vs parallel weather lookup
+# 演示 1：串行 vs 并行天气查询
 # ------------------------------------------------------------------
 
 SIMULATED_LATENCY_MS = {"Bengaluru": 400, "Tokyo": 600, "Zurich": 800}
@@ -47,7 +47,7 @@ def run_parallel(cities: list[str]) -> tuple[float, list[dict]]:
 
 
 # ------------------------------------------------------------------
-# demo 2: stream accumulator
+# 演示 2：流式累加器
 # ------------------------------------------------------------------
 
 @dataclass
@@ -84,7 +84,7 @@ class StreamAccumulator:
 
 
 def fake_openai_stream():
-    """Three interleaved parallel calls. Real streams look like this."""
+    """三条交错的并行调用。真实流看起来像这样。"""
     yield {"type": "call_start", "id": "call_A", "name": "get_weather"}
     yield {"type": "call_start", "id": "call_B", "name": "get_weather"}
     yield {"type": "call_start", "id": "call_C", "name": "get_weather"}
@@ -117,7 +117,7 @@ def replay_and_execute() -> dict[str, dict]:
 
 
 # ------------------------------------------------------------------
-# main
+# 主函数
 # ------------------------------------------------------------------
 
 def main() -> None:

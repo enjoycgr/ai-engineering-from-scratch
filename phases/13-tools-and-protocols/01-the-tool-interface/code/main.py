@@ -1,17 +1,17 @@
-"""Phase 13 Lesson 01 - the tool interface, four-step loop, no LLM.
+"""Phase 13 Lesson 01 - 工具接口，四步循环，无 LLM。
 
-Implements the describe -> decide -> execute -> observe cycle used by every
-2026 tool-calling stack (OpenAI, Anthropic, Gemini, MCP, A2A). The "decide"
-step is faked with a keyword router so the loop runs offline; replace it with
-any real provider in Lesson 02.
+实现 describe -> decide -> execute -> observe 循环，每个 2026 年的
+工具调用栈（OpenAI, Anthropic, Gemini, MCP, A2A）都使用它。"decide"
+步骤用关键词路由器模拟，以便离线运行循环；在第 02 课中替换为
+任何真实提供商。
 
-The harness:
-  - registers three tools (add, get_time, get_weather)
-  - validates tool-call arguments against a minimal JSON Schema subset
-  - prints each step so you can read the choreography
-  - bounds iteration at MAX_TURNS to prevent runaway loops
+harness（框架）：
+  - 注册三个工具（add, get_time, get_weather）
+  - 针对最小 JSON Schema 子集验证工具调用参数
+  - 打印每一步，以便你可以阅读编排过程
+  - 在 MAX_TURNS 处限制迭代，防止失控循环
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations
@@ -129,10 +129,10 @@ def validate(schema: dict, value: Any) -> list[str]:
 
 
 def fake_decide(user_msg: str, history: list[dict]) -> dict:
-    """Stand-in for the model. Routes by keyword so the loop runs offline.
+    """模型的替身。按关键词路由，以便离线运行循环。
 
-    Production substitute: swap this for provider.chat.completions.create with
-    tools=[t.input_schema for t in REGISTRY]. Same return shape.
+    生产替代：将其替换为 provider.chat.completions.create，并传入
+    tools=[t.input_schema for t in REGISTRY]。返回形状相同。
     """
     last = history[-1] if history else {}
     if last.get("role") == "tool":

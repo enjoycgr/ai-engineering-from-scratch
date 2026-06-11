@@ -1,8 +1,8 @@
-"""Inference platform economics comparator — stdlib Python.
+"""推理平台经济学比较器 —— 纯 Python 标准库。
 
-Models six providers (Fireworks, Together, Baseten, Modal, Replicate, Anyscale)
-on the same synthetic workload. Normalizes per-token vs per-minute vs per-prediction
-pricing so you can compare head-to-head.
+对六个供应商（Fireworks、Together、Baseten、Modal、Replicate、Anyscale）
+在相同合成工作负载下进行建模。统一按 token、按分钟和按预测定价，
+以便直接对比。
 """
 
 from __future__ import annotations
@@ -14,13 +14,13 @@ from dataclasses import dataclass
 class Vendor:
     name: str
     model: str
-    per_mtok_output: float | None   # $/M output tokens (None if not the model)
-    per_minute: float | None        # $/minute for dedicated GPU (None if serverless)
-    per_prediction: float | None    # $/prediction (None if per-token)
-    tokens_per_minute: int          # effective tokens when GPU is saturated
+    per_mtok_output: float | None   # $/M 输出 token（不适用则为 None）
+    per_minute: float | None        # 专属 GPU $/分钟（无服务器则为 None）
+    per_prediction: float | None    # $/预测（按 token 则为 None）
+    tokens_per_minute: int          # GPU 饱和时的有效 token
     cold_start_sec: float
     notes: str
-    min_reserved_minutes_per_day: int = 0  # reserved-minute floor for per-minute vendors (warm pool / minimum commitment)
+    min_reserved_minutes_per_day: int = 0  # 按分钟供应商的预留分钟下限（热池 / 最低承诺）
 
 
 VENDORS = [
@@ -34,13 +34,12 @@ VENDORS = [
 
 
 def cost_per_day(v: Vendor, tokens_per_day: int, predictions_per_day: int) -> float:
-    """Effective $/day given the vendor's pricing model.
+    """给定供应商定价模型的有效 $/天。
 
-    Per-minute vendors are billed for the maximum of saturated serving time and
-    a reserved-minute floor (warm-pool minimum / reservation). This makes the
-    per-minute model consistent across `run_scenario` and `utilization_breakeven`
-    instead of assuming perfect scale-to-zero in one place and reserved 24h in
-    the other.
+    按分钟供应商按饱和服务时间和预留分钟下限（热池最低值 / 预留）
+    的最大值计费。这使按分钟模型在 `run_scenario` 和
+    `utilization_breakeven` 中保持一致，而非一处假设完美缩到零、
+    另一处假设预留 24 小时。
     """
     if v.per_mtok_output is not None:
         return (tokens_per_day / 1e6) * v.per_mtok_output
@@ -54,7 +53,7 @@ def cost_per_day(v: Vendor, tokens_per_day: int, predictions_per_day: int) -> fl
 
 
 def effective_rate(v: Vendor, tokens_per_day: int, predictions_per_day: int) -> float:
-    """Normalize to $/M tokens for cross-vendor comparison."""
+    """统一为 $/M token 以便跨供应商比较。"""
     c = cost_per_day(v, tokens_per_day, predictions_per_day)
     return (c / (tokens_per_day / 1e6)) if tokens_per_day else 0
 
@@ -102,9 +101,9 @@ def main() -> None:
     print("INFERENCE PLATFORM ECONOMICS — 2026 approximations")
     print("=" * 80)
 
-    run_scenario("Scenario A — startup-scale LLM product",
+    run_scenario("场景 A —— 初创规模 LLM 产品",
                  tokens_per_day=2_000_000, predictions_per_day=10_000)
-    run_scenario("Scenario B — high-volume production",
+    run_scenario("场景 B —— 高吞吐量生产",
                  tokens_per_day=100_000_000, predictions_per_day=500_000)
 
     utilization_breakeven()

@@ -19,8 +19,8 @@ def semi_hard_negatives(emb, labels, margin=0.2):
     positives.fill_diagonal_(float("-inf"))
     pos_idx = positives.argmax(dim=1)
 
-    # Semi-hard: d_ap < d_an < d_ap + margin. Exclude same-class, diagonals,
-    # negatives closer than the positive, and those past the margin boundary.
+    # Semi-hard: d_ap < d_an < d_ap + margin。排除同类、对角线、
+    # 比 positive 更近的 negative，以及超过 margin 边界的 negative。
     semi_hard = dist.clone()
     semi_hard[same_class] = float("inf")
     d_ap = dist[torch.arange(N), pos_idx].unsqueeze(1)

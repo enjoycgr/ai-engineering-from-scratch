@@ -43,7 +43,7 @@ class Method:
 
 
 class ScriptedLLM:
-    """Stands in for ChatHTN's LLM fallback. Returns scripted decompositions."""
+    """替代 ChatHTN 的 LLM fallback (LLM 回退)。返回脚本化的 decompositions (分解)。"""
 
     def __init__(self, scripts: dict[str, tuple[str, ...]]) -> None:
         self._scripts = scripts

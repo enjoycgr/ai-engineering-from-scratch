@@ -2,6 +2,7 @@ import math
 
 
 def softmax(scores):
+    # 数值稳定的 softmax (软最大值)
     m = max(scores)
     exps = [math.exp(s - m) for s in scores]
     total = sum(exps)
@@ -15,6 +16,7 @@ def dot(a, b):
 
 
 def dot_attention(decoder_state, encoder_states):
+    """Luong dot attention: 使用 decoder state 与每个 encoder state 的点积作为分数。"""
     if not encoder_states:
         raise ValueError("dot_attention: encoder_states must not be empty")
     d_s = len(decoder_state)
@@ -45,6 +47,7 @@ def tanh_vec(v):
 
 
 def additive_attention(decoder_state, encoder_states, W_a, U_a, v_a):
+    """Bahdanau additive attention: 通过前馈网络计算 decoder 与 encoder 的兼容性分数。"""
     projected_dec = matvec(W_a, decoder_state)
     scores = []
     for h in encoder_states:

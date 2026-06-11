@@ -15,6 +15,7 @@ from typing import Callable
 import numpy as np
 
 
+# 书面原则列表——在生产中会按类别标记
 CONSTITUTION = [
     "The response must directly answer the question asked, without hedging.",
     "The response must not include unnecessary filler or padding.",
@@ -24,6 +25,11 @@ CONSTITUTION = [
 
 
 def critique(response: str, principle: str) -> dict:
+    """根据单一宪法原则对响应进行批判。
+
+    这是 LLM self-judge 的占位符。在生产中，这会是一个
+    prompt："Does this response follow the principle: {principle}?"
+    """
     problems = []
     lowered = response.strip().lower()
     if len(response.split()) > 40 and "plainly" in principle:
@@ -38,6 +44,10 @@ def critique(response: str, principle: str) -> dict:
 
 
 def revise(response: str, critique_result: dict) -> str:
+    """给定批判结果，生成修订后的响应。
+
+    这是 LLM revision prompt 的占位符。
+    """
     problems = " ".join(critique_result["problems"])
     if "answer buried" in problems:
         sentences = [s.strip() for s in response.split(".") if s.strip()]
@@ -55,6 +65,14 @@ def revise(response: str, critique_result: dict) -> str:
 
 
 def cai_stage_one(prompts_and_responses: list[tuple[str, str]]) -> list[dict]:
+    """运行 Constitutional AI 阶段 1：self-critique + revision。
+
+    对每对 (prompt, response)：
+    1. 随机选择一条宪法原则
+    2. 根据该原则批判响应
+    3. 生成修订后的响应
+    4. 记录是否发生了变化
+    """
     revised_pairs = []
     for prompt, response in prompts_and_responses:
         principle = random.choice(CONSTITUTION)
@@ -74,6 +92,7 @@ def cai_stage_one(prompts_and_responses: list[tuple[str, str]]) -> list[dict]:
 
 
 def reward_math(prompt: str, response: str) -> float:
+    """基于规则的数学 reward：如果最终数字与预期答案匹配则为 1.0，否则为 0.0。"""
     try:
         cleaned = prompt.replace("What is ", "").replace("?", "").strip()
         expected = eval(cleaned, {"__builtins__": {}}, {})
@@ -89,14 +108,20 @@ def reward_math(prompt: str, response: str) -> float:
 
 
 def reward_format(response: str) -> float:
+    """基于规则的格式 reward：如果响应包含 <answer> 标签则为 1.0。"""
     return 1.0 if re.search(r"<answer>.*?</answer>", response) else 0.0
 
 
 def combined_reward(prompt: str, response: str) -> float:
+    """组合 reward：正确性 + 0.1 * 格式合规。"""
     return reward_math(prompt, response) + 0.1 * reward_format(response)
 
 
 def group_relative_advantage(rewards: list[float]) -> np.ndarray:
+    """计算组内 reward 的 z-score。
+
+    如果所有 reward 相同，返回零（无梯度信号——跳过此 prompt）。
+    """
     r = np.array(rewards, dtype=float)
     if r.std() < 1e-8:
         return np.zeros_like(r)
@@ -110,6 +135,10 @@ def grpo_step(
     beta: float = 0.01,
     clip_eps: float = 0.2,
 ) -> dict:
+    """单次 GRPO 更新：PPO 的 clipped surrogate，使用组相对 advantage。
+
+    与 PPO 不同，没有 value function——该组作为自己的 baseline。
+    """
     ratios = np.exp(policy_logprobs - ref_logprobs)
     unclipped = ratios * advantages
     clipped = np.clip(ratios, 1 - clip_eps, 1 + clip_eps) * advantages
@@ -158,6 +187,11 @@ def self_improvement_round(
     sampler: Callable[[str], str],
     group_size: int = 8,
 ) -> dict:
+    """一轮 self-improvement：为每个 prompt 采样一组响应，
+    用基于规则的 reward 评分，计算组相对 advantage。
+
+    返回每个 prompt 的指标和总体 mean reward。
+    """
     per_prompt = []
     for prompt in prompts:
         responses = [sampler(prompt) for _ in range(group_size)]

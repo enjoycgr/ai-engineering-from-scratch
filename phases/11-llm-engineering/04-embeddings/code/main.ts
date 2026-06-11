@@ -1,7 +1,7 @@
-// Embeddings + semantic search in TypeScript: TF-IDF embedder, cosine /
-// dot / euclidean / hamming metrics, vector index, Matryoshka truncation,
-// binary quantization. Mirrors code/embeddings.py.
-// Sources:
+// TypeScript 中的 Embeddings + 语义搜索：TF-IDF embedder、余弦/
+// 点积/欧几里得/汉明距离度量、向量索引、Matryoshka 截断、
+// 二值量化。与 code/embeddings.py 对应。
+// 来源：
 //   https://platform.openai.com/docs/guides/embeddings
 //   https://docs.voyageai.com/docs/embeddings
 //   https://huggingface.co/BAAI/bge-m3

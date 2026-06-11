@@ -1,5 +1,7 @@
 // Phase 0 · Lesson 01 — Dev Environment verifier (TypeScript port).
+// 阶段 0 · 课程 01 — 开发环境验证器（TypeScript 移植版）
 // Probes node version + presence of git, python3, cargo, deno; mirrors verify.py.
+// 探测 node 版本及 git、python3、cargo、deno 的存在；与 verify.py 功能对应。
 // Refs: https://nodejs.org/api/process.html  https://nodejs.org/api/child_process.html
 
 import { execFileSync } from "node:child_process";
@@ -15,6 +17,7 @@ type Probe = {
 
 function whichVersion(cmd: string, args: string[] = ["--version"]): ReturnType<ProbeFn> {
   // execFile (not exec) avoids a shell, so user PATH lookups can't be re-interpreted.
+  // 使用 execFile 而非 exec 可避免 shell 介入，防止用户 PATH 查找被重新解释。
   try {
     const out = execFileSync(cmd, args, {
       stdio: ["ignore", "pipe", "ignore"],
@@ -53,6 +56,7 @@ const PROBES: Probe[] = [
       const probe = whichVersion("python3");
       if (!probe.ok || !probe.detail) return probe;
       // Detail looks like "Python 3.11.7"; pull major.minor.
+      // Detail 格式类似 "Python 3.11.7"；提取 major.minor 版本号。
       const match = probe.detail.match(/(\d+)\.(\d+)/);
       if (!match) return { ok: false, detail: probe.detail };
       const [major, minor] = [Number(match[1]), Number(match[2])];

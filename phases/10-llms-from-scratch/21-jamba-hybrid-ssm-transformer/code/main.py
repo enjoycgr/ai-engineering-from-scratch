@@ -1,12 +1,11 @@
 """Jamba / Mamba-3 memory calculator — stdlib Python.
 
-Computes KV cache, SSM state, and total attention-layer memory for a range
-of hybrid configurations: pure Transformer, Jamba 1:7, 1:3, 1:15, and pure
-SSM. Prints the comparison at 8k, 64k, 128k, 256k context.
+计算一系列混合配置的 KV cache、SSM state 和总 attention 层内存：
+纯 Transformer、Jamba 1:7、1:3、1:15 和纯 SSM。
+在 8k、64k、128k、256k 上下文打印对比。
 
-Numbers are illustrative, not exact production memory budgets. The point is
-to show why the hybrid ratio matters and where Jamba's 256k-on-80GB claim
-comes from.
+数字是示意性的，非精确生产内存预算。重点是
+展示为什么混合比率重要以及 Jamba 的 256k-on-80GB 声明从何而来。
 """
 
 from __future__ import annotations
@@ -140,12 +139,12 @@ def main() -> None:
     print("=" * 74)
     print("TAKEAWAY")
     print("-" * 74)
-    print("  Pure Transformer at 256k = 67 GB just for KV cache — will not fit")
-    print("  on an 80GB single-GPU deployment after you add weights and activations.")
-    print("  Jamba 1:7 = 8.4 GB KV cache + ~4 MB SSM state = fits comfortably.")
-    print("  That is the 256k-on-one-GPU claim from the AI21 paper, concretely.")
-    print("  Mamba-3 pushes pure SSM further; hybrids will likely adopt it as")
-    print("  the SSM side of the next-generation recipe.")
+    print("  纯 Transformer 在 256k 时仅 KV cache 就需要 67 GB —— 加上权重和")
+    print("  激活后无法容纳在 80GB 单 GPU 部署上。")
+    print("  Jamba 1:7 = 8.4 GB KV cache + ~4 MB SSM state = 轻松容纳。")
+    print("  这就是 AI21 论文中 256k-on-one-GPU 声明的具体体现。")
+    print("  Mamba-3 进一步推动纯 SSM；混合模型可能会在下一代配方中")
+    print("  采用它作为 SSM 侧。")
 
 
 if __name__ == "__main__":

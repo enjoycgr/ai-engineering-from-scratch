@@ -1,13 +1,12 @@
-"""Phase 13 Lesson 14 - MCP Apps (SEP-1724, 2026-01-26) ui:// resources.
+"""Phase 13 Lesson 14 - MCP Apps（SEP-1724，2026-01-26）ui:// 资源。
 
-visualize_timeline tool returns a ui://notes/timeline resource with inlined
-HTML + SVG. The resources/read handler returns the full HTML bundle with a
-CSP-sensible profile and a placeholder postMessage JSON-RPC client that calls
-back to host.callTool.
+visualize_timeline 工具返回一个内联 HTML + SVG 的 ui://notes/timeline 资源。
+resources/read 处理器返回具备 CSP 合理配置文件的完整 HTML 包
+和一个占位符 postMessage JSON-RPC 客户端，回调 host.callTool。
 
-Stdlib only. Run and inspect the emitted HTML.
+仅标准库。运行并检查发出的 HTML。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

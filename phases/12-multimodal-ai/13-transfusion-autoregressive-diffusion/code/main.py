@@ -1,7 +1,6 @@
-"""Transfusion toy: two-loss trainer on a 4x4 grayscale + short caption.
+"""Transfusion 玩具：4x4 灰度 + 短标题上的两 loss 训练器。
 
-Stdlib. The transformer is a shared linear map; the point is the two-loss
-plumbing and the block-triangular attention mask.
+Stdlib。Transformer 是共享线性映射；重点是两 loss 管道和块三角 attention mask。
 """
 
 from __future__ import annotations

@@ -138,7 +138,7 @@ def sample_unconditional(net, alphas, alpha_bars, T, t_dim, d, rng):
 
 
 def inpaint(net, alphas, alpha_bars, T, t_dim, d, clean, mask, rng):
-    """mask[i] == True means that dim is to be regenerated. Unmasked dims pinned to clean."""
+    """mask[i] == True 表示该维度需要重新生成。未掩码的维度固定为 clean。"""
     x = [rng.gauss(0, 1) for _ in range(d)]
     for t in range(T - 1, -1, -1):
         a_bar = alpha_bars[t]
@@ -166,31 +166,31 @@ def main():
     alphas, alpha_bars = make_schedule(T)
     net = init_net(d, t_dim, hidden, rng)
 
-    print("=== training 5-D DDPM on two-cluster mixture ===")
+    print("=== 在两个 cluster 的混合数据上训练 5-D DDPM ===")
     train(net, alpha_bars, T, steps=5000, lr=0.01, t_dim=t_dim, d=d, rng=rng)
 
     print()
-    print("=== inpainting: pin dims 0-2, regenerate dims 3-4 ===")
+    print("=== inpainting：固定 dims 0-2，重新生成 dims 3-4 ===")
     for trial in range(5):
         clean, cluster = sample_data(rng, d)
         mask = [False, False, False, True, True]
         out = inpaint(net, alphas, alpha_bars, T, t_dim, d, clean, mask, rng)
-        label = "neg cluster" if cluster == 0 else "pos cluster"
-        print(f"  {label}: pinned={[f'{clean[i]:+.2f}' for i in range(3)]}  "
-              f"filled={[f'{out[i]:+.2f}' for i in range(3, 5)]}")
+        label = "负 cluster" if cluster == 0 else "正 cluster"
+        print(f"  {label}: pinned（固定）={[f'{clean[i]:+.2f}' for i in range(3)]}  "
+              f"filled（填充）={[f'{out[i]:+.2f}' for i in range(3, 5)]}")
 
     print()
-    print("=== outpainting (mask dims 0-1, pin 2-4) ===")
+    print("=== outpainting（mask dims 0-1，固定 2-4） ===")
     for trial in range(3):
         clean, cluster = sample_data(rng, d)
         mask = [True, True, False, False, False]
         out = inpaint(net, alphas, alpha_bars, T, t_dim, d, clean, mask, rng)
-        print(f"  pinned tail=[{clean[2]:+.2f}, {clean[3]:+.2f}, {clean[4]:+.2f}]  "
-              f"filled head=[{out[0]:+.2f}, {out[1]:+.2f}]")
+        print(f"  pinned tail（固定尾部）=[{clean[2]:+.2f}, {clean[3]:+.2f}, {clean[4]:+.2f}]  "
+              f"filled head（填充头部）=[{out[0]:+.2f}, {out[1]:+.2f}]")
 
     print()
-    print("takeaway: the filled dims match the cluster sign of the pinned dims.")
-    print("          that is why inpainting looks coherent with the surroundings.")
+    print("takeaway：填充的维度与固定维度的 cluster 符号匹配。")
+    print("          这就是为什么 inpainting 看起来与周围环境连贯。")
 
 
 if __name__ == "__main__":

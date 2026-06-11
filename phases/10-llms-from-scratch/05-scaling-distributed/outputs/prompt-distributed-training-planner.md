@@ -1,29 +1,29 @@
 ---
 name: prompt-distributed-training-planner
-description: Plan a distributed training run given model size and available hardware
+description: 给定模型大小和可用硬件，规划分布式训练运行
 version: 1.0.0
 phase: 10
 lesson: 5
 tags: [distributed-training, fsdp, deepspeed, tensor-parallelism, pipeline-parallelism, scaling]
 ---
 
-# Distributed Training Planner
+# Distributed Training Planner（分布式训练规划器）
 
-When planning a distributed training run for a large language model, use this framework to determine the parallelism strategy, memory budget, communication overhead, and expected throughput.
+为大型语言模型规划分布式训练运行时，使用此框架确定并行策略、内存预算、通信开销和预期吞吐量。
 
-## Input Requirements
+## Input Requirements（输入要求）
 
-Provide:
-- **Model size** (parameters in billions)
-- **Target training tokens** (in trillions)
-- **Available GPUs** (type: A100/H100/H200, count, interconnect: NVLink/InfiniBand)
-- **GPU memory** (80GB for A100/H100, 141GB for H200)
-- **Nodes** (GPUs per node, number of nodes)
-- **Budget constraints** (max cost in dollars, max wall-clock time)
+提供：
+- **Model size**（参数数量，以十亿计）
+- **Target training tokens**（以万亿计）
+- **Available GPUs**（类型：A100/H100/H200，数量，互联：NVLink/InfiniBand）
+- **GPU memory**（A100/H100 为 80GB，H200 为 141GB）
+- **Nodes**（每节点 GPU 数，节点数）
+- **Budget constraints**（最大成本（美元），最大 wall-clock 时间）
 
-## Step 1: Memory Budget
+## Step 1: Memory Budget（内存预算）
 
-Calculate per-GPU memory for each component:
+计算每个组件的每卡内存：
 
 | Component | Formula | FP16 | FP32 |
 |-----------|---------|------|------|
@@ -32,32 +32,32 @@ Calculate per-GPU memory for each component:
 | Gradients | params x bytes_per_param | params x 2 | params x 4 |
 | Activations (estimate) | seq_len x batch x hidden x layers x 2 | varies | varies |
 
-If total exceeds GPU memory, sharding is required. Try in order:
-1. ZeRO-1 (shard optimizer only) -- cheapest communication
-2. ZeRO-2 (+ gradients) -- moderate communication
-3. FSDP/ZeRO-3 (+ weights) -- highest communication but maximum memory savings
-4. Add activation checkpointing if activations still too large
-5. Add tensor parallelism if a single layer does not fit on one GPU
+如果总量超过 GPU 内存，需要分片。按顺序尝试：
+1. ZeRO-1（仅分片 optimizer）——通信最便宜
+2. ZeRO-2（+ gradients）——中等通信
+3. FSDP/ZeRO-3（+ weights）——通信最高但内存节省最大
+4. 如果 activations 仍然太大，添加 activation checkpointing
+5. 如果单层放不进一块 GPU，添加 tensor parallelism
 
-## Step 2: Parallelism Strategy
+## Step 2: Parallelism Strategy（并行策略）
 
-### Decision Tree
+### Decision Tree（决策树）
 
-1. **Does one layer fit on one GPU?**
-   - No: You need tensor parallelism. Set TP = 2, 4, or 8 (within a node).
-   - Yes: Skip tensor parallelism.
+1. **一层能放进一块 GPU 吗？**
+   - 不能：需要 tensor parallelism。设置 TP = 2, 4 或 8（在节点内）。
+   - 能：跳过 tensor parallelism。
 
-2. **Does the full model (with sharding) fit on GPUs within one node?**
-   - No: You need pipeline parallelism. Set PP = number of nodes / groups.
-   - Yes: Skip pipeline parallelism.
+2. **完整模型（带分片）能放进一个节点内的 GPU 吗？**
+   - 不能：需要 pipeline parallelism。设置 PP = 节点数 / 组数。
+   - 能：跳过 pipeline parallelism。
 
-3. **How many remaining GPUs for data parallelism?**
+3. **剩余多少 GPU 用于 data parallelism？**
    - DP = total_gpus / (TP x PP)
 
-4. **What sharding level within the data parallel group?**
-   - Start with FSDP (ZeRO-3). Reduce to ZeRO-2 or ZeRO-1 if communication is bottleneck.
+4. **Data parallel 组内的分片级别？**
+   - 从 FSDP (ZeRO-3) 开始。如果通信是瓶颈，降到 ZeRO-2 或 ZeRO-1。
 
-### Typical Configurations
+### Typical Configurations（典型配置）
 
 | Model Size | Total GPUs | TP | PP | DP | Sharding |
 |-----------|-----------|----|----|-----|----------|
@@ -67,55 +67,55 @@ If total exceeds GPU memory, sharding is required. Try in order:
 | 70B | 128 | 8 | 2 | 8 | FSDP |
 | 405B | 16,384 | 8 | 16 | 128 | FSDP |
 
-## Step 3: Communication Analysis
+## Step 3: Communication Analysis（通信分析）
 
-Estimate communication volume per training step:
+估算每训练步的通信量：
 
-- **Data parallel (all-reduce)**: 2 x gradient_size x (N-1)/N per step
-- **FSDP (all-gather + reduce-scatter)**: ~3 x weight_size x (N-1)/N per step (higher than DP)
-- **Tensor parallel (all-reduce per layer)**: 2 x activation_size x num_layers per step (needs NVLink)
-- **Pipeline parallel (point-to-point)**: activation_size per stage boundary (minimal)
+- **Data parallel (all-reduce)**：每步 2 x gradient_size x (N-1)/N
+- **FSDP (all-gather + reduce-scatter)**：每步约 3 x weight_size x (N-1)/N（高于 DP）
+- **Tensor parallel (all-reduce per layer)**：每步 2 x activation_size x num_layers（需要 NVLink）
+- **Pipeline parallel (point-to-point)**：每 stage 边界 activation_size（最小）
 
-If communication time exceeds 20% of compute time, the strategy is communication-bound. Solutions:
-- Gradient accumulation (reduce all-reduce frequency)
-- Overlap communication with computation (FSDP does this by default)
-- Increase micro-batch size (better compute-to-communication ratio)
-- Switch to a less communication-heavy sharding stage
+如果通信时间超过计算时间的 20%，策略受通信限制。解决方案：
+- Gradient accumulation（降低 all-reduce 频率）
+- 通信与计算重叠（FSDP 默认这样做）
+- 增加 micro-batch size（更好的计算-通信比）
+- 切换到通信量更少的分片阶段
 
-## Step 4: Throughput and Cost Estimate
+## Step 4: Throughput and Cost Estimate（吞吐量和成本估算）
 
-**FLOPS per training step:**
-- Forward: ~2 x params x tokens_per_batch
-- Backward: ~4 x params x tokens_per_batch (2x forward)
-- Total: ~6 x params x tokens_per_batch
+**每训练步 FLOPS：**
+- Forward：~2 x params x tokens_per_batch
+- Backward：~4 x params x tokens_per_batch（forward 的 2 倍）
+- 总计：~6 x params x tokens_per_batch
 
-**Training time:**
+**训练时间：**
 - total_flops = 6 x params x total_tokens
 - time_seconds = total_flops / (num_gpus x gpu_tflops x 1e12 x utilization)
-- Typical utilization: 35-45% (accounting for communication, pipeline bubbles, memory overhead)
+- 典型利用率：35-45%（考虑通信、pipeline bubbles、内存开销）
 
-**Cost:**
+**成本：**
 - total_gpu_hours = num_gpus x time_seconds / 3600
 - cost = total_gpu_hours x cost_per_gpu_hour
 
-## Step 5: Validation Checklist
+## Step 5: Validation Checklist（验证检查清单）
 
-Before launching:
+启动前：
 
-1. Per-GPU memory fits within hardware limit (with 10% headroom)
-2. Effective batch size matches target (per_gpu_batch x DP x gradient_accumulation_steps)
-3. Communication-to-compute ratio is below 20%
-4. Pipeline bubble fraction is below 15% (enough micro-batches)
-5. Learning rate is scaled for the effective batch size
-6. Checkpointing frequency accounts for failure probability (save every 1-2 hours for large runs)
-7. Gradient clipping is set (typically 1.0 for large models)
-8. Warmup steps are proportional to total steps (typically 0.1-1% of total)
+1. 每卡内存适合硬件限制（留 10% 余量）
+2. Effective batch size 匹配目标（per_gpu_batch x DP x gradient_accumulation_steps）
+3. 通信-计算比低于 20%
+4. Pipeline bubble fraction 低于 15%（足够的 micro-batches）
+5. 学习率按 effective batch size 缩放
+6. Checkpoint 频率考虑故障概率（大型运行每 1-2 小时保存一次）
+7. 设置了 gradient clipping（大型模型通常为 1.0）
+8. Warmup steps 与总 steps 成比例（通常为总 steps 的 0.1-1%）
 
-## Red Flags
+## Red Flags（危险信号）
 
-- **TP > 8**: Tensor parallelism across nodes (over InfiniBand) is almost always slower than pipeline parallelism
-- **Pipeline stages > 32**: Bubble overhead becomes significant even with many micro-batches
-- **Effective batch size > 10M tokens**: Diminishing returns; may harm convergence
-- **Utilization below 30%**: Communication-bound -- re-evaluate parallelism strategy
-- **No activation checkpointing above 13B**: You will run out of memory during the backward pass
-- **No gradient accumulation with small per-GPU batch**: Gradient noise increases; accumulate to effective batch of 256+ samples
+- **TP > 8**：跨节点的 tensor parallelism（通过 InfiniBand）几乎总是比 pipeline parallelism 慢
+- **Pipeline stages > 32**：即使有大量 micro-batches，bubble 开销也变得显著
+- **Effective batch size > 10M tokens**：收益递减；可能损害收敛
+- **Utilization 低于 30%**：受通信限制——重新评估并行策略
+- **13B 以上没有 activation checkpointing**：Backward pass 期间会内存不足
+- **没有 gradient accumulation 的每卡小 batch**：Gradient noise 增加；累积到 effective batch 256+ 样本

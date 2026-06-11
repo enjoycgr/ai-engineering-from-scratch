@@ -4,87 +4,87 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What does the Society of Minds protocol have N model instances do?",
+      "question": "Society of Minds 协议让 N 个模型实例做什么？",
       "options": [
-        "Each runs a different benchmark",
-        "Independently propose answers, then over R rounds read and critique each other's proposals until they converge",
-        "Train on a shared dataset",
-        "Negotiate prices"
+        "每个运行不同的 benchmark（基准测试）",
+        "Independently propose answers（独立提出答案），然后在 R 轮中阅读并批评彼此的 proposals（提议）直到 converge（收敛）",
+        "在共享数据集上训练",
+        "谈判价格"
       ],
       "correct": 1,
-      "explanation": "N proposers, R rounds, cross-critique, convergence is the canonical Du et al. debate."
+      "explanation": "N proposers（提议者）、R rounds（轮次）、cross-critique（交叉批评）、convergence（收敛）是标准的 Du et al. debate（辩论）。"
     },
     {
       "stage": "pre",
-      "question": "Why does cross-model debate (e.g. ChatGPT + Bard) outperform single-model debate?",
+      "question": "为什么 cross-model debate（跨模型辩论）（例如 ChatGPT + Bard）优于 single-model debate（单模型辩论）？",
       "options": [
-        "Different vendors negotiate prices",
-        "Heterogeneity reduces shared blind spots so cross-critique catches more errors",
-        "It is cheaper",
-        "Vendors share weights"
+        "不同厂商谈判价格",
+        "Heterogeneity（异质性）减少 shared blind spots（共享盲点），因此 cross-critique（交叉批评）捕获更多错误",
+        "它更便宜",
+        "厂商共享权重"
       ],
       "correct": 1,
-      "explanation": "Mixing models brings independent error distributions, which raises the ceiling of debate."
+      "explanation": "Mixing models（混合模型）带来 independent error distributions（独立的错误分布），这提高了 debate（辩论）的天花板。"
     },
     {
       "stage": "check",
-      "question": "What is the main token-cost win of a sparse topology over full mesh?",
+      "question": "sparse topology（稀疏拓扑）相比 full mesh（全连接）的主要 token-cost win（token 成本优势）是什么？",
       "options": [
-        "Sparse topology requires no models",
-        "Each debater reads only a subset of peers, so critique-op count drops while accuracy often matches",
-        "Sparse topology doubles the rounds",
-        "It removes the LLM"
+        "Sparse topology 不需要模型",
+        "Each debater 仅阅读 peers 的一个子集，因此 critique-op count（批评操作数）下降而 accuracy（准确率）通常匹配",
+        "Sparse topology 轮次翻倍",
+        "它移除了 LLM"
       ],
       "correct": 1,
-      "explanation": "Sparse (star, ring, hub-and-spoke) reduces critique ops without losing accuracy on many tasks."
+      "explanation": "Sparse（star、ring、hub-and-spoke）减少 critique ops（批评操作），同时在许多任务上不损失 accuracy（准确率）。"
     },
     {
       "stage": "check",
-      "question": "Which case does the lesson list as where debate hurts?",
+      "question": "课程列出的 debate（辩论）有害的情况是什么？",
       "options": [
-        "Open-ended reasoning",
-        "A simple factual lookup, because one lookup is cheaper than five debates",
-        "Chess move validity",
-        "Biography generation"
+        "Open-ended reasoning（开放式推理）",
+        "A simple factual lookup（简单事实查找），因为一次查找比五次辩论更便宜",
+        "Chess move validity（国际象棋走法有效性）",
+        "Biography generation（传记生成）"
       ],
       "correct": 1,
-      "explanation": "Latency- and cost-sensitive trivial lookups do not benefit from N x R debate."
+      "explanation": "Latency- and cost-sensitive（延迟和成本敏感）的 trivial lookups（简单查找）不会从 N x R debate 中受益。"
     },
     {
       "stage": "check",
-      "question": "What is convergence collapse?",
+      "question": "什么是 convergence collapse（收敛崩溃）？",
       "options": [
-        "Network outage",
-        "All agents converge on the first wrong answer; mitigate with required disagreement rounds",
-        "Process crash",
-        "TLS handshake failure"
+        "网络中断",
+        "All agents converge on the first wrong answer（收敛到第一个错误答案）；通过 required disagreement rounds（强制分歧轮次）缓解",
+        "进程崩溃",
+        "TLS 握手失败"
       ],
       "correct": 1,
-      "explanation": "Early agreement on a wrong answer is mitigated by forcing distinct round-1 proposals."
+      "explanation": "Early agreement on a wrong answer（早期对错误答案达成一致）通过 forcing distinct round-1 proposals（强制第一轮提出不同提议）来缓解。"
     },
     {
       "stage": "post",
-      "question": "Why does prompt homogenization undermine debate?",
+      "question": "为什么 prompt homogenization（提示词同质化）会削弱 debate（辩论）？",
       "options": [
-        "It violates Apache 2.0",
-        "Identical prompts produce nearly identical answers, removing the cross-critique signal",
-        "It uses too many tokens",
-        "It bypasses the supervisor"
+        "它违反 Apache 2.0",
+        "Identical prompts（相同的提示词）产生 nearly identical answers（几乎相同的答案），移除 cross-critique signal（交叉批评信号）",
+        "它使用太多 tokens",
+        "它绕过 supervisor（监督者）"
       ],
       "correct": 1,
-      "explanation": "Diverse prompts (and ideally diverse models) keep the proposal distribution wide."
+      "explanation": "Diverse prompts（多样化的提示词）（以及 ideally diverse models 理想的多样化模型）保持 proposal distribution（提议分布）广泛。"
     },
     {
       "stage": "post",
-      "question": "Which production pattern is a debate variant per the lesson?",
+      "question": "根据课程，哪个生产模式是 debate（辩论）的变体？",
       "options": [
-        "Anthropic orchestrator-workers with a synthesis step",
-        "Pure single-shot RAG",
-        "Cron-only schedule",
-        "Vector indexing"
+        "Anthropic orchestrator-workers with a synthesis step（带综合步骤）",
+        "Pure single-shot RAG（纯单次 RAG）",
+        "仅 Cron 调度",
+        "Vector indexing（向量索引）"
       ],
       "correct": 0,
-      "explanation": "Orchestrator-workers with synthesis is a debate-shaped pattern in production."
+      "explanation": "Orchestrator-workers with synthesis（带综合的编排器-工作者）是生产中 debate-shaped pattern（辩论形状的模式）。"
     }
   ]
 }

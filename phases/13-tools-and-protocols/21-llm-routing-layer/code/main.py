@@ -1,11 +1,11 @@
-"""Phase 13 Lesson 21 - LLM routing gateway, stdlib.
+"""Phase 13 Lesson 21 - LLM 路由网关，stdlib。
 
-OpenAI-compatible request in; priority fallback chain picks a backend; cost
-tracker accumulates spend per-request. PII redaction runs pre-dispatch.
+OpenAI 兼容请求入；优先故障转移链挑选后端；成本追踪器
+累积每次请求支出。PII 编辑在分发前运行。
 
-Backend providers are stubs. Switching one to "outage" shows fallback.
+后端提供商是 stub。将一个切换到 "outage" 展示故障转移。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

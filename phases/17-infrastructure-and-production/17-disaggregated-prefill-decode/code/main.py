@@ -1,16 +1,16 @@
 """Colocated vs disaggregated serving simulator — stdlib Python.
 
-Models one request through colocated (same GPU) vs disaggregated (prefill pool + decode pool + KV transfer).
-Sweeps prompt length to find the crossover.
+模拟单个请求在 colocated（同一张 GPU）与 disaggregated（prefill pool + decode pool + KV transfer）下的表现。
+扫描提示长度以找到 crossover 点。
 """
 
 from __future__ import annotations
 
 
-# illustrative 2026 constants for 70B FP8 on H100 class
-PREFILL_TOK_PER_MS = 40.0         # prefill throughput per GPU per ms
+# 2026 年 70B FP8 on H100 级别的示意常数
+PREFILL_TOK_PER_MS = 40.0         # 每张 GPU 每 ms 的 prefill 吞吐量
 DECODE_TOK_PER_MS_COLOCATED = 0.10
-DECODE_TOK_PER_MS_DECODE_GPU = 0.18   # memory-optimized pool (H200-like)
+DECODE_TOK_PER_MS_DECODE_GPU = 0.18   # 内存优化池（类 H200）
 KV_BYTES_PER_TOKEN_70B_FP8 = 125_000
 NIXL_RDMA_GB_S = 100
 NIXL_TCP_GB_S = 10

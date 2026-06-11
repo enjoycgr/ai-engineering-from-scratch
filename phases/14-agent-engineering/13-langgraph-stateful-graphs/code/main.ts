@@ -1,9 +1,8 @@
-// Phase 14 Lesson 13 — LangGraph-shaped stateful graph, in TypeScript.
+// Phase 14 Lesson 13 — LangGraph 风格的有状态图，TypeScript 实现。
 //
-// Mirrors code/main.py: State is a plain object, nodes return Update objects,
-// the runtime serializes state after every node so resume picks up exactly
-// where it left off. Human gate pauses; an external approval lets resume()
-// continue from the next node.
+// 与 code/main.py 对应：State (状态) 是 plain object (普通对象)，nodes (节点) 返回 Update (更新) 对象，
+// runtime (运行时) 在每个节点后序列化 state，以便 resume (恢复) 能精确地从断点继续。
+// Human gate (人工门控) 会暂停；外部审批让 resume() 从下一个节点继续。
 //
 // References:
 //   LangGraph (TS)         https://langchain-ai.github.io/langgraphjs/

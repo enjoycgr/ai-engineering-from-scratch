@@ -1,27 +1,25 @@
 /**
- * Shadow + canary + progressive rollout — TypeScript port + policy engine.
+ * Shadow + canary + progressive rollout — TypeScript 移植版 + policy engine。
  *
- * Three policies:
- *   1. Shadow mode: duplicates each request to candidate; logs the deltas;
- *      never returns candidate output to the user. Catches cost/length
- *      regressions before any user exposure.
- *   2. Canary rollout: progressive traffic shift through stages with five
- *      LLM-specific gates. Halts the moment any gate breaches.
- *   3. Progressive policy: combines shadow → canary → 100%, with a policy
- *      flag that supports seconds-not-hours rollback.
+ * 三种策略：
+ *   1. Shadow mode：将每个请求复制到候选模型；记录差异；
+ *      绝不将候选输出返回给用户。在用户暴露前捕获成本/长度回退。
+ *   2. Canary rollout：分阶段渐进式流量切换，带五个 LLM 专用 gates。
+ *      任一 gate 违规时立即停止。
+ *   3. Progressive policy：组合 shadow → canary → 100%，并带支持秒级回滚的 policy flag。
  *
- * Plus the same canary simulator main.py runs (six stages, five gates, six
- * regression scenarios) so the numbers reproduce.
+ * 外加与 main.py 相同的 canary 模拟器（六个阶段、五个 gates、六种回退场景），
+ * 以保持数字可复现。
  *
- * Citations:
- *   - Argo Rollouts (Kubernetes progressive delivery)
+ * 引用：
+ *   - Argo Rollouts（Kubernetes progressive delivery）
  *     https://argo-rollouts.readthedocs.io/
- *   - Flagger (progressive delivery operator)
+ *   - Flagger（progressive delivery operator）
  *     https://docs.flagger.app/
- *   - Non-determinism ~15% run-to-run cited in docs/en.md (GPU FP
- *     non-associativity + batch-size variance + sampling).
+ *   - docs/en.md 中引用的非确定性 ~15% 运行间差异（GPU FP
+ *     non-associativity + batch-size variance + sampling）。
  *
- * Runs on Node 20+ stdlib. No npm deps.
+ * 在 Node 20+ stdlib 上运行。无 npm 依赖。
  */
 
 // -- Baseline + gates ------------------------------------------------------
@@ -42,8 +40,8 @@ const BASELINE: Metrics = {
   thumbsDownRate: 0.03,
 };
 
-// Multipliers above baseline that constitute a breach. Set high enough to
-// stay above the LLM non-determinism noise floor (~15% per docs/en.md).
+// 高于基线即构成违规的乘数。设得足够高以
+// 保持在 LLM 非确定性噪声底 (~15%，见 docs/en.md) 之上。
 const GATES: Record<keyof Metrics, number> = {
   latencyP99Ms: 1.5,
   costPerReq: 1.2,
@@ -91,7 +89,7 @@ const NO_REGRESSION: Regression = {
 
 function measureStage(_stage: number, reg: Regression, seed: number): Metrics {
   const rng = makeRng(seed);
-  // Noise floor is the non-determinism docs/en.md describes: ~±8% per measurement.
+  // 噪声底即 docs/en.md 描述的非确定性：每次测量约 ±8%。
   const noise = (v: number): number => v * (0.92 + rng() * 0.16);
   return {
     latencyP99Ms: noise(BASELINE.latencyP99Ms * reg.latencyMult),
@@ -123,7 +121,7 @@ type ShadowReport = {
   n: number;
   meanCostDeltaPct: number;
   meanLatencyDeltaPct: number;
-  // True if shadow alone justifies halting before canary.
+  // 若 shadow 本身足以在 canary 前停止，则为 true。
   alert: boolean;
   reasons: string[];
 };
@@ -143,8 +141,7 @@ function shadowEvaluate(samples: ShadowSample[]): ShadowReport {
   let costN = 0;
   let latN = 0;
   for (const s of samples) {
-    // Skip rows with non-positive baselines so a single zero row cannot turn
-    // the average into Infinity/NaN and corrupt the gate decision.
+    // 跳过非正基线行，防止单行零值将均值变成 Infinity/NaN 并破坏 gate 决策。
     if (s.baselineCost > 0) {
       costDelta += (s.candidateCost - s.baselineCost) / s.baselineCost;
       costN++;
@@ -202,9 +199,8 @@ class PolicyEngine {
     this.rolloutPct = pct;
   }
 
-  // Constant-time rollback — what your runbook flips. Repins to the
-  // baseline captured at construction time (or the most recent rollback
-  // override).
+  // 常数时间回滚——runbook 中翻转的内容。恢复到构造时捕获的基线
+  // （或最近的回滚覆盖）。
   rollback(baselineDigest?: string): void {
     if (baselineDigest !== undefined) this.baselineDigest = baselineDigest;
     this.pinnedDigest = this.baselineDigest;

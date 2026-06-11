@@ -1,15 +1,15 @@
-"""Phase 13 Lesson 07 - toy MCP server over stdio, stdlib only.
+"""Phase 13 Lesson 07 - stdio 上的玩具 MCP 服务器，仅标准库。
 
-Implements the 2025-11-25 spec's core flow:
-  initialize, tools/list, tools/call, resources/list, resources/read,
-  prompts/list, prompts/get, plus notifications/initialized.
+实现 2025-11-25 规范的核心流程：
+  initialize、tools/list、tools/call、resources/list、resources/read、
+  prompts/list、prompts/get，加上 notifications/initialized。
 
-Not a production server - no auth, no Streamable HTTP (Phase 13 Lesson 09),
-no subscriptions. But the wire behavior is spec-shaped; any MCP client can
-handshake and call the three notes tools.
+不是生产服务器——无认证、无 Streamable HTTP（Phase 13 Lesson 09）、
+无订阅。但线路行为符合规范形状；任何 MCP 客户端都可以
+握手并调用三个笔记工具。
 
-Run the built-in demo harness:  python main.py --demo
-Or pipe JSON-RPC lines: echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | python main.py
+运行内置演示 harness：python main.py --demo
+或管道 JSON-RPC 行：echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | python main.py
 """
 
 from __future__ import annotations

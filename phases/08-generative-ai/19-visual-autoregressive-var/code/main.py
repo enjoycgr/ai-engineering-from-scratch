@@ -1,29 +1,21 @@
-"""Toy Visual Autoregressive (VAR) model: next-scale prediction over a pyramid.
+"""玩具视觉自回归 (VAR) 模型：在金字塔上进行下一尺度预测。
 
-A minimal numpy implementation of the VAR mechanism described in
-docs/en.md. Three pieces:
+docs/en.md 中描述的 VAR 机制的最小 numpy 实现。包含三个部分：
 
-1. A multi-scale residual VQ tokenizer over tiny 8x8 "images" (a small
-   library of patterns: solid, gradient, ring, checker, cross). Tokens at
-   scale k encode the residual left by scales 1..k-1. The decoder is the
-   sum of upsampled scale embeddings.
-2. A scale-conditioned next-scale predictor (a logistic / softmax mini-LM
-   over the small vocab). The "transformer" is approximated by per-scale
-   conditional histograms; the geometry the lesson teaches is the
-   scale-ordered conditioning and the parallel-within-scale prediction,
-   not deep attention.
-3. A generation loop that runs K transformer passes (one per scale) and
-   samples every position at the current scale in parallel from the
-   conditional. Decoded sums of scale embeddings reconstruct an image.
+1. 在微型 8×8 "图像"（一个小型图案库：纯色、渐变、环形、棋盘、十字）上的多尺度残差 VQ 分词器。
+   尺度 k 的 token 编码了尺度 1..k-1 遗留的残差。解码器是上采样尺度 embedding 的和。
+2. 尺度条件的下一尺度预测器（在小词表上的 logistic / softmax 迷你 LM）。
+   "transformer" 用每尺度条件直方图近似；本课教授的几何结构是尺度顺序条件和尺度内并行预测，
+   而不是深层注意力。
+3. 运行 K 次 transformer 传播（每尺度一次）的生成循环，并从条件中并行采样当前尺度的每个位置。
+   解码后的尺度 embedding 之和重构图像。
 
-The point is to exercise the scale-ordered training data, the parallel-
-within-scale sampling, and the residual-VQ reconstruction. A real VAR
-swaps the histogram for a transformer and the pattern library for an
-image dataset; the harness around them stays the same.
+重点是练习尺度顺序训练数据、尺度内并行采样和残差-VQ 重构。
+   真实 VAR 将直方图替换为 transformer，将图案库替换为图像数据集；围绕它们的 harness 保持不变。
 
-Stdlib + numpy only.
+仅使用 stdlib + numpy。
 
-Run:
+运行:
     python main.py
 """
 
@@ -38,7 +30,7 @@ CODEBOOK = 16
 
 
 def make_patterns(rng: np.random.Generator, n: int) -> np.ndarray:
-    """Return n grayscale 8x8 patterns drawn from a tiny library."""
+    """返回从微型库中抽取的 n 个灰度 8×8 图案。"""
     out = np.zeros((n, IMG, IMG), dtype=np.float32)
     yy, xx = np.mgrid[0:IMG, 0:IMG].astype(np.float32)
     for i in range(n):
@@ -62,7 +54,7 @@ def make_patterns(rng: np.random.Generator, n: int) -> np.ndarray:
 
 def fit_codebook(samples: np.ndarray, k: int, iters: int = 30,
                  seed: int = 0) -> np.ndarray:
-    """k-means on scalar samples; returns codebook of length k."""
+    """对标量样本进行 k-means；返回长度为 k 的码本。"""
     rng = np.random.default_rng(seed)
     flat = samples.reshape(-1)
     if flat.size < k:
@@ -80,13 +72,13 @@ def fit_codebook(samples: np.ndarray, k: int, iters: int = 30,
 
 
 def encode(values: np.ndarray, codebook: np.ndarray) -> np.ndarray:
-    """Snap each value to the nearest code; return integer tokens."""
+    """将每个值吸附到最近的码；返回整数 token。"""
     dists = (values[..., None] - codebook[None, None, :]) ** 2
     return dists.argmin(axis=-1).astype(np.int32)
 
 
 def downsample(img: np.ndarray, target: int) -> np.ndarray:
-    """Average-pool an HxW image down to target x target."""
+    """将 H×W 图像平均池化降采样到 target × target。"""
     h, w = img.shape
     if target == h:
         return img.copy()
@@ -95,7 +87,7 @@ def downsample(img: np.ndarray, target: int) -> np.ndarray:
 
 
 def upsample(grid: np.ndarray, target: int) -> np.ndarray:
-    """Nearest-neighbor upsample a HxW grid up to target x target."""
+    """最近邻上采样将 H×W 网格放大到 target × target。"""
     h, w = grid.shape
     if target == h:
         return grid.copy()
@@ -105,7 +97,7 @@ def upsample(grid: np.ndarray, target: int) -> np.ndarray:
 
 def tokenize_multiscale(img: np.ndarray, codebooks: list[np.ndarray]
                         ) -> list[np.ndarray]:
-    """Residual VQ: each scale tokenizes what previous scales missed."""
+    """残差 VQ：每个尺度对之前尺度遗漏的内容进行分词。"""
     residual = img.copy()
     tokens: list[np.ndarray] = []
     for scale, book in zip(SCALES, codebooks):
@@ -119,7 +111,7 @@ def tokenize_multiscale(img: np.ndarray, codebooks: list[np.ndarray]
 
 def detokenize_multiscale(tokens: list[np.ndarray],
                           codebooks: list[np.ndarray]) -> np.ndarray:
-    """Decoder: sum upsampled scale embeddings."""
+    """解码器：累加上采样尺度 embedding。"""
     out = np.zeros((IMG, IMG), dtype=np.float32)
     for tok, book, scale in zip(tokens, codebooks, SCALES):
         out = out + upsample(book[tok], IMG)
@@ -127,7 +119,7 @@ def detokenize_multiscale(tokens: list[np.ndarray],
 
 
 def train_codebooks(images: np.ndarray) -> list[np.ndarray]:
-    """Fit per-scale codebooks on residuals from a small image set."""
+    """在小图像集的残差上拟合每尺度码本。"""
     residuals = images.copy()
     books: list[np.ndarray] = []
     for scale in SCALES:
@@ -141,16 +133,16 @@ def train_codebooks(images: np.ndarray) -> list[np.ndarray]:
 
 
 def context_key(prev_tokens: list[np.ndarray]) -> tuple:
-    """Hashable summary of all previous scales' tokens."""
+    """所有之前尺度 token 的可哈希摘要。"""
     return tuple(int(t.mean() * 1000) for t in prev_tokens) if prev_tokens else ()
 
 
 def fit_predictor(token_streams: list[list[np.ndarray]]
                   ) -> list[dict[tuple, np.ndarray]]:
-    """One conditional histogram per scale, keyed on previous-scale summary.
+    """每尺度一个条件直方图，以之前尺度的摘要为键。
 
-    This stands in for a transformer: at training time, count which tokens
-    appear at scale k conditional on the coarsened summary of scales 1..k-1.
+    这充当 transformer 的替身：训练时，统计在尺度 1..k-1 的粗化摘要条件下，
+    哪些 token 出现在尺度 k。
     """
     predictors: list[dict[tuple, np.ndarray]] = [
         {} for _ in SCALES
@@ -175,7 +167,7 @@ def sample_categorical(probs: np.ndarray, rng: np.random.Generator) -> int:
 def generate(predictors: list[dict[tuple, np.ndarray]],
              codebooks: list[np.ndarray],
              rng: np.random.Generator) -> tuple[np.ndarray, list[np.ndarray]]:
-    """One VAR sample: K passes, parallel-within-scale, causal across scales."""
+    """一个 VAR 样本：K 次传播，尺度内并行，尺度间因果。"""
     drawn: list[np.ndarray] = []
     for k, scale in enumerate(SCALES):
         ctx = context_key(drawn[:k])
@@ -210,26 +202,26 @@ def main() -> None:
     train_token_streams = [tokenize_multiscale(img, codebooks) for img in train_imgs]
     predictors = fit_predictor(train_token_streams)
 
-    print(f"image size: {IMG}x{IMG}")
-    print(f"scales: {SCALES}")
-    print(f"codebook size per scale: {CODEBOOK}")
-    print(f"reconstruction MSE on train: {reconstruction_mse(train_imgs, codebooks):.5f}")
-    print(f"reconstruction MSE on val:   {reconstruction_mse(val_imgs, codebooks):.5f}")
+    print(f"图像尺寸: {IMG}x{IMG}")
+    print(f"尺度: {SCALES}")
+    print(f"每尺度码本大小: {CODEBOOK}")
+    print(f"训练集重建 MSE: {reconstruction_mse(train_imgs, codebooks):.5f}")
+    print(f"验证集重建 MSE:   {reconstruction_mse(val_imgs, codebooks):.5f}")
 
     print()
-    print("generation: 4 transformer passes, all positions parallel within a scale")
+    print("生成: 4 次 transformer 传播，尺度内所有位置并行")
     for trial in range(3):
         img, toks = generate(predictors, codebooks, rng)
         shapes = [t.shape for t in toks]
-        print(f"  trial {trial}: scales={shapes}  range=[{img.min():.2f}, {img.max():.2f}]")
+        print(f"  试验 {trial}: scales={shapes}  range=[{img.min():.2f}, {img.max():.2f}]")
 
     print()
-    print("scale-ordered attention check: every scale k only sees scales 1..k-1")
+    print("尺度顺序注意力检查: 每个尺度 k 只能看到尺度 1..k-1")
     for k, scale in enumerate(SCALES):
         n_pos = scale * scale
         prior_seen = sum(s * s for s in SCALES[:k])
-        print(f"  scale {k} (size {scale}x{scale}, {n_pos} tokens):"
-              f" attends to {prior_seen} prior tokens")
+        print(f"  尺度 {k} (尺寸 {scale}x{scale}, {n_pos} 个 token):"
+              f" 关注 {prior_seen} 个先前 token")
 
 
 if __name__ == "__main__":

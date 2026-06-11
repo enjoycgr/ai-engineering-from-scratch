@@ -1,8 +1,7 @@
-"""Document AI stack toy — LayoutLMv3-style inputs + Donut schema + token budgets.
+"""文档 AI 栈玩具 — LayoutLMv3 风格输入 + Donut schema + token 预算。
 
-Stdlib. Produces the three-stream LayoutLM input (text, bbox, patch-ids) for a
-toy page, generates a Donut-style JSON schema, and compares total input token
-counts across (OCR-pipeline, Donut, Nougat, VLM-native).
+Stdlib。为玩具页面产生三流 LayoutLM 输入（文本、bbox、patch-ids），
+生成 Donut 风格 JSON schema，并对比 (OCR-流水线、Donut、Nougat、VLM-native) 的总输入 token 数。
 """
 
 from __future__ import annotations

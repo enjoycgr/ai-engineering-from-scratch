@@ -4,55 +4,55 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "How does Anthropic distinguish a workflow from an agent?",
+      "question": "Anthropic 如何区分 workflow (工作流) 与 agent (智能体)？",
       "options": [
-        "Workflows use embeddings; agents use tools",
-        "Workflows are engineer-owned predefined graphs; agents are model-owned dynamic tool direction",
-        "Workflows run on CPUs; agents need GPUs",
-        "Workflows are stateless; agents are stateful"
+        "Workflows 使用 embeddings；agents 使用 tools",
+        "Workflows 是工程师拥有的预定义图；agents 是模型拥有的动态工具指挥",
+        "Workflows 在 CPU 上运行；agents 需要 GPU",
+        "Workflows 是无状态的；agents 是有状态的"
       ],
       "correct": 1,
-      "explanation": "Workflow = predefined code path the engineer owns; agent = the model owns the graph."
+      "explanation": "Workflow = 工程师拥有的预定义代码路径；agent = 模型拥有图。"
     },
     {
       "stage": "pre",
-      "question": "What are the three capabilities of the augmented LLM that underpins all five patterns?",
+      "question": "支撑全部五种模式的 augmented LLM (增强型大语言模型) 具备哪三种能力？",
       "options": [
-        "Search (retrieval), tools (actions), memory (persistence)",
+        "Search (检索), tools (动作), memory (持久化)",
         "Embeddings, fine-tuning, RAG",
         "Vector, KV, graph",
         "Plan, execute, reflect"
       ],
       "correct": 0,
-      "explanation": "The atomic unit is one LLM with retrieval, tools, and memory wired in."
+      "explanation": "原子单元是一个内置了 retrieval (检索)、tools 和 memory 的 LLM。"
     },
     {
       "stage": "check",
-      "question": "Which is NOT one of the five Anthropic workflow patterns?",
+      "question": "以下哪项 NOT 属于 Anthropic 的五种工作流模式之一？",
       "options": [
-        "Prompt chaining",
-        "Routing",
-        "Evaluator-optimizer",
-        "Gradient distillation"
+        "Prompt chaining (提示链)",
+        "Routing (路由)",
+        "Evaluator-optimizer (评估器-优化器)",
+        "Gradient distillation (梯度蒸馏)"
       ],
       "correct": 3,
-      "explanation": "The five are prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer. Gradient distillation is a training concept."
+      "explanation": "五种模式是 prompt chaining、routing、parallelization、orchestrator-workers、evaluator-optimizer。Gradient distillation 是训练概念。"
     },
     {
       "stage": "check",
-      "question": "Which two shapes does parallelization come in?",
+      "question": "Parallelization (并行化) 有两种形态，分别是？",
       "options": [
-        "Sync and async",
-        "Sectioning (different chunks) and voting (same prompt N times, aggregate)",
-        "Hot and cold",
-        "Stateful and stateless"
+        "Sync 和 async",
+        "Sectioning (不同 chunks) 和 voting (相同 prompt N 次，聚合)",
+        "Hot 和 cold",
+        "Stateful 和 stateless"
       ],
       "correct": 1,
-      "explanation": "Parallelization is sectioning or voting; both fan out N calls and aggregate."
+      "explanation": "Parallelization 分为 sectioning 或 voting；两者都扇出 N 次调用并聚合。"
     },
     {
       "stage": "check",
-      "question": "Which workflow pattern is Self-Refine generalized?",
+      "question": "哪种工作流模式是 Self-Refine 的泛化形式？",
       "options": [
         "Prompt chaining",
         "Routing",
@@ -60,31 +60,31 @@
         "Evaluator-optimizer"
       ],
       "correct": 3,
-      "explanation": "Evaluator-optimizer is the Anthropic name for the Self-Refine / CRITIC iterative pattern."
+      "explanation": "Evaluator-optimizer 是 Anthropic 对 Self-Refine / CRITIC 迭代模式的命名。"
     },
     {
       "stage": "post",
-      "question": "When do workflows beat agents according to the lesson?",
+      "question": "根据课程，工作流在哪些场景胜过智能体？",
       "options": [
-        "Always",
-        "On predictable, cost-bounded, or compliance-bounded tasks where the graph can be enumerated and audited",
-        "Only for chat",
-        "Only on GPUs"
+        "永远",
+        "在可预测、成本受限或合规受限的任务上，图可以被枚举和审计",
+        "仅用于聊天",
+        "仅在 GPU 上"
       ],
       "correct": 1,
-      "explanation": "Workflows are cheaper, easier to debug, and auditable; pick them when steps are knowable."
+      "explanation": "Workflows 更便宜、更容易调试、可审计；在步骤可预知时选择它们。"
     },
     {
       "stage": "post",
-      "question": "What is the lesson's recommended default starting point?",
+      "question": "课程推荐的默认起点是什么？",
       "options": [
-        "A multi-agent framework",
-        "Direct API calls; add frameworks only when durable state, actor concurrency, or role templating earns its cost",
-        "Fine-tune the model",
-        "Build a custom MCTS"
+        "一个多智能体框架",
+        "直接 API 调用；只有当 durable state、actor concurrency 或 role templating 能证明其代价时才添加框架",
+        "微调模型",
+        "构建自定义 MCTS"
       ],
       "correct": 1,
-      "explanation": "Schluntz and Zhang: start simple; add framework complexity only when justified."
+      "explanation": "Schluntz 和 Zhang：从简单开始；只在有正当理由时才添加框架复杂度。"
     }
   ]
 }

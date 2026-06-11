@@ -1,32 +1,32 @@
 ---
 name: parallel-inference-router
-description: Route a reasoning workload between voting, tree-of-thought, multi-agent, Hogwild!, and speculative decoding strategies.
+description: 在投票、tree-of-thought、multi-agent、Hogwild! 和 speculative decoding 策略之间路由推理工作负载。
 version: 1.0.0
 phase: 10
 lesson: 22
 tags: [parallel-inference, hogwild, speculative-decoding, tree-of-thought, multi-agent, reasoning]
 ---
 
-Given a reasoning workload profile (token budget per task, task parallelism characteristics, model family, deployment target, latency budget), recommend a parallel-inference strategy or combination.
+给定推理工作负载配置文件（每任务 token 预算、任务并行特性、模型家族、部署目标、延迟预算），推荐并行推理策略或组合。
 
-Produce:
+产出：
 
-1. Task classification. Long reasoning (5k+ tokens), medium chain-of-thought (1k-5k), short chat (under 1k), or classification. Drives the first-pass decision.
-2. Parallelism axis. Within-sequence (speculative decoding) vs across-sequence (voting, Hogwild!, multi-agent). Most workloads benefit from the within-sequence axis first.
-3. Strategy recommendation. Pick from: speculative decoding only (safe default for any workload above 100 tokens), speculative + Hogwild! (long reasoning with parallelizable structure), tree-of-thought (explicit branch-and-prune problems), multi-agent (role-specialization problems), voting ensemble (high-stakes classification).
-4. Parameter settings. For speculative decoding: draft family (EAGLE-3 default) and `N` (Phase 10 · 15 skill). For Hogwild!: worker count N (2 to 4, rarely more), coordination prompt template, single-node deployment confirmation.
-5. Combined speedup estimate. If combining speculative decoding with Hogwild!, report the multiplicative speedup (typical range: 3x spec * 1.5-2x Hogwild! = 4.5-6x).
+1. 任务分类。长推理（5k+ token）、中 chain-of-thought（1k-5k）、短聊天（1k 以下）或分类。驱动第一遍决策。
+2. 并行轴。序列内（speculative decoding）vs 跨序列（投票、Hogwild!、multi-agent）。大多数工作负载首先受益于序列内轴。
+3. 策略推荐。从以下选择：仅 speculative decoding（任何超过 100 token 的工作负载的安全默认）、speculative + Hogwild!（具有可并行结构的长推理）、tree-of-thought（显式分支-剪枝问题）、multi-agent（角色专业化问题）、投票集成（高风险分类）。
+4. 参数设置。对于 speculative decoding：draft 家族（EAGLE-3 默认）和 `N`（Phase 10 · 15 skill）。对于 Hogwild!：worker 数量 N（2 到 4，很少更多）、协调 prompt 模板、单节点部署确认。
+5. 组合加速估计。如果将 speculative decoding 与 Hogwild! 结合，报告乘法加速（典型范围：3x spec * 1.5-2x Hogwild! = 4.5-6x）。
 
-Hard rejects:
-- Hogwild! for any workload under 2000 tokens. Coordination overhead dominates.
-- Hogwild! on non-reasoning models (no emergent coordination).
-- Multi-agent framework for problems that do not have a natural role decomposition.
-- Tree-of-thought without explicit branch-and-prune logic (the strategy reduces to linear CoT otherwise).
-- Running Hogwild! across nodes (cross-node cache synchronization is too slow).
+硬性拒绝：
+- 任何 2000 token 以下的工作负载使用 Hogwild!。协调开销主导。
+- 非推理模型上的 Hogwild!（无涌现协调）。
+- 没有自然角色分解的问题使用 multi-agent 框架。
+- 没有显式分支-剪枝逻辑的 tree-of-thought（该策略否则退化为线性 CoT）。
+- 跨节点运行 Hogwild!（跨节点缓存同步太慢）。
 
-Refusal rules:
-- If the workload is experimental research, recommend Hogwild! as an experiment rather than a production bet. The speedups are task-dependent and real-world deployment is rare as of April 2026.
-- If the user asks for guaranteed speedup, refuse and explain that only speculative decoding has the strong-guarantee property (output distribution preserved). Hogwild! is empirical.
-- If the user has limited VRAM, refuse Hogwild! N>2 — each worker needs its own activation memory even though the cache is shared.
+拒绝规则：
+- 如果工作负载是实验性研究，推荐 Hogwild! 作为实验而非生产赌注。加速是任务依赖的，截至 2026 年 4 月实际部署很少。
+- 如果用户要求保证加速，拒绝并解释只有 speculative decoding 具有强保证特性（输出分布保留）。Hogwild! 是经验性的。
+- 如果用户 VRAM 有限，拒绝 Hogwild! N>2——每个 worker 需要自己的激活内存，即使缓存共享。
 
-Output: a one-page recommendation listing task classification, parallelism axis, strategy, parameters, and combined speedup estimate. End with a "rollback trigger" paragraph naming the specific latency or accuracy metric that would justify reverting to speculative decoding alone if Hogwild! does not pay off in the first 100 production requests.
+输出：一页推荐，列出任务分类、并行轴、策略、参数和组合加速估计。最后以"回退触发器"段落结束，命名如果 Hogwild! 在前 100 个生产请求中没有回报则证明回退到仅 speculative decoding 的特定延迟或精度指标。

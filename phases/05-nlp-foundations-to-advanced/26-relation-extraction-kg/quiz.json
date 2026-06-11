@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the atomic unit of a knowledge graph?",
+      "question": "知识图谱的原子单元是什么？",
       "options": [
         "A POS tag",
         "A (subject, relation, object) triple",
@@ -12,91 +12,91 @@
         "A sentence"
       ],
       "correct": 1,
-      "explanation": "KGs store information as (s, r, o) triples; aggregated triples form the graph."
+      "explanation": "KG 以 (s, r, o) 三元组存储信息；聚合的三元组形成图谱。"
     },
     {
       "stage": "pre",
-      "question": "What does AEVS stand for in 2026 relation extraction?",
+      "question": "在 2026 年的关系抽取中，AEVS 代表什么？",
       "options": [
-        "Anchor-Extraction-Verification-Supplement: anchor spans, extract triples, verify against source, supplement coverage",
+        "Anchor-Extraction-Verification-Supplement: 锚定跨度、抽取三元组、针对源文本验证、补充覆盖范围",
         "Auto-Encoder Vector Search",
         "Async Entity Validation Service",
         "Aggregated Entity-Value Schema"
       ],
       "correct": 0,
-      "explanation": "AEVS is the 2026 hallucination-mitigation framework for grounded RE."
+      "explanation": "AEVS 是 2026 年用于有根据关系抽取的幻觉缓解框架。"
     },
     {
       "stage": "check",
-      "question": "Why must each triple carry source provenance (doc id + span)?",
+      "question": "为什么每个三元组必须携带来源 provenance（文档 id + 跨度）？",
       "options": [
-        "Provenance lets you audit triples and reject hallucinations whose spans do not match the source text",
+        "Provenance 允许你审计三元组并拒绝那些跨度与源文本不匹配的幻觉",
         "It speeds up extraction",
         "Provenance changes the ontology",
         "Provenance is required by SPARQL"
       ],
       "correct": 0,
-      "explanation": "Provenance enables auditing and is the core of AEVS-style hallucination detection."
+      "explanation": "Provenance 支持审计，是 AEVS 风格幻觉检测的核心。"
     },
     {
       "stage": "check",
-      "question": "What does canonicalization of relations do?",
+      "question": "关系规范化 (canonicalization) 的作用是什么？",
       "options": [
-        "Maps surface verb phrases (e.g. 'was born in', 'is a native of') onto a fixed property id so the graph is queryable",
+        "将表面动词短语（例如 'was born in', 'is a native of'）映射到固定属性 id，使图谱可查询",
         "Removes triples",
         "Adds embeddings",
         "Translates the document"
       ],
       "correct": 0,
-      "explanation": "Canonicalization collapses paraphrases into canonical KG property ids."
+      "explanation": "Canonicalization 将释义 (paraphrases) 折叠为规范的 KG 属性 id。"
     },
     {
       "stage": "check",
-      "question": "Why does relation extraction usually need coreference resolution first?",
+      "question": "为什么关系抽取通常需要先进行共指消解 (coreference resolution)？",
       "options": [
-        "Pronouns like 'he founded Apple' must be resolved to a named entity before triple extraction",
+        "像 'he founded Apple' 这样的代词必须在三元组抽取前解析为命名实体",
         "Coref adds embeddings",
         "Coref provides positions",
         "Coref normalizes case"
       ],
       "correct": 0,
-      "explanation": "Without coref, RE attaches relations to pronouns instead of the underlying named entity."
+      "explanation": "没有 coref，RE 会将关系附加到代词而不是底层命名实体。"
     },
     {
       "stage": "post",
-      "question": "Which choice trades open IE recall for graph queryability?",
+      "question": "哪种选择用图谱可查询性换取开放 IE 的召回率？",
       "options": [
         "Skipping NER",
         "Random sampling of triples",
         "Embedding-only graphs",
-        "Mapping open-IE relations onto a closed ontology (e.g. Wikidata properties) before merging into the KG"
+        "在合并到 KG 之前将开放 IE 关系映射到封闭本体（例如 Wikidata 属性）"
       ],
       "correct": 3,
-      "explanation": "Closed ontologies make the graph queryable; the canonicalization step pays for itself downstream."
+      "explanation": "封闭本体使图谱可查询；规范化步骤在下游获得回报。"
     },
     {
       "stage": "post",
-      "question": "Why do many production KGs use temporal qualifiers (start/end time)?",
+      "question": "为什么许多生产知识图谱使用时序限定符 (temporal qualifiers)（开始/结束时间）？",
       "options": [
         "Faster SPARQL",
         "Required by RDF",
-        "Many relations are time-bounded (employer, spouse, role); qualifiers prevent 'forever true' claims that go stale",
+        "许多关系是时间受限的（雇主、配偶、职位）；限定符防止变成'永远为真'的陈旧声明",
         "To remove NIL entities"
       ],
       "correct": 2,
-      "explanation": "Time-bounded relations need qualifiers (e.g. Wikidata P580/P582) or facts go silently stale."
+      "explanation": "时间受限的关系需要限定符（例如 Wikidata P580/P582），否则事实会无声地过时。"
     },
     {
       "stage": "post",
-      "question": "What is REBEL?",
+      "question": "REBEL 是什么？",
       "options": [
         "A vector database",
-        "A seq2seq relation extractor that outputs triples already in Wikidata property ids",
+        "一个 seq2seq 关系抽取器，输出的三元组已经是 Wikidata 属性 id",
         "A tokenizer",
         "A coreference model"
       ],
       "correct": 1,
-      "explanation": "REBEL (Babelscape) is a seq2seq RE model trained on distantly supervised Wikidata triples."
+      "explanation": "REBEL (Babelscape) 是一个在远程监督 Wikidata 三元组上训练的 seq2seq RE 模型。"
     }
   ]
 }

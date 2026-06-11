@@ -2,6 +2,7 @@ from collections import Counter
 
 
 def char_ngrams(word, n_min=3, n_max=6):
+    """提取 FastText 风格的字符 n-gram，包含边界标记。"""
     wrapped = f"<{word}>"
     grams = {wrapped}
     for n in range(n_min, n_max + 1):
@@ -11,6 +12,7 @@ def char_ngrams(word, n_min=3, n_max=6):
 
 
 def learn_bpe(corpus, k_merges):
+    """在词频映射上学习 BPE 合并规则。"""
     vocab = {}
     for word, freq in corpus.items():
         tokens = tuple(word) + ("</w>",)
@@ -44,6 +46,7 @@ def learn_bpe(corpus, k_merges):
 
 
 def apply_bpe(word, merges):
+    """将学到的 BPE 合并规则应用到单个词上。"""
     tokens = list(word) + ["</w>"]
     for a, b in merges:
         new_tokens = []

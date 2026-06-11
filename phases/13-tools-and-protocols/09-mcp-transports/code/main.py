@@ -1,15 +1,15 @@
-"""Phase 13 Lesson 09 - Streamable HTTP MCP endpoint skeleton.
+"""Phase 13 Lesson 09 - Streamable HTTP MCP 端点骨架。
 
-Uses stdlib http.server to serve a single /mcp endpoint supporting:
-  - POST /mcp   (client request; JSON-RPC in, JSON or SSE out)
-  - GET  /mcp   (open server-to-client SSE stream)
-  - DELETE /mcp (explicit session termination)
+使用 stdlib http.server 服务单个 /mcp 端点，支持：
+  - POST /mcp   (客户端请求；JSON-RPC 入，JSON 或 SSE 出)
+  - GET  /mcp   (打开服务器到客户端的 SSE 流)
+  - DELETE /mcp (显式会话终止)
 
-Enforces Origin allowlist and assigns Mcp-Session-Id on first POST.
-Reuses the Lesson 07 dispatch shape for tool behavior.
+强制执行 Origin allowlist 并在首次 POST 时分配 Mcp-Session-Id。
+复用第 07 课的分发形状处理工具行为。
 
-Run: python code/main.py               # starts server on :8017
-      python code/main.py --probe       # run self-probe over TCP loopback
+运行：python code/main.py               # 在 :8017 启动服务器
+      python code/main.py --probe       # 通过 TCP 环回运行自探测
 """
 
 from __future__ import annotations
@@ -87,12 +87,12 @@ class Handler(BaseHTTPRequestHandler):
         return True
 
     def _resolve_session(self, msg: dict) -> str | None:
-        """Return the session id, or None if a 404 was already sent.
+        """返回会话 id，如果已发送 404 则返回 None。
 
-        Per the Streamable HTTP spec (2025-11-25), only the `initialize`
-        method may mint a session. Any other method arriving with an
-        unknown or missing `Mcp-Session-Id` MUST be rejected with 404
-        so the client knows to re-initialize.
+        根据 Streamable HTTP 规范（2025-11-25），只有 `initialize`
+        方法可以铸币会话。任何其他带有
+        未知或缺失 `Mcp-Session-Id` 的方法 MUST 以 404 拒绝
+        以便客户端知道重新初始化。
         """
         sid = self.headers.get("Mcp-Session-Id")
         if msg.get("method") == "initialize":

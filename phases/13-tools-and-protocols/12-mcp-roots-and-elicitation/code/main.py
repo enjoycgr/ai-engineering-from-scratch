@@ -1,13 +1,13 @@
-"""Phase 13 Lesson 12 - MCP roots and elicitation.
+"""Phase 13 Lesson 12 - MCP roots 和 elicitation。
 
-Demonstrates:
-  - client-declared roots enforced as server boundary
-  - elicitation/create for disambiguation when a tool has multiple matches
-  - URL-mode elicitation sketched for OAuth-style first-run (experimental)
+演示：
+  - 客户端声明的 roots 作为服务器边界强制执行
+  - 当工具有多个匹配时用于消歧的 elicitation/create
+  - 为 OAuth 风格首次运行草拟的 URL 模式 elicitation（实验性）
 
-Fake client stand-in for the user interaction; real SDKs ship a real dialog.
+模拟客户端作为用户交互的替身；真实 SDK 提供真实对话框。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

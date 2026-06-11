@@ -168,7 +168,7 @@ def relu_matrix(m):
 
 def demo_basic_operations():
     print("=" * 60)
-    print("BASIC MATRIX OPERATIONS")
+    print("基本矩阵运算")
     print("=" * 60)
 
     A = Matrix([[1, 2], [3, 4]])
@@ -185,13 +185,13 @@ def demo_basic_operations():
     print("\nA - B =")
     print(A - B)
 
-    print("\nA * 3 (scalar) =")
+    print("\nA * 3 (标量乘法) =")
     print(A.scalar_multiply(3))
 
-    print("\nA * B (element-wise) =")
+    print("\nA * B (element-wise，逐元素) =")
     print(A.element_wise_multiply(B))
 
-    print("\nA @ B (matrix multiply) =")
+    print("\nA @ B (matrix multiply，矩阵乘法) =")
     print(A @ B)
 
     print("\nA^T =")
@@ -200,7 +200,7 @@ def demo_basic_operations():
 
 def demo_determinant_inverse():
     print("\n" + "=" * 60)
-    print("DETERMINANT AND INVERSE")
+    print("行列式与逆矩阵")
     print("=" * 60)
 
     A = Matrix([[4, 7], [2, 6]])
@@ -212,17 +212,17 @@ def demo_determinant_inverse():
     print("\nA^-1 =")
     print(A_inv)
 
-    print("\nA @ A^-1 (should be identity) =")
+    print("\nA @ A^-1 (应为单位矩阵) =")
     print(A @ A_inv)
 
     I = Matrix.identity(3)
-    print("\nIdentity 3x3 =")
+    print("\n3x3 单位矩阵 =")
     print(I)
 
 
 def demo_broadcasting():
     print("\n" + "=" * 60)
-    print("BROADCASTING")
+    print("BROADCASTING (广播)")
     print("=" * 60)
 
     output = Matrix([[1, 2, 3], [4, 5, 6]])
@@ -232,13 +232,13 @@ def demo_broadcasting():
     print(output)
     print("\nBias =")
     print(bias)
-    print("\nOutput + Bias (broadcast) =")
+    print("\nOutput + Bias (broadcast，广播) =")
     print(output + bias)
 
 
 def demo_neural_network_layer():
     print("\n" + "=" * 60)
-    print("NEURAL NETWORK FORWARD PASS")
+    print("神经网络前向传播")
     print("=" * 60)
 
     random.seed(42)
@@ -253,29 +253,29 @@ def demo_neural_network_layer():
     W2 = Matrix.random(output_size, hidden_size)
     b2 = Matrix([[0.0]] * output_size)
 
-    print(f"\nInput x: {x.shape}")
+    print(f"\n输入 x: {x.shape}")
     print(f"W1: {W1.shape}")
     print(f"W2: {W2.shape}")
 
     z1 = (W1 @ x) + b1
     h1 = relu_matrix(z1)
-    print(f"\nHidden layer pre-activation z1: {z1.shape}")
+    print(f"\n隐藏层 pre-activation z1: {z1.shape}")
     print(z1)
-    print(f"\nHidden layer post-ReLU h1: {h1.shape}")
+    print(f"\n隐藏层 post-ReLU h1: {h1.shape}")
     print(h1)
 
     z2 = (W2 @ h1) + b2
-    print(f"\nOutput z2: {z2.shape}")
+    print(f"\n输出 z2: {z2.shape}")
     print(z2)
 
-    print("\nThis is a complete 2-layer neural network forward pass.")
-    print("Layer 1: (4x3) @ (3x1) + (4x1) -> (4x1) -> ReLU -> (4x1)")
-    print("Layer 2: (2x4) @ (4x1) + (2x1) -> (2x1)")
+    print("\n这是一个完整的 2 层神经网络 forward pass (前向传播)。")
+    print("第 1 层: (4x3) @ (3x1) + (4x1) -> (4x1) -> ReLU -> (4x1)")
+    print("第 2 层: (2x4) @ (4x1) + (2x1) -> (2x1)")
 
 
 def demo_vectors():
     print("\n" + "=" * 60)
-    print("VECTOR OPERATIONS")
+    print("向量运算")
     print("=" * 60)
 
     v = Vector([3, 4])
@@ -288,17 +288,17 @@ def demo_vectors():
     print(f"v * 2 = {v * 2}")
     print(f"v . w = {v.dot(w)}")
     print(f"|v| = {v.magnitude()}")
-    print(f"v normalized = {v.normalize()}")
+    print(f"v normalized (归一化) = {v.normalize()}")
     print(f"|v normalized| = {v.normalize().magnitude()}")
 
 
 def demo_weight_matrix_intuition():
     print("\n" + "=" * 60)
-    print("WEIGHT MATRIX INTUITION")
+    print("权重矩阵直觉")
     print("=" * 60)
 
-    print("\nA weight matrix transforms input features into output features.")
-    print("Each row extracts one pattern from the input.\n")
+    print("\n权重矩阵将输入特征变换为输出特征。")
+    print("每一行从输入中提取一个模式。\n")
 
     W = Matrix([
         [1.0, 0.0, 0.0],
@@ -307,16 +307,16 @@ def demo_weight_matrix_intuition():
     ])
     x = Matrix([[0.8], [0.6], [0.1]])
 
-    print("Weight matrix W (3 detectors, 3 inputs):")
+    print("权重矩阵 W (3 个探测器, 3 个输入):")
     print(W)
-    print("\nInput x:")
+    print("\n输入 x:")
     print(x)
     print("\nW @ x =")
     result = W @ x
     print(result)
-    print("\nRow 0 of W = [1, 0, 0]: copies input feature 0")
-    print("Row 1 of W = [0, 1, 0]: copies input feature 1")
-    print("Row 2 of W = [0.5, 0.5, 0]: averages features 0 and 1")
+    print("\nW 的第 0 行 = [1, 0, 0]: 复制输入特征 0")
+    print("W 的第 1 行 = [0, 1, 0]: 复制输入特征 1")
+    print("W 的第 2 行 = [0.5, 0.5, 0]: 对特征 0 和 1 取平均")
 
 
 if __name__ == "__main__":

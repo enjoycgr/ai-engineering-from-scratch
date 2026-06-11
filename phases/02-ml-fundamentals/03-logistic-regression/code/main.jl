@@ -1,6 +1,8 @@
-# Logistic regression in Julia. Sigmoid + binary cross-entropy gradient
-# descent for two classes, plus multi-class softmax regression. Reports
-# confusion-matrix metrics. Stdlib only. Sources:
+# Julia 中的 Logistic Regression (逻辑回归)。
+# 使用 Sigmoid + binary cross-entropy (二元交叉熵) 的 gradient descent (梯度下降)
+# 用于二分类，以及多分类的 softmax regression (softmax 回归)。
+# 报告 confusion-matrix (混淆矩阵) 指标。仅使用标准库。
+# 参考来源:
 #   https://docs.julialang.org/en/v1/manual/mathematical-operations/
 #   https://docs.julialang.org/en/v1/stdlib/Random/
 #   https://docs.julialang.org/en/v1/stdlib/Statistics/

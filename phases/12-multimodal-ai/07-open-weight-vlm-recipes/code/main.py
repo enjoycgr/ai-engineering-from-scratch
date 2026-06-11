@@ -1,13 +1,13 @@
-"""Open-weight VLM recipe picker — condensed ablation tables from 2024-2025 papers.
+"""开源权重 VLM 配方选择器 — 2024-2025 论文的浓缩 ablation table。
 
-Encodes the key findings from MM1, Idefics2, Cambrian-1, Molmo, Prismatic VLMs
-as simple data tables. Lets you ask:
-  - given a budget and task mix, which recipe wins
-  - if I swap axis X, what is the expected delta
-  - which axis to ablate first
+编码 MM1、Idefics2、Cambrian-1、Molmo、Prismatic VLMs 的关键发现
+为简单数据表。让你提问：
+  - 给定预算和任务混合，哪个配方获胜
+  - 如果我交换轴 X，预期差值是多少
+  - 哪个轴应该先 ablate
 
-No numpy, no pandas — just dicts and print tables. The point is the structure
-of the evidence, not the numeric precision.
+无 numpy，无 pandas——只有 dict 和 print table。
+重点是证据的结构，不是数字精度。
 """
 
 from __future__ import annotations

@@ -61,8 +61,8 @@ def rgb_to_hsv(rgb):
 
     h = np.zeros_like(cmax)
     mask = delta > 0
-    # argmax-based masks avoid float-equality edge cases where
-    # cmax == r/g/b would silently miss a pixel.
+    # 基于 argmax 的掩码避免了浮点相等性判断的边界情况，
+    # 即 cmax == r/g/b 时会静默遗漏像素。
     argmax = np.argmax(rgb_f, axis=-1)
     rmax = mask & (argmax == 0)
     gmax = mask & (argmax == 1)

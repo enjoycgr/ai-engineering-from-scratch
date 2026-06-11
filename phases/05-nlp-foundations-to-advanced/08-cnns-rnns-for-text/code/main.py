@@ -2,10 +2,12 @@ import math
 
 
 def vanishing_gradient_sim(seq_len, recurrent_weight=0.9):
+    """模拟普通 RNN 中的梯度衰减。"""
     return math.pow(recurrent_weight, seq_len)
 
 
 def conv1d_over_embeddings(embeddings, filter_matrix, bias=0.0):
+    """概念性 1D 卷积在词 embedding 上的实现。"""
     filter_width = len(filter_matrix)
     embed_dim = len(embeddings[0])
     out = []
@@ -19,6 +21,7 @@ def conv1d_over_embeddings(embeddings, filter_matrix, bias=0.0):
 
 
 def max_pool(values):
+    """全局最大池化。"""
     return max(values) if values else 0.0
 
 

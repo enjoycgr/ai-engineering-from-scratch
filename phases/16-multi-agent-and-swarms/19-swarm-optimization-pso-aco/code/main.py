@@ -1,8 +1,8 @@
-"""PSO for LLM parameter optimization and ACO for agent routing, stdlib only.
+"""PSO 用于 LLM 参数优化，ACO 用于 agent (智能体) 路由，仅使用标准库。
 
-PSO runs on a 2D parameter space (temperature, top_k_weight) with a scripted
-fitness proxy. AMRO-S simulates 3 agents handling 4 task types with a
-pheromone matrix that strengthens on quality, decays over time.
+PSO 在 2D 参数空间 (temperature, top_k_weight) 上运行，使用脚本化的
+fitness (适应度) 代理。AMRO-S 模拟 3 个 agent 处理 4 种任务类型，使用
+pheromone (信息素) 矩阵，该矩阵随质量增强、随时间衰减。
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ class Particle:
 
 
 def fitness(x: list[float]) -> float:
-    """Rastrigin-style fitness: narrow peak at (0.72, 0.40) with ripples.
+    """Rastrigin-style fitness (适应度): narrow peak at (0.72, 0.40) with ripples.
     Chosen to be harder than a plain bowl so PSO convergence is visible."""
     cx, cy = 0.72, 0.40
     dx, dy = x[0] - cx, x[1] - cy
@@ -125,12 +125,12 @@ def run_amro_s(n_tasks: int = 200, seed: int = 0) -> tuple[float, float, Pheromo
     for i in range(n_tasks):
         tt = task_types[i % len(task_types)]
 
-        # Random baseline
+        # Random baseline (随机基线)
         rand_agent = rng.choice(agents)
         rq = simulate_task(rand_agent, tt, rng)
         random_router_quality += rq
 
-        # ACO router
+        # ACO router (ACO 路由器)
         aco_agent = router.choose(tt, rng)
         aq = simulate_task(aco_agent, tt, rng)
         aco_quality += aq
@@ -168,10 +168,10 @@ def main() -> None:
     print("\n  final pheromone table (after 200 tasks):")
     print_pheromone_table(router)
 
-    print("\nTakeaways:")
-    print("  PSO converges to the fitness peak without gradients, using only fitness evals.")
-    print("  ACO pheromone trails surface interpretable evidence for who routes where.")
-    print("  quality-gated deposits (threshold=0.6) prevent fast-but-wrong agents from locking in.")
+    print("\n要点:")
+    print("  PSO 在没有梯度的情况下收敛到 fitness (适应度) 峰值，仅使用 fitness evals (评估)。")
+    print("  ACO pheromone (信息素) 轨迹为路由到何处提供了可解释的证据。")
+    print("  quality-gated deposits (质量门控沉积) (threshold=0.6) 防止 fast-but-wrong agent 锁定。")
 
 
 if __name__ == "__main__":

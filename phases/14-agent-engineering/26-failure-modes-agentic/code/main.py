@@ -1,8 +1,8 @@
 """Stdlib failure-mode tagger for agent traces.
 
-Detects the five industry-recurring modes: hallucinated actions, scope creep,
-cascading errors, context loss, tool misuse. Each detector returns a tag if
-the trace matches; aggregate distribution mirrors Phoenix's trace clustering.
+检测五种行业反复出现的模式：幻觉行为（hallucinated actions）、范围蔓延（scope creep）、
+级联错误（cascading errors）、上下文丢失（context loss）、工具误用（tool misuse）。
+每个检测器在轨迹匹配时返回一个标签；聚合分布复现 Phoenix 的轨迹聚类。
 """
 
 from __future__ import annotations

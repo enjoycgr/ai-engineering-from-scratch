@@ -3,15 +3,19 @@ import random
 
 
 def sigmoid(x):
+    # 将输入限制在 [-500, 500] 范围内，防止 math.exp 溢出
     x = max(-500.0, min(500.0, x))
     return 1.0 / (1.0 + math.exp(-x))
 
 
 class Layer:
+    """一个全连接层：保存 weight matrix（权重矩阵）和 bias vector（偏置向量），执行 forward pass（前向传播）。"""
+
     def __init__(self, n_inputs, n_neurons, weights=None, biases=None):
         if weights is not None:
             self.weights = weights
         else:
+            # 随机初始化 weight（权重），范围 [-1, 1]
             self.weights = [
                 [random.uniform(-1, 1) for _ in range(n_inputs)]
                 for _ in range(n_neurons)
@@ -19,31 +23,40 @@ class Layer:
         if biases is not None:
             self.biases = biases
         else:
+            # 默认 bias（偏置）初始化为 0
             self.biases = [0.0] * n_neurons
 
     def forward(self, inputs):
+        """执行 forward pass（前向传播）：线性变换 + sigmoid 激活。"""
         self.last_input = inputs
         self.last_output = []
         for neuron_idx in range(len(self.weights)):
+            # 计算该 neuron（神经元）的加权和
             z = sum(
                 w * x for w, x in zip(self.weights[neuron_idx], inputs)
             )
+            # 加上 bias（偏置）
             z += self.biases[neuron_idx]
+            # 应用 sigmoid activation function（激活函数）
             self.last_output.append(sigmoid(z))
         return self.last_output
 
 
 class Network:
+    """一个 multi-layer network（多层网络）：按顺序堆叠 Layer，链式执行 forward pass（前向传播）。"""
+
     def __init__(self, layers):
         self.layers = layers
 
     def forward(self, inputs):
+        """将输入逐层推送，完成整个 forward pass（前向传播）。"""
         current = inputs
         for layer in self.layers:
             current = layer.forward(current)
         return current
 
     def count_parameters(self):
+        """计算可训练 parameter（参数）的总数：所有 weight（权重）和 bias（偏置）之和。"""
         total = 0
         for layer in self.layers:
             for neuron_weights in layer.weights:
@@ -57,6 +70,7 @@ if __name__ == "__main__":
     print("DEMO 1: XOR with hand-tuned 2-2-1 network")
     print("=" * 60)
 
+    # 手工调优的 hidden layer（隐藏层）：第一个 neuron（神经元）近似 OR，第二个近似 NAND
     hidden = Layer(
         n_inputs=2,
         n_neurons=2,
@@ -64,6 +78,7 @@ if __name__ == "__main__":
         biases=[-10.0, 30.0],
     )
 
+    # output layer（输出层）：将 hidden layer（隐藏层）的特征组合成 AND，即 XOR
     output = Layer(
         n_inputs=2,
         n_neurons=1,
@@ -99,6 +114,7 @@ if __name__ == "__main__":
 
     random.seed(42)
 
+    # 生成圆形分类数据集：半径 0.5，圆心在原点
     data = []
     for _ in range(200):
         x = random.uniform(-1, 1)
@@ -132,6 +148,7 @@ if __name__ == "__main__":
     print("DEMO 3: Forward pass internals on XOR")
     print("=" * 60)
 
+    # 展示 XOR 的 forward pass（前向传播）内部细节：hidden layer（隐藏层）和 output layer（输出层）的输出
     for inputs, expected in xor_data:
         xor_net.forward(inputs)
         h = xor_net.layers[0].last_output

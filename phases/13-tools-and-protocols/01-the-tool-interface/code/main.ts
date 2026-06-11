@@ -1,15 +1,15 @@
-// Phase 13 Lesson 01 — the tool interface, in TypeScript.
+// Phase 13 Lesson 01 —— 工具接口，TypeScript 版本。
 //
-// Mirrors code/main.py: describe -> decide -> execute -> observe.
-// The "decide" step is faked with a keyword router so the loop runs offline;
-// replace with any real provider client and the shape stays the same.
+// 与 code/main.py 对应：describe -> decide -> execute -> observe。
+// "decide" 步骤用关键词路由器模拟，以便离线运行循环；
+// 替换为任何真实提供商客户端，形状保持不变。
 //
-// Spec references:
+// 规范参考：
 //   OpenAI tool calling     https://platform.openai.com/docs/guides/function-calling
 //   Anthropic tool use      https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 //   MCP tool primitive      https://modelcontextprotocol.io/specification/2025-11-25
 //
-// Run: npx tsx code/main.ts
+// 运行：npx tsx code/main.ts
 
 import { randomUUID } from "node:crypto";
 
@@ -157,8 +157,8 @@ function newCallId(): string {
   return `call_${randomUUID().replace(/-/g, "").slice(0, 8)}`;
 }
 
-// Stand-in for the model. Routes by keyword so the loop runs offline.
-// Production substitute: replace with a provider call returning the same shape.
+// 模型的替身。按关键词路由，以便离线运行循环。
+// 生产替代：替换为返回相同形状的提供商调用。
 function fakeDecide(userMsg: string, history: HistoryEntry[]): Decision {
   const last = history[history.length - 1];
   if (last && last.role === "tool") {

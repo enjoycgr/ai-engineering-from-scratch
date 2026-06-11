@@ -12,7 +12,7 @@
         "Frequent words carry the most meaning"
       ],
       "correct": 0,
-      "explanation": "Firth's (1957) distributional hypothesis: similar contexts imply similar meanings."
+      "explanation": "Firth (1957) 的 distributional hypothesis (分布假说)：相似的上下文意味着相似的含义。"
     },
     {
       "stage": "pre",
@@ -24,7 +24,7 @@
         "It causes vanishing gradients"
       ],
       "correct": 0,
-      "explanation": "Full-vocabulary softmax is too expensive; negative sampling reformulates it as binary classification."
+      "explanation": "对整个词汇表做 softmax 开销太大；negative sampling (负采样) 将其重构为二分类问题。"
     },
     {
       "stage": "check",
@@ -36,7 +36,7 @@
         "Skip-gram trains a deep network; CBOW is shallow"
       ],
       "correct": 1,
-      "explanation": "Skip-gram: center -> context. CBOW: context -> center."
+      "explanation": "Skip-gram：center -> context。CBOW：context -> center。"
     },
     {
       "stage": "check",
@@ -48,7 +48,7 @@
         "Decorrelate the vectors"
       ],
       "correct": 0,
-      "explanation": "Positive pairs train sigmoid near 1; sampled negatives train sigmoid near 0."
+      "explanation": "正样本对训练 sigmoid 接近 1；采样的负样本训练 sigmoid 接近 0。"
     },
     {
       "stage": "check",
@@ -60,7 +60,7 @@
         "The hidden-to-output W' matrix"
       ],
       "correct": 1,
-      "explanation": "The center-word table W is the standard embedding output; W' is often discarded or averaged in."
+      "explanation": "中心词表 W 是标准的 embedding 输出；W' 通常被丢弃或与 W 取平均。"
     },
     {
       "stage": "post",
@@ -72,7 +72,7 @@
         "It assigns one static vector per word, so 'river bank' and 'financial bank' share the same vector"
       ],
       "correct": 3,
-      "explanation": "Static embeddings cannot disambiguate senses; contextual embeddings (ELMo/BERT) fix this."
+      "explanation": "Static embedding (静态嵌入) 无法消歧不同含义；contextual embeddings (上下文嵌入)（ELMo/BERT）修复了这一点。"
     },
     {
       "stage": "post",
@@ -84,7 +84,7 @@
         "When dialog quality matters"
       ],
       "correct": 0,
-      "explanation": "Word2Vec wins on tiny latency budgets, on-device inference, or fast domain-specific training."
+      "explanation": "Word2Vec 在极低的延迟预算、设备端 inference (推理) 或快速领域特定训练上仍然胜出。"
     },
     {
       "stage": "post",
@@ -96,7 +96,7 @@
         "Cosine similarity is invariant to gender"
       ],
       "correct": 2,
-      "explanation": "Directions in embedding space encode relational features, so adding/subtracting moves systematically."
+      "explanation": "Embedding 空间中的方向编码了关系特征，因此加减操作可以系统性地移动。"
     }
   ]
 }

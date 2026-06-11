@@ -96,19 +96,19 @@ def main() -> None:
 
     print()
     print("=" * 80)
-    print("HEADLINE: same capability, three different classifications")
+    print("HEADLINE: 相同能力，三种不同分类")
     print("-" * 80)
-    print("  Long-range Autonomy:")
-    print("   - OpenAI: Research (not triggering)")
-    print("   - Anthropic: named risk (affirmative case)")
+    print("  长程自主性 (Long-range Autonomy)：")
+    print("   - OpenAI: Research (未触发)")
+    print("   - Anthropic: named risk (肯定案例)")
     print("   - DeepMind: domain-folded (CCL + Tracked Capability Level)")
     print()
-    print("  Undermining Safeguards:")
-    print("   - OpenAI: Research (not triggering)")
-    print("   - Anthropic: hardcoded prohibition (refusal)")
+    print("  破坏保障措施 (Undermining Safeguards)：")
+    print("   - OpenAI: Research (未触发)")
+    print("   - Anthropic: hardcoded prohibition (拒绝)")
     print("   - DeepMind: deceptive alignment monitoring")
     print()
-    print("  Reading the three together is the practical skill.")
+    print("  三者一起阅读才是实用技能。")
 
 
 if __name__ == "__main__":

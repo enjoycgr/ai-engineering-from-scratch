@@ -121,6 +121,7 @@ def main():
         switches = count_id_switches(tracks_per_frame, gt)
         print(f"{n_obj:>3d} objects:  active tracks={len(tracker.tracks):3d}  ID switches={switches}")
 
+    # 模拟帧丢失（ByteTrack 风格的鲁棒性测试）
     print("\nWith frame dropouts (drop_prob=0.2):")
     tracker = SimpleTracker(max_age=3)
     frames, gt = synthetic_frames(num_frames=25, num_objects=5, drop_prob=0.2)

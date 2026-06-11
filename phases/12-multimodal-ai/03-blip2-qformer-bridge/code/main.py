@@ -1,15 +1,14 @@
 """Q-Former cross-attention toy — stdlib Python.
 
-Builds a minimal BLIP-2-style modality bridge:
-  - 256 "patch tokens" from a fake ViT
-  - 32 learnable query vectors
-  - one cross-attention block (Q from queries, K/V from patches)
-  - linear projection to an LLM hidden dim
-  - prints attention weights so the reader can see which patch each query
-    pulled from
+构建一个最小 BLIP-2 风格模态桥：
+  - 来自 fake ViT 的 256 个 "patch token"
+  - 32 个可学习 query 向量
+  - 一个 cross-attention block（Q 来自 query，K/V 来自 patch）
+  - 到 LLM hidden dim 的线性投影
+  - 打印 attention weight，让读者能看到每个 query 从哪个 patch 拉取
 
-Pure Python vectors and lists. No numpy, no torch. The arithmetic is slow
-but exact; good for inspecting behaviour.
+纯 Python 向量和列表。无 numpy，无 torch。算术慢但精确；
+适合检查行为。
 """
 
 from __future__ import annotations

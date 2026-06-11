@@ -1,15 +1,18 @@
 class Perceptron:
     def __init__(self, n_inputs, learning_rate=0.1):
+        # weight (权重) 初始化为 0，bias (偏置) 初始化为 0
         self.weights = [0.0] * n_inputs
         self.bias = 0.0
         self.lr = learning_rate
 
     def predict(self, inputs):
+        # 计算 weighted sum (加权和) 并加上 bias，然后通过 step activation function (阶跃激活函数)
         total = sum(w * x for w, x in zip(self.weights, inputs))
         total += self.bias
         return 1 if total >= 0 else 0
 
     def train(self, training_data, epochs=100):
+        # 使用 perceptron learning rule (感知器学习规则) 训练
         for epoch in range(epochs):
             errors = 0
             for inputs, target in training_data:
@@ -17,6 +20,7 @@ class Perceptron:
                 error = target - prediction
                 if error != 0:
                     errors += 1
+                    # 更新 weight：w_i = w_i + learning_rate (学习率) * error * x_i
                     for i in range(len(self.weights)):
                         self.weights[i] += self.lr * error * inputs[i]
                     self.bias += self.lr * error
@@ -79,6 +83,7 @@ print()
 
 
 def xor_network(x1, x2):
+    # 手动设置 weight 和 bias，用 OR + NAND + AND 组成 multi-layer perceptron (多层感知器) 解决 XOR
     or_neuron = Perceptron(2)
     or_neuron.weights = [1.0, 1.0]
     or_neuron.bias = -0.5
@@ -108,8 +113,10 @@ class TwoLayerNetwork:
     def __init__(self, learning_rate=0.5):
         import random
         random.seed(0)
+        # hidden layer (隐藏层) 的 weight 和 bias
         self.w_hidden = [[random.uniform(-1, 1), random.uniform(-1, 1)] for _ in range(2)]
         self.b_hidden = [random.uniform(-1, 1), random.uniform(-1, 1)]
+        # output layer (输出层) 的 weight 和 bias
         self.w_output = [random.uniform(-1, 1), random.uniform(-1, 1)]
         self.b_output = random.uniform(-1, 1)
         self.lr = learning_rate
@@ -120,6 +127,7 @@ class TwoLayerNetwork:
         return 1.0 / (1.0 + math.exp(-x))
 
     def forward(self, inputs):
+        # forward pass (前向传播)：计算 hidden layer 和 output layer 的输出
         self.inputs = inputs
         self.hidden_outputs = []
         for i in range(2):
@@ -130,6 +138,7 @@ class TwoLayerNetwork:
         return self.output
 
     def train(self, training_data, epochs=10000):
+        # 使用 backpropagation (反向传播) 训练两层网络
         for epoch in range(epochs):
             total_error = 0
             for inputs, target in training_data:
@@ -137,19 +146,23 @@ class TwoLayerNetwork:
                 error = target - output
                 total_error += error ** 2
 
+                # 输出层梯度：sigmoid 导数 * error
                 d_output = error * output * (1 - output)
 
                 saved_w_output = self.w_output[:]
                 hidden_deltas = []
                 for i in range(2):
                     h = self.hidden_outputs[i]
+                    # 隐藏层梯度：链式法则
                     hd = d_output * saved_w_output[i] * h * (1 - h)
                     hidden_deltas.append(hd)
 
+                # 更新 output layer 的 weight 和 bias
                 for i in range(2):
                     self.w_output[i] += self.lr * d_output * self.hidden_outputs[i]
                 self.b_output += self.lr * d_output
 
+                # 更新 hidden layer 的 weight 和 bias
                 for i in range(2):
                     for j in range(len(inputs)):
                         self.w_hidden[i][j] += self.lr * hidden_deltas[i] * inputs[j]

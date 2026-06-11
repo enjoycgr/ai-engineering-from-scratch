@@ -1,7 +1,7 @@
-"""Thinker-Talker streaming pipeline — TTFAB calculator + VAD turn-taking.
+"""Thinker-Talker 流式流水线 — TTFAB 计算器 + VAD turn-taking。
 
-Stdlib. No audio processing; focus on the latency budget and concurrency of
-parallel streaming between Thinker (text) and Talker (speech).
+Stdlib。无音频处理；聚焦 Thinker（文本）和 Talker（语音）
+并行流式传输之间的延迟预算和并发。
 """
 
 from __future__ import annotations

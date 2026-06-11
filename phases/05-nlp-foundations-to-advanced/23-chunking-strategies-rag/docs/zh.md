@@ -1,0 +1,254 @@
+# RAG 分块策略
+
+> 分块配置对检索质量的影响不亚于 embedding (嵌入) 模型的选择（Vectara NAACL 2025）。分块做错了，再多的重排序也救不回来。
+
+**Type:** Build
+**Languages:** Python
+**Prerequisites:** Phase 5 · 14 (Information Retrieval), Phase 5 · 07 (POS & Parsing)
+**Time:** ~60 分钟
+
+## 问题所在
+
+你把一份 50 页的合同放进 RAG 系统。用户问："终止条款是什么？" 检索器返回了封面页。为什么？因为模型是在 512 token 的分块上训练的，而终止条款位于第 20 页，跨页断开，且没有局部关键词与查询关联。
+
+解决办法不是"买个更好的 embedding 模型"。解决办法是分块。多大？重叠多少？在哪里切分？是否带上下文？
+
+2026 年 2 月的基准测试显示了令人惊讶的结果：
+
+- Vectara 2026 年研究：递归 512 token 分块在准确率上以 69% 对 54% 击败了语义分块。
+- SPLADE + Mistral-8B 在 Natural Questions 上：重叠提供了零可测量收益。
+- 上下文悬崖：响应质量在约 2,500 token 上下文处急剧下降。
+
+"显而易见"的答案（语义分块、20% 重叠、1000 token）往往是错的。本课为六种策略建立直觉，并告诉你何时该用哪种。
+
+## 概念
+
+![六种分块策略在同一段文本上的可视化](../assets/chunking.svg)
+
+**固定分块（Fixed chunking）。** 每 N 个字符或 token 切分一次。最简单的基线。会打断句子。压缩率高，连贯性差。
+
+**递归分块（Recursive）。** LangChain 的 `RecursiveCharacterTextSplitter`。先尝试按 `\n\n` 切分，再按 `\n`，再按 `.`，再按空格。优雅降级。2026 年的默认选择。
+
+**语义分块（Semantic）。** 嵌入每个句子。计算相邻句子的余弦相似度。在相似度低于阈值处切分。保持主题连贯性。更慢；有时产生仅 40 token 的微小片段，损害检索。
+
+**句子分块（Sentence）。** 在句子边界处切分。每个 chunk 一个句子，或 N 个句子的窗口。在成本仅为语义分块一小部分的情况下，效果与语义分块相当（最多到 ~5k token）。
+
+**父文档分块（Parent-document）。** 存储小的子 chunk 用于检索，同时存储更大的父 chunk 用于上下文。通过子 chunk 检索；返回父 chunk。优雅降级：糟糕的子 chunk 仍能返回合理的父 chunk。
+
+**Late chunking（2024）。** 先在 token 级别嵌入整篇文档，然后将 token embedding 池化为 chunk embedding。保留跨 chunk 上下文。适用于长上下文嵌入器（BGE-M3、Jina v3）。计算量更高。
+
+**上下文检索（Contextual retrieval，Anthropic，2024）。** 在每个 chunk 前添加 LLM 生成的关于其在文档中位置的摘要（"本 chunk 位于终止条款的第 3.2 节……"）。在 Anthropic 自己的基准测试中，检索提升 35-50%。索引成本高昂。
+
+### 胜过所有默认设置的规则
+
+将 chunk 大小与查询类型匹配：
+
+| 查询类型 | Chunk 大小 |
+|------------|-----------|
+| 事实型（"CEO 的名字是什么？"） | 256-512 token |
+| 分析型 / 多跳 | 512-1024 token |
+| 整节理解 | 1024-2048 token |
+
+NVIDIA 2026 年基准测试。chunk 应足够大以包含答案及局部上下文，又足够小使得检索器的 top-K 返回聚焦于答案而非上下文噪声。
+
+## 动手实现
+
+### 第 1 步：固定分块与递归分块
+
+```python
+def chunk_fixed(text, size=512, overlap=0):
+    step = size - overlap
+    return [text[i:i + size] for i in range(0, len(text), step)]
+
+
+def chunk_recursive(text, size=512, seps=("\n\n", "\n", ". ", " ")):
+    if len(text) <= size:
+        return [text]
+    for sep in seps:
+        if sep not in text:
+            continue
+        parts = text.split(sep)
+        chunks = []
+        buf = ""
+        for p in parts:
+            if len(p) > size:
+                if buf:
+                    chunks.append(buf)
+                    buf = ""
+                chunks.extend(chunk_recursive(p, size=size, seps=seps[1:] or (" ",)))
+                continue
+            candidate = buf + sep + p if buf else p
+            if len(candidate) <= size:
+                buf = candidate
+            else:
+                if buf:
+                    chunks.append(buf)
+                buf = p
+        if buf:
+            chunks.append(buf)
+        return [c for c in chunks if c.strip()]
+    return chunk_fixed(text, size)
+```
+
+### 第 2 步：语义分块
+
+```python
+def chunk_semantic(text, encoder, threshold=0.6, min_chars=200, max_chars=2048):
+    sentences = split_sentences(text)
+    if not sentences:
+        return []
+    embs = encoder.encode(sentences, normalize_embeddings=True)
+    chunks = [[sentences[0]]]
+    for i in range(1, len(sentences)):
+        sim = float(embs[i] @ embs[i - 1])
+        current_len = sum(len(s) for s in chunks[-1])
+        if sim < threshold and current_len >= min_chars:
+            chunks.append([sentences[i]])
+        else:
+            chunks[-1].append(sentences[i])
+
+    result = []
+    for group in chunks:
+        text_group = " ".join(group)
+        if len(text_group) > max_chars:
+            result.extend(chunk_recursive(text_group, size=max_chars))
+        else:
+            result.append(text_group)
+    return result
+```
+
+根据你的领域调整 `threshold`。太高 → 碎片。太低 → 一个巨大 chunk。
+
+### 第 3 步：父文档分块
+
+```python
+def chunk_parent_child(text, parent_size=2048, child_size=256):
+    parents = chunk_recursive(text, size=parent_size)
+    mapping = []
+    for p_idx, parent in enumerate(parents):
+        children = chunk_recursive(parent, size=child_size)
+        for child in children:
+            mapping.append({"child": child, "parent_idx": p_idx, "parent": parent})
+    return mapping
+
+
+def retrieve_parent(child_query, mapping, encoder, top_k=3):
+    child_embs = encoder.encode([m["child"] for m in mapping], normalize_embeddings=True)
+    q_emb = encoder.encode([child_query], normalize_embeddings=True)[0]
+    scores = child_embs @ q_emb
+    top = np.argsort(-scores)[:top_k]
+    seen, parents = set(), []
+    for i in top:
+        if mapping[i]["parent_idx"] not in seen:
+            parents.append(mapping[i]["parent"])
+            seen.add(mapping[i]["parent_idx"])
+    return parents
+```
+
+关键洞察：对父文档去重。多个子 chunk 可能映射到同一个父 chunk；返回全部会浪费上下文。
+
+### 第 4 步：上下文检索（Anthropic 模式）
+
+```python
+def contextualize_chunks(document, chunks, llm):
+    context_prompts = [
+        f"""<document>{document}</document>
+Here is the chunk to situate: <chunk>{c}</chunk>
+Write 50-100 words placing this chunk in the document's context."""
+        for c in chunks
+    ]
+    contexts = llm.batch(context_prompts)
+    return [f"{ctx}\n\n{c}" for ctx, c in zip(contexts, chunks)]
+```
+
+索引经过上下文增强的 chunk。在查询时，检索受益于额外的周围信号。
+
+### 第 5 步：评估
+
+```python
+def recall_at_k(queries, corpus_chunks, encoder, k=5):
+    chunk_embs = encoder.encode(corpus_chunks, normalize_embeddings=True)
+    hits = 0
+    for q_text, gold_idxs in queries:
+        q_emb = encoder.encode([q_text], normalize_embeddings=True)[0]
+        top = np.argsort(-(chunk_embs @ q_emb))[:k]
+        if any(i in gold_idxs for i in top):
+            hits += 1
+    return hits / len(queries)
+```
+
+始终进行基准测试。对你的语料库来说，"最佳"策略可能与任何博客文章都不匹配。
+
+## 常见陷阱
+
+- **仅在事实型查询上评估分块。** 多跳查询会揭示完全不同的优胜者。使用按查询类型分层的评估集。
+- **语义分块不设最小尺寸。** 产生 40 token 的片段损害检索。始终强制执行 `min_tokens`。
+- **重叠作为 Cargo Cult。** 2026 年研究发现重叠通常提供零收益，并使索引成本翻倍。测量，不要假设。
+- **无最小/最大限制。** 5 token 或 5000 token 的 chunk 都会破坏检索。进行钳制（clamp）。
+- **跨文档分块。** 绝不允许一个 chunk 跨越两个文档。始终按文档分块，然后合并。
+
+## 如何使用
+
+2026 年技术栈：
+
+| 场景 | 策略 |
+|-----------|----------|
+| 首次构建，未知语料 | 递归，512 token，无重叠 |
+| 事实型问答 | 递归，256-512 token |
+| 分析型 / 多跳 | 递归，512-1024 token + 父文档 |
+| 大量交叉引用（合同、论文） | Late chunking 或上下文检索 |
+| 对话型 / 对话语料 | 回合级 chunk + 说话人元数据 |
+| 短文本（推文、评论） | 一篇文档 = 一个 chunk |
+
+从递归 512 开始。在 50 查询评估集上测量 recall@5。从那里调优。
+
+## 交付
+
+保存为 `outputs/skill-chunker.md`：
+
+```markdown
+---
+name: chunker
+description: 为给定语料库和查询分布选择分块策略、大小和重叠。
+version: 1.0.0
+phase: 5
+lesson: 23
+tags: [nlp, rag, chunking]
+---
+
+给定语料库（文档类型、平均长度、领域）和查询分布（事实型 / 分析型 / 多跳），输出：
+
+1. 策略。递归 / 句子 / 语义 / 父文档 / late / 上下文。理由。
+2. Chunk 大小。Token 数量。与查询类型关联的理由。
+3. 重叠。默认 0；如 >0 需说明理由。
+4. 最小/最大限制。`min_tokens`、`max_tokens` 保护。
+5. 评估计划。在 50 查询分层评估集（事实型、分析型、多跳）上测试 recall@5。
+
+拒绝任何没有最小/最大 chunk 大小强制执行的分块策略。拒绝没有消融实验证明有帮助的 >20% 重叠。标记没有最小 token 下限的语义分块推荐。
+```
+
+## 练习
+
+1. **简单。** 用 fixed(512, 0)、recursive(512, 0) 和 recursive(512, 100) 对一篇 20 页文档进行分块。比较 chunk 数量和边界质量。
+2. **中等。** 在 5 篇文档上构建 30 查询评估集。测量递归、语义和父文档的 recall@5。哪个获胜？是否与博客文章一致？
+3. **困难。** 实现上下文检索。测量相比基线递归的 MRR 提升。报告索引成本（LLM 调用）与准确率增益。
+
+## 关键术语
+
+| 术语 | 人们怎么说 | 实际含义 |
+|------|-----------------|-----------------------|
+| Chunk | 文档的一块 | 被嵌入、索引和检索的子文档单元。 |
+| Overlap | 安全余量 | 相邻 chunk 共享的 N 个 token；在 2026 年基准测试中通常无用。 |
+| Semantic chunking | 智能分块 | 在相邻句子 embedding (嵌入) 相似度下降处切分。 |
+| Parent-document | 两级检索 | 检索小的子 chunk，返回更大的父 chunk。 |
+| Late chunking | 嵌入后分块 | 先在 token 级别嵌入整篇文档，再池化为 chunk 向量。 |
+| Contextual retrieval | Anthropic 的技巧 | 在索引前为每个 chunk 前置 LLM 生成的摘要。 |
+| Context cliff | 2500 token 墙 | 2026 年 1 月在 RAG 中观察到的约 2.5k 上下文 token 处的质量下降。 |
+
+## 延伸阅读
+
+- [Yepes et al. / LangChain — Recursive Character Splitting docs](https://python.langchain.com/docs/how_to/recursive_text_splitter/) — 生产中的默认选择。
+- [Vectara (2024, NAACL 2025). Chunking configurations analysis](https://arxiv.org/abs/2410.13070) — 分块的重要性不亚于 embedding 选择。
+- [Jina AI — Late Chunking in Long-Context Embedding Models (2024)](https://jina.ai/news/late-chunking-in-long-context-embedding-models/) — late chunking 论文。
+- [Anthropic — Contextual Retrieval](https://www.anthropic.com/news/contextual-retrieval) — 使用 LLM 生成的上下文前缀，检索提升 35-50%。
+- [NVIDIA 2026 chunk-size benchmark — Premai summary](https://blog.premai.io/rag-chunking-strategies-the-2026-benchmark-guide/) — 按查询类型选择 chunk 大小。

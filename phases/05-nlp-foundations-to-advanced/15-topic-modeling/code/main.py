@@ -6,11 +6,27 @@ SHORT_ALLOWLIST = {"ai", "ml", "nn", "s", "p", "pr"}
 
 
 def tokenize(text):
+    """将原始文本拆分为小写词元，过滤过短的词（保留允许列表中的缩写）。"""
     tokens = re.findall(r"[a-z0-9]+", text.lower())
     return [t for t in tokens if len(t) > 2 or t.isdigit() or t in SHORT_ALLOWLIST]
 
 
 def collapsed_gibbs_lda(docs, n_topics, n_iters=200, alpha=0.1, beta=0.01, seed=0):
+    """
+    使用折叠吉布斯采样（collapsed Gibbs sampling）的 LDA。
+
+    参数:
+        docs: 词元列表的列表（每个文档已分词）。
+        n_topics: 主题数量 K。
+        n_iters: 吉布斯采样迭代次数。
+        alpha: 文档-主题狄利克雷超参数（Dirichlet hyperparameter）。
+        beta: 主题-词狄利克雷超参数。
+        seed: 随机数种子，保证结果可复现。
+
+    返回:
+        topics: 每个主题的前 8 个词（字符串列表的列表）。
+        doc_topic: 每篇文档的主题混合分布（概率列表的列表）。
+    """
     if not isinstance(n_topics, int) or n_topics <= 0:
         raise ValueError(f"n_topics must be a positive int, got {n_topics!r}")
     if alpha <= 0 or beta <= 0:
@@ -30,11 +46,13 @@ def collapsed_gibbs_lda(docs, n_topics, n_iters=200, alpha=0.1, beta=0.01, seed=
         raise ValueError("docs produced an empty vocabulary (no tokens found)")
     indexed = [[vocab[w] for w in doc] for doc in docs]
 
+    # 随机初始化主题分配
     z = [[rng.randint(0, n_topics - 1) for _ in doc] for doc in indexed]
 
-    ndt = [[0] * n_topics for _ in range(D)]
-    ntw = [[0] * V for _ in range(n_topics)]
-    nt = [0] * n_topics
+    # 计数矩阵
+    ndt = [[0] * n_topics for _ in range(D)]   # 文档-主题计数
+    ntw = [[0] * V for _ in range(n_topics)]   # 主题-词计数
+    nt = [0] * n_topics                         # 每个主题的总词数
 
     for d in range(D):
         for i, w in enumerate(indexed[d]):
@@ -43,14 +61,17 @@ def collapsed_gibbs_lda(docs, n_topics, n_iters=200, alpha=0.1, beta=0.01, seed=
             ntw[t][w] += 1
             nt[t] += 1
 
+    # 折叠吉布斯采样
     for _ in range(n_iters):
         for d in range(D):
             for i, w in enumerate(indexed[d]):
                 t = z[d][i]
+                # 从计数中移除当前词
                 ndt[d][t] -= 1
                 ntw[t][w] -= 1
                 nt[t] -= 1
 
+                # 为当前词采样新主题
                 probs = []
                 for k in range(n_topics):
                     p = (ndt[d][k] + alpha) * (ntw[k][w] + beta) / (nt[k] + V * beta)
@@ -70,6 +91,7 @@ def collapsed_gibbs_lda(docs, n_topics, n_iters=200, alpha=0.1, beta=0.01, seed=
                 ntw[new_t][w] += 1
                 nt[new_t] += 1
 
+    # 构建输出
     inv_vocab = {i: w for w, i in vocab.items()}
     topics = []
     for k in range(n_topics):

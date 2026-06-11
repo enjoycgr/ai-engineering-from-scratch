@@ -2,6 +2,7 @@ import numpy as np
 
 
 def float_to_fp32_bits(value):
+    """将 FP32 浮点数分解为 sign、exponent、mantissa 位。"""
     bits = np.float32(value).view(np.uint32)
     sign = (bits >> 31) & 1
     exponent = (bits >> 23) & 0xFF
@@ -14,6 +15,7 @@ def float_to_fp32_bits(value):
 
 
 def float_to_fp16_bits(value):
+    """将 FP16 浮点数分解为 sign、exponent、mantissa 位。"""
     fp16 = np.float16(value)
     bits = fp16.view(np.uint16)
     sign = (bits >> 15) & 1
@@ -27,6 +29,7 @@ def float_to_fp16_bits(value):
 
 
 def float_to_bf16_bits(value):
+    """将 BF16 浮点数分解为 sign、exponent、mantissa 位。"""
     fp32_bits = np.float32(value).view(np.uint32)
     bf16_bits = (fp32_bits >> 16).astype(np.uint16)
     sign = (bf16_bits >> 15) & 1
@@ -41,6 +44,7 @@ def float_to_bf16_bits(value):
 
 
 def simulate_fp8_e4m3(value):
+    """模拟 FP8 E4M3 格式：4 位 exponent，3 位 mantissa。"""
     sign = 1 if value < 0 else 0
     abs_val = abs(value)
     max_val = 448.0
@@ -65,6 +69,7 @@ def simulate_fp8_e4m3(value):
 
 
 def display_format_comparison(value):
+    """对比 FP32、FP16、BF16、FP8 对同一数值的表示精度。"""
     fp32 = float_to_fp32_bits(value)
     fp16 = float_to_fp16_bits(value)
     bf16 = float_to_bf16_bits(value)
@@ -80,6 +85,7 @@ def display_format_comparison(value):
 
 
 def quantize_symmetric(tensor, num_bits=8):
+    """对称 per-tensor 量化：根据绝对最大值计算 scale，round + clip 到对称整数范围。"""
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1
     abs_max = np.max(np.abs(tensor))
@@ -91,10 +97,12 @@ def quantize_symmetric(tensor, num_bits=8):
 
 
 def dequantize_symmetric(quantized, scale):
+    """对称量化反量化：整数 × scale 恢复浮点。"""
     return quantized.astype(np.float64) * scale
 
 
 def quantize_per_channel(tensor, num_bits=8, axis=0):
+    """对称 per-channel 量化：每个输出通道使用独立的 scale。"""
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1
 
@@ -110,6 +118,7 @@ def quantize_per_channel(tensor, num_bits=8, axis=0):
 
 
 def dequantize_per_channel(quantized, scales, axis=0):
+    """Per-channel 反量化：按通道 reshape scale 后相乘。"""
     if axis == 0:
         return quantized.astype(np.float64) * scales.reshape(-1, 1)
     else:
@@ -117,6 +126,7 @@ def dequantize_per_channel(quantized, scales, axis=0):
 
 
 def quantize_asymmetric(tensor, num_bits=8):
+    """非对称量化：使用 zero-point 处理不以零为中心的分布。"""
     qmin = 0
     qmax = 2 ** num_bits - 1
     t_min = np.min(tensor)
@@ -131,10 +141,12 @@ def quantize_asymmetric(tensor, num_bits=8):
 
 
 def dequantize_asymmetric(quantized, scale, zero_point):
+    """非对称反量化：(整数 − zero_point) × scale。"""
     return (quantized.astype(np.float64) - zero_point) * scale
 
 
 def quantization_error(original, reconstructed):
+    """计算量化误差：MSE、RMSE、最大误差、SNR、余弦相似度。"""
     diff = original - reconstructed
     mse = float(np.mean(diff ** 2))
     rmse = float(np.sqrt(mse))
@@ -156,6 +168,7 @@ def quantization_error(original, reconstructed):
 
 
 def compare_quantization_methods(tensor, num_bits=8):
+    """对比 per-tensor、per-channel、非对称三种量化方法的误差指标。"""
     q_pt, s_pt = quantize_symmetric(tensor, num_bits)
     recon_pt = dequantize_symmetric(q_pt, s_pt)
     err_pt = quantization_error(tensor, recon_pt)
@@ -179,6 +192,7 @@ def compare_quantization_methods(tensor, num_bits=8):
 
 
 def bit_width_sweep(tensor):
+    """对同一 tensor 在 2/3/4/8/16 bit 下量化，展示 quality cliff 位置。"""
     print(f"\n  Bit-Width Sweep (tensor shape {tensor.shape}):")
     print(f"  {'Bits':>6} {'Levels':>8} {'MSE':>14} {'SNR (dB)':>10} {'Cosine Sim':>12} {'Compression':>12}")
     print(f"  {'-'*64}")
@@ -198,6 +212,7 @@ def bit_width_sweep(tensor):
 
 
 def simulate_transformer_layer(input_data, weights, kv_scale=1.0):
+    """模拟单层 transformer 的前向传播，用于敏感度实验。"""
     hidden = input_data @ weights["qkv"]
     seq_len = hidden.shape[1]
     d_model = weights["qkv"].shape[1] // 3
@@ -215,6 +230,7 @@ def simulate_transformer_layer(input_data, weights, kv_scale=1.0):
 
 
 def sensitivity_experiment(batch_size=2, seq_len=16, d_model=64, num_bits=8):
+    """敏感度实验：分别量化 weights、activations、KV cache、attention logits，测量输出误差。"""
     np.random.seed(42)
     input_data = np.random.randn(batch_size, seq_len, d_model) * 0.1
 
@@ -227,6 +243,7 @@ def sensitivity_experiment(batch_size=2, seq_len=16, d_model=64, num_bits=8):
 
     experiments = {}
 
+    # 仅量化权重
     q_qkv, s_qkv = quantize_per_channel(weights["qkv"], num_bits, axis=0)
     q_out, s_out = quantize_per_channel(weights["out"], num_bits, axis=0)
     quantized_weights = {
@@ -236,6 +253,7 @@ def sensitivity_experiment(batch_size=2, seq_len=16, d_model=64, num_bits=8):
     weight_quant_output, _ = simulate_transformer_layer(input_data, quantized_weights)
     experiments["Weights only"] = quantization_error(baseline_output, weight_quant_output)
 
+    # 仅量化 activations
     _, fresh_internals = simulate_transformer_layer(input_data, weights)
     q_act, s_act = quantize_per_channel(
         fresh_internals["attn_output"].reshape(-1, d_model), num_bits, axis=0
@@ -244,6 +262,7 @@ def sensitivity_experiment(batch_size=2, seq_len=16, d_model=64, num_bits=8):
     act_quant_output = quant_attn_out @ weights["out"]
     experiments["Activations only"] = quantization_error(baseline_output, act_quant_output)
 
+    # 仅量化 KV cache
     q_k, s_k = quantize_per_channel(fresh_internals["k"].reshape(-1, d_model), num_bits, axis=0)
     q_v, s_v = quantize_per_channel(fresh_internals["v"].reshape(-1, d_model), num_bits, axis=0)
     quant_k = dequantize_per_channel(q_k, s_k, axis=0).reshape(batch_size, seq_len, d_model)
@@ -255,6 +274,7 @@ def sensitivity_experiment(batch_size=2, seq_len=16, d_model=64, num_bits=8):
     kv_quant_output = (attn_weights_kv @ quant_v) @ weights["out"]
     experiments["KV cache only"] = quantization_error(baseline_output, kv_quant_output)
 
+    # Attention logits 加 5% 噪声（模拟量化误差）
     noise_scale = np.std(fresh_internals["attn_scores"]) * 0.05
     noisy_scores = fresh_internals["attn_scores"] + np.random.randn(*fresh_internals["attn_scores"].shape) * noise_scale
     noisy_max = np.max(noisy_scores, axis=-1, keepdims=True)
@@ -273,6 +293,7 @@ def sensitivity_experiment(batch_size=2, seq_len=16, d_model=64, num_bits=8):
 
 
 def simulated_gptq(weight_matrix, calibration_inputs, num_bits=4):
+    """简化版 GPTQ：逐列量化，利用 Hessian 信息补偿误差到后续列。"""
     n_in, n_out = weight_matrix.shape
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1
@@ -321,6 +342,7 @@ def simulated_gptq(weight_matrix, calibration_inputs, num_bits=4):
 
 
 def dequantize_gptq(quantized, scales):
+    """GPTQ 反量化：逐列乘以 scale。"""
     result = np.zeros_like(quantized, dtype=np.float64)
     for col in range(quantized.shape[1]):
         result[:, col] = quantized[:, col] * scales[col]
@@ -328,6 +350,7 @@ def dequantize_gptq(quantized, scales):
 
 
 def simulated_awq(weight_matrix, calibration_inputs, num_bits=4, salient_fraction=0.01):
+    """简化版 AWQ：识别与大幅 activation 相乘的 salient weights，放大后再量化。"""
     n_in, n_out = weight_matrix.shape
     qmin = -(2 ** (num_bits - 1))
     qmax = 2 ** (num_bits - 1) - 1
@@ -365,6 +388,7 @@ def simulated_awq(weight_matrix, calibration_inputs, num_bits=4, salient_fractio
 
 
 def full_quantization_comparison(d_in=256, d_out=512, num_bits=4, n_calibration=32):
+    """全面对比：naive、per-channel、GPTQ、AWQ 在同一权重矩阵上的效果。"""
     np.random.seed(42)
 
     weight = np.random.randn(d_in, d_out) * 0.02
@@ -417,6 +441,7 @@ def full_quantization_comparison(d_in=256, d_out=512, num_bits=4, n_calibration=
 
 
 def memory_calculator(num_params_billions, bits_per_param):
+    """根据参数量和每参数位数计算显存占用（GB）。"""
     bytes_per_param = bits_per_param / 8
     total_bytes = num_params_billions * 1e9 * bytes_per_param
     total_gb = total_bytes / (1024 ** 3)
@@ -424,6 +449,7 @@ def memory_calculator(num_params_billions, bits_per_param):
 
 
 def print_memory_table():
+    """打印不同模型在不同精度下的显存需求表。"""
     print("\n  Memory Requirements by Model and Precision:")
     print(f"  {'Model':<15} {'FP32':>8} {'FP16':>8} {'FP8':>8} {'INT8':>8} {'INT4':>8} {'INT2':>8}")
     print(f"  {'-'*64}")

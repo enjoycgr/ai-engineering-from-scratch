@@ -1,13 +1,13 @@
-"""Cold-start mitigation path simulator — stdlib Python.
+"""冷启动缓解路径模拟器 —— 标准库 Python。
 
-Models a 70B model cold-start with different mitigation stacks:
-  RAW              : no mitigations (nominal baseline)
-  PRE_SEEDED       : + Bottlerocket pre-seeded node image
+模拟 70B 模型在不同缓解层叠加下的冷启动：
+  RAW              : 无缓解（名义基线）
+  PRE_SEEDED       : + Bottlerocket 预置节点镜像
   STREAMER         : + NVIDIA Run:ai Model Streamer
-  GPU_SNAPSHOT     : + Modal-style GPU snapshots
-  WARM_POOL        : min_workers=1 (no cold start at all on warm path)
+  GPU_SNAPSHOT     : + Modal 风格 GPU 快照
+  WARM_POOL        : min_workers=1（温路径上完全无冷启动）
 
-Reports per-layer seconds and totals. Also computes warm-pool break-even.
+报告每层秒数和总计。同时计算温池盈亏平衡点。
 """
 
 from __future__ import annotations
@@ -19,9 +19,9 @@ from dataclasses import dataclass
 class Phase:
     name: str
     raw_sec: float
-    pre_seeded_sec: float    # 0 if eliminated
-    streamer_sec: float      # replaces raw if streamer active
-    snapshot_sec: float      # replaces all if snapshot active
+    pre_seeded_sec: float    # 0 表示消除
+    streamer_sec: float      # streamer 激活时替代 raw
+    snapshot_sec: float      # snapshot 激活时替代所有
 
 
 PHASES_70B = [

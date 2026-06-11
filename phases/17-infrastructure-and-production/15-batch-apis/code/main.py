@@ -1,10 +1,10 @@
 """Batch vs synchronous cost simulator — stdlib Python.
 
-Models a 50k-document pipeline across four configurations:
-  SYNC              : no discount, no cache
-  SYNC + CACHE      : system prompt cached after first call
-  BATCH             : 50% discount, no cache
-  BATCH + CACHE     : stacked (~10% of SYNC bill)
+模拟 50k 文档流水线在四种配置下的成本：
+  SYNC              : 无折扣，无缓存
+  SYNC + CACHE      : 首次调用后系统提示被缓存
+  BATCH             : 50% 折扣，无缓存
+  BATCH + CACHE     : 叠加（约为 SYNC 账单的 ~10%）
 """
 
 from __future__ import annotations

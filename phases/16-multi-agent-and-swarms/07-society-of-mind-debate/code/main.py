@@ -1,9 +1,9 @@
-"""Multi-agent debate on a numeric task (Du et al. 2023 style).
+"""数值任务上的 multi-agent debate (多智能体辩论) (Du et al. 2023 风格)。
 
-3 agents, each starts with a different (possibly wrong) answer. In each round,
-every agent reads the others' answers and revises toward the weighted average.
-Convergence is logged per round. Agent policies are scripted, not LLM-backed --
-the point is the debate dynamics.
+3 个 agent，每个从一个不同的（可能是错误的）答案开始。在每一轮中，
+每个 agent 阅读其他 agent 的答案，并朝着加权平均修订。
+每轮记录 convergence (收敛)。Agent 策略是 scripted (脚本化的)，而非 LLM 驱动——
+重点是 debate dynamics (辩论动态)。
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ class DebateAgent:
         self.history.append(self.answer)
 
     def revise(self, others: list["DebateAgent"]) -> None:
-        """Weighted average of own + others, weighted by confidence."""
+        """按 confidence (置信度) 加权的自身 + 他人的加权平均。"""
         weights = [self.confidence] + [o.confidence for o in others]
         values = [self.answer] + [o.answer for o in others]
         total_w = sum(weights)
@@ -37,7 +37,7 @@ class DebateAgent:
 
 
 def agreement_score(agents: list[DebateAgent], tol: float = 0.1) -> float:
-    """Fraction of agents within tol of the mean."""
+    """落在均值 tol 范围内的 agent 比例。"""
     mean = sum(a.answer for a in agents) / len(agents)
     agree = sum(1 for a in agents if abs(a.answer - mean) <= tol)
     return agree / len(agents)
@@ -49,7 +49,7 @@ def error_vs_truth(agents: list[DebateAgent]) -> float:
 
 
 def run_debate(agents: list[DebateAgent], rounds: int, label: str) -> None:
-    print(f"\n=== {label} ({rounds} rounds) ===")
+    print(f"\n=== {label} ({rounds} 轮) ===")
     for a in agents:
         a.initial()
     hdr = " ".join(f"{a.name:>6s}" for a in agents)
@@ -77,21 +77,21 @@ def fresh_team(seed: int) -> list[DebateAgent]:
 
 
 def single_shot_majority(agents: list[DebateAgent]) -> float:
-    """Control: majority on round-0 answers (self-consistency baseline)."""
+    """对照：第 0 轮答案的 majority (多数)（self-consistency (自一致性) 基线）。"""
     return sum(a.answer for a in agents) / len(agents)
 
 
 def main() -> None:
-    print("Multi-agent debate (Du et al. 2023 style)")
+    print("Multi-agent debate (Du et al. 2023 风格)")
     print("-" * 46)
-    print(f"True answer: {TRUE_ANSWER}")
+    print(f"真实答案: {TRUE_ANSWER}")
 
     baseline = fresh_team(seed=1)
     for a in baseline:
         a.initial()
     control_mean = single_shot_majority(baseline)
-    print(f"\nControl (round-0 mean, self-consistency baseline): {control_mean:.2f}")
-    print(f"Error vs truth: {abs(control_mean - TRUE_ANSWER):.2f}")
+    print(f"\n对照 (第 0 轮均值, self-consistency 基线): {control_mean:.2f}")
+    print(f"与真实答案误差: {abs(control_mean - TRUE_ANSWER):.2f}")
 
     team3 = fresh_team(seed=1)
     run_debate(team3, rounds=3, label="Debate 3 agents, 3 rounds")
@@ -99,11 +99,11 @@ def main() -> None:
     team5 = fresh_team(seed=2)
     run_debate(team5, rounds=5, label="Debate 3 agents, 5 rounds (diminishing returns)")
 
-    print("\nTakeaways:")
-    print("  - 1 round of exchange cuts the error most.")
-    print("  - Rounds 2-3 compound.")
-    print("  - Beyond round 3 the gain per round shrinks (Du et al. plateau).")
-    print("  - Cost scales N * R LLM calls with growing context.")
+    print("\n要点:")
+    print("  - 1 轮交换最大程度削减了误差。")
+    print("  - 第 2-3 轮有叠加效果。")
+    print("  - 超过第 3 轮，每轮收益递减 (Du et al. plateau)。")
+    print("  - 成本随 N * R 次 LLM 调用增长，且 context 不断扩大。")
 
 
 if __name__ == "__main__":

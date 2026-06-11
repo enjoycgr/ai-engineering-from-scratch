@@ -1,7 +1,7 @@
-"""Group chat with speaker selection -- AutoGen GroupChat in miniature.
+"""带发言者选择的群聊——AutoGen GroupChat 的微型实现。
 
-Three agents (coder, reviewer, manager), two selector variants
-(round-robin, LLM-simulated), TERMINATE-token stop condition.
+三个智能体（coder、reviewer、manager），两种 selector 变体
+（round-robin、LLM 模拟），TERMINATE token 停止条件。
 """
 from __future__ import annotations
 
@@ -66,8 +66,8 @@ def round_robin_selector(pool: list[Msg], team: dict[str, Agent]) -> Optional[st
 
 
 def llm_style_selector(pool: list[Msg], team: dict[str, Agent]) -> Optional[str]:
-    """Simulated LLM selector: picks based on recent context keywords.
-    A real implementation is an LLM call with the recent pool."""
+    """模拟的 LLM selector：基于最近上下文关键词挑选。
+    真实实现是对最近 pool 的一次 LLM 调用。"""
     if not pool:
         return "manager"
     last = pool[-1]
@@ -115,7 +115,7 @@ def speaker_counts(pool: list[Msg]) -> dict[str, int]:
 
 
 def main() -> None:
-    print("Group chat with speaker selection -- AutoGen GroupChat shape")
+    print("带发言者选择的群聊 -- AutoGen GroupChat 形态")
     print("-" * 62)
 
     p_rr = run_groupchat(AGENTS, round_robin_selector, max_rounds=8, label="Round-robin")
@@ -124,10 +124,10 @@ def main() -> None:
     p_llm = run_groupchat(AGENTS, llm_style_selector, max_rounds=8, label="LLM-style (context-aware)")
     print(f"  Speaker counts: {speaker_counts(p_llm)}")
 
-    print("\nObservations:")
-    print("  - Round-robin gives every agent an equal turn regardless of context.")
-    print("  - LLM-style routes by context; reviewer only speaks after coder, etc.")
-    print("  - Both terminate on TERMINATE token or max_rounds.")
+    print("\n观察:")
+    print("  - Round-robin 给每个 agent 均等轮次，无视上下文。")
+    print("  - LLM-style 按上下文路由；reviewer 只在 coder 之后发言，等等。")
+    print("  - 两者都在 TERMINATE token 或 max_rounds 时终止。")
 
 
 if __name__ == "__main__":

@@ -17,15 +17,17 @@ MNIST_FILES = [
 
 
 def download_mnist(path="./mnist_data"):
+    """下载 MNIST 原始 gzip 文件到指定目录（如果不存在）。"""
     os.makedirs(path, exist_ok=True)
     for f in MNIST_FILES:
         filepath = os.path.join(path, f)
         if not os.path.exists(filepath):
-            print(f"  Downloading {f}...")
+            print(f"  正在下载 {f}...")
             urllib.request.urlretrieve(MNIST_BASE_URL + f, filepath)
 
 
 def load_images(filepath):
+    """从 gzip 文件解析 MNIST 图片并返回归一化后的 tensor (张量)。"""
     with gzip.open(filepath, "rb") as f:
         magic, num, rows, cols = struct.unpack(">IIII", f.read(16))
         data = f.read()
@@ -35,6 +37,7 @@ def load_images(filepath):
 
 
 def load_labels(filepath):
+    """从 gzip 文件解析 MNIST 标签并返回 long 类型的 tensor (张量)。"""
     with gzip.open(filepath, "rb") as f:
         magic, num = struct.unpack(">II", f.read(8))
         data = f.read()
@@ -43,6 +46,8 @@ def load_labels(filepath):
 
 
 class MNISTModel(nn.Module):
+    """3 层 MLP，使用 Dropout (随机失活)进行正则化。"""
+
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -60,6 +65,8 @@ class MNISTModel(nn.Module):
 
 
 class MNISTModelWithBatchNorm(nn.Module):
+    """3 层 MLP，使用 BatchNorm1d (批归一化)替代 Dropout (随机失活)。"""
+
     def __init__(self):
         super().__init__()
         self.net = nn.Sequential(
@@ -77,6 +84,7 @@ class MNISTModelWithBatchNorm(nn.Module):
 
 
 def train_one_epoch(model, loader, criterion, optimizer, device):
+    """训练一个 epoch。返回平均 loss (损失)和准确率。"""
     model.train()
     total_loss = 0
     correct = 0
@@ -96,6 +104,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
 
 
 def evaluate(model, loader, criterion, device):
+    """在验证/测试集上评估模型。使用 torch.no_grad() 禁用 gradient (梯度)追踪。"""
     model.eval()
     total_loss = 0
     correct = 0
@@ -113,6 +122,7 @@ def evaluate(model, loader, criterion, device):
 
 
 def load_data(data_path="./mnist_data"):
+    """下载（如需要）并加载 MNIST 训练集和测试集。"""
     download_mnist(data_path)
     train_images = load_images(os.path.join(data_path, "train-images-idx3-ubyte.gz"))
     train_labels = load_labels(os.path.join(data_path, "train-labels-idx1-ubyte.gz"))
@@ -122,6 +132,7 @@ def load_data(data_path="./mnist_data"):
 
 
 def create_loaders(train_images, train_labels, test_images, test_labels, batch_size=64):
+    """从 tensor (张量)创建 DataLoader (数据加载器)。"""
     train_dataset = torch.utils.data.TensorDataset(train_images, train_labels)
     test_dataset = torch.utils.data.TensorDataset(test_images, test_labels)
     train_loader = torch.utils.data.DataLoader(
@@ -134,14 +145,15 @@ def create_loaders(train_images, train_labels, test_images, test_labels, batch_s
 
 
 def run_experiment(name, model, train_loader, test_loader, optimizer, device, epochs=10):
+    """运行一个完整实验：训练、评估、计时。"""
     print(f"\n{'='*60}")
     print(f"  {name}")
     print(f"{'='*60}")
 
     num_params = sum(p.numel() for p in model.parameters())
-    print(f"  Parameters: {num_params:,}")
-    print(f"  Optimizer:  {optimizer.__class__.__name__}")
-    print(f"  Device:     {device}")
+    print(f"  参数量: {num_params:,}")
+    print(f"  优化器:  {optimizer.__class__.__name__}")
+    print(f"  设备:     {device}")
     print()
 
     criterion = nn.CrossEntropyLoss()
@@ -161,51 +173,55 @@ def run_experiment(name, model, train_loader, test_loader, optimizer, device, ep
         )
 
     elapsed = time.time() - start_time
-    print(f"\n  Time: {elapsed:.1f}s ({elapsed/epochs:.1f}s/epoch)")
-    print(f"  Final Test Accuracy: {test_acc:.4f}")
+    print(f"\n  耗时: {elapsed:.1f}s ({elapsed/epochs:.1f}s/epoch)")
+    print(f"  最终测试准确率: {test_acc:.4f}")
     return test_acc
 
 
 def experiment_adam(train_loader, test_loader, device):
+    """实验 1：Adam optimizer (优化器) + Dropout (随机失活)。"""
     model = MNISTModel().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     return run_experiment(
-        "Experiment 1: Adam + Dropout",
+        "实验 1: Adam + Dropout",
         model, train_loader, test_loader, optimizer, device
     )
 
 
 def experiment_sgd(train_loader, test_loader, device):
+    """实验 2：SGD (随机梯度下降) + Momentum + Dropout (随机失活)。"""
     model = MNISTModel().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     return run_experiment(
-        "Experiment 2: SGD + Momentum + Dropout",
+        "实验 2: SGD + Momentum + Dropout",
         model, train_loader, test_loader, optimizer, device
     )
 
 
 def experiment_batchnorm(train_loader, test_loader, device):
+    """实验 3：Adam + BatchNorm (批归一化，无 Dropout)。"""
     model = MNISTModelWithBatchNorm().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     return run_experiment(
-        "Experiment 3: Adam + BatchNorm (no dropout)",
+        "实验 3: Adam + BatchNorm (无 dropout)",
         model, train_loader, test_loader, optimizer, device
     )
 
 
 def experiment_sgd_cosine(train_loader, test_loader, device, epochs=10):
+    """实验 4：SGD + CosineAnnealingLR learning rate (学习率)调度。"""
     model = MNISTModel().to(device)
     optimizer = torch.optim.SGD(model.parameters(), lr=0.05, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     print(f"\n{'='*60}")
-    print(f"  Experiment 4: SGD + Cosine LR Schedule")
+    print(f"  实验 4: SGD + Cosine LR Schedule")
     print(f"{'='*60}")
 
     num_params = sum(p.numel() for p in model.parameters())
-    print(f"  Parameters: {num_params:,}")
-    print(f"  Optimizer:  SGD (lr=0.05, momentum=0.9) + CosineAnnealing")
-    print(f"  Device:     {device}")
+    print(f"  参数量: {num_params:,}")
+    print(f"  优化器:  SGD (lr=0.05, momentum=0.9) + CosineAnnealing")
+    print(f"  设备:     {device}")
     print()
 
     criterion = nn.CrossEntropyLoss()
@@ -229,25 +245,27 @@ def experiment_sgd_cosine(train_loader, test_loader, device, epochs=10):
         scheduler.step()
 
     elapsed = time.time() - start_time
-    print(f"\n  Time: {elapsed:.1f}s ({elapsed/epochs:.1f}s/epoch)")
-    print(f"  Final Test Accuracy: {test_acc:.4f}")
+    print(f"\n  耗时: {elapsed:.1f}s ({elapsed/epochs:.1f}s/epoch)")
+    print(f"  最终测试准确率: {test_acc:.4f}")
     return test_acc
 
 
 def show_model_info(model, name="Model"):
-    print(f"\n  {name} Architecture:")
+    """打印模型架构和各层的 parameter (参数)数量。"""
+    print(f"\n  {name} 架构:")
     print(f"  {'-'*40}")
     total = 0
     for pname, param in model.named_parameters():
         print(f"    {pname:30s} {str(list(param.shape)):15s} ({param.numel():,} params)")
         total += param.numel()
     print(f"  {'-'*40}")
-    print(f"    Total: {total:,} parameters")
+    print(f"    总计: {total:,} 个参数")
 
 
 def demo_tensor_basics():
+    """演示 tensor (张量)的创建、dtype 转换和 reshape 操作。"""
     print(f"\n{'='*60}")
-    print(f"  Tensor Basics")
+    print(f"  Tensor (张量)基础")
     print(f"{'='*60}")
 
     x = torch.randn(3, 4)
@@ -268,8 +286,9 @@ def demo_tensor_basics():
 
 
 def demo_autograd():
+    """演示 autograd (自动微分)：计算 gradient (梯度)并执行手动参数更新。"""
     print(f"\n{'='*60}")
-    print(f"  Autograd Demo")
+    print(f"  Autograd (自动微分)演示")
     print(f"{'='*60}")
 
     x = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
@@ -286,7 +305,7 @@ def demo_autograd():
     for step in range(3):
         loss = (w ** 2).sum()
         loss.backward()
-        print(f"\n  Step {step}: loss={loss.item():.4f}, grad={w.grad.tolist()}")
+        print(f"\n  第 {step} 步: loss={loss.item():.4f}, grad={w.grad.tolist()}")
         with torch.no_grad():
             w -= 0.1 * w.grad
         w.grad.zero_()
@@ -294,13 +313,13 @@ def demo_autograd():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  Introduction to PyTorch -- Phase 3, Lesson 11")
+    print("  PyTorch 简介 -- 第 3 阶段, 第 11 课")
     print("=" * 60)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"\n  PyTorch version: {torch.__version__}")
-    print(f"  Device: {device}")
-    print(f"  CUDA available: {torch.cuda.is_available()}")
+    print(f"\n  PyTorch 版本: {torch.__version__}")
+    print(f"  设备: {device}")
+    print(f"  CUDA 可用: {torch.cuda.is_available()}")
     if torch.cuda.is_available():
         print(f"  GPU: {torch.cuda.get_device_name(0)}")
 
@@ -308,14 +327,14 @@ if __name__ == "__main__":
     demo_autograd()
 
     print(f"\n{'='*60}")
-    print(f"  Loading MNIST...")
+    print(f"  正在加载 MNIST...")
     print(f"{'='*60}")
 
     train_images, train_labels, test_images, test_labels = load_data()
-    print(f"  Train: {train_images.shape[0]:,} images")
-    print(f"  Test:  {test_images.shape[0]:,} images")
-    print(f"  Image shape: {train_images.shape[1]} features (28x28 flattened)")
-    print(f"  Classes: {train_labels.unique().tolist()}")
+    print(f"  训练集: {train_images.shape[0]:,} 张图片")
+    print(f"  测试集:  {test_images.shape[0]:,} 张图片")
+    print(f"  图片维度: {train_images.shape[1]} 个特征 (28x28 展平)")
+    print(f"  类别: {train_labels.unique().tolist()}")
 
     train_loader, test_loader = create_loaders(
         train_images, train_labels, test_images, test_labels
@@ -333,7 +352,7 @@ if __name__ == "__main__":
     acc_cosine = experiment_sgd_cosine(train_loader, test_loader, device)
 
     print(f"\n{'='*60}")
-    print(f"  Summary")
+    print(f"  总结")
     print(f"{'='*60}")
     print(f"  Adam + Dropout:           {acc_adam:.4f}")
     print(f"  SGD + Momentum + Dropout: {acc_sgd:.4f}")
@@ -348,11 +367,11 @@ if __name__ == "__main__":
         train_one_epoch(best_model, train_loader, criterion, optimizer, device)
 
     torch.save(best_model.state_dict(), "mnist_mlp.pt")
-    print(f"  Model saved to mnist_mlp.pt")
+    print(f"  模型已保存到 mnist_mlp.pt")
 
     loaded_model = MNISTModel().to(device)
     loaded_model.load_state_dict(
         torch.load("mnist_mlp.pt", map_location=device, weights_only=True)
     )
     _, loaded_acc = evaluate(loaded_model, test_loader, criterion, device)
-    print(f"  Loaded model test accuracy: {loaded_acc:.4f}")
+    print(f"  加载后模型测试准确率: {loaded_acc:.4f}")

@@ -1,8 +1,7 @@
-// Phase 11 · Lesson 03 — Structured outputs (TypeScript port).
-// Zod-shaped schema DSL + validator + mocked LLM extractor with retry.
-// We inline the schema layer instead of pulling in zod so the lesson stays
-// dep-free; the API (`.parse`, `.safeParse`) mirrors what real zod ships.
-// Refs: https://zod.dev/?id=basic-usage
+// Phase 11 · Lesson 03 — Structured outputs (TypeScript 版本).
+// Zod 风格的 schema DSL + 验证器 + 模拟 LLM 提取器，支持重试。
+// 为了不引入外部依赖，我们内联了 schema 层；API（`.parse`、`.safeParse`）与真实 zod 一致。
+// 参考： https://zod.dev/?id=basic-usage
 //       https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 //       https://platform.openai.com/docs/guides/structured-outputs
 
@@ -11,7 +10,7 @@ import process from "node:process";
 type ValidationIssue = { path: string; message: string };
 type ParseResult<T> = { ok: true; value: T } | { ok: false; issues: ValidationIssue[] };
 
-// All schemas implement the same contract: take an unknown, return ParseResult.
+// 所有 schema 实现相同的契约：接收 unknown，返回 ParseResult。
 interface Schema<T> {
   parse(input: unknown, path?: string): ParseResult<T>;
   toJSONSchema(): Record<string, unknown>;
@@ -171,8 +170,7 @@ const ProductSchema = z.object({
   categories: z.field(z.array(z.string()), false),
 });
 
-// Mock LLM. First attempt for "headphones" is bad on purpose so the retry
-// loop has something to do.
+// 模拟 LLM。对 "headphones" 的第一次尝试故意返回错误结果，以便演示重试逻辑。
 function simulateLLM(text: string, attempt: number): string {
   const t = text.toLowerCase();
   if (t.includes("headphones") || t.includes("sony")) {
@@ -190,7 +188,7 @@ function simulateLLM(text: string, attempt: number): string {
   return '{"product": "Unknown", "price": 0, "in_stock": false}';
 }
 
-// Strip the markdown fence + preamble that real models love to add.
+// 去除真实模型喜欢在 JSON 外包裹的 markdown 代码块和前缀文本。
 function extractJSONBlock(raw: string): string {
   const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fence) return fence[1]!.trim();

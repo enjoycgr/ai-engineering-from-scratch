@@ -2,6 +2,7 @@ import random
 import math
 
 
+# 将数据划分为训练集、验证集和测试集
 def train_val_test_split(X, y, train_ratio=0.6, val_ratio=0.2, seed=42):
     random.seed(seed)
     n = len(X)
@@ -25,6 +26,7 @@ def train_val_test_split(X, y, train_ratio=0.6, val_ratio=0.2, seed=42):
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
+# K-fold (K折交叉验证) 划分：将数据分成 k 个折
 def kfold_split(n, k=5, seed=42):
     random.seed(seed)
     indices = list(range(n))
@@ -43,6 +45,7 @@ def kfold_split(n, k=5, seed=42):
     return folds
 
 
+# Stratified K-fold (分层K折交叉验证) 划分：在每个折中保持类别分布
 def stratified_kfold_split(y, k=5, seed=42):
     random.seed(seed)
 
@@ -68,6 +71,7 @@ def stratified_kfold_split(y, k=5, seed=42):
     return [(f["train"], f["val"]) for f in folds]
 
 
+# Cross-validation (交叉验证)：在 k 个折上训练和评估模型
 def cross_validate(X, y, model_fn, k=5, metric_fn=None, stratified=False):
     n = len(X)
 
@@ -96,6 +100,7 @@ def cross_validate(X, y, model_fn, k=5, metric_fn=None, stratified=False):
     return scores
 
 
+# Confusion matrix (混淆矩阵)：统计 TP, TN, FP, FN
 def confusion_matrix(y_true, y_pred):
     tp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 1 and yp == 1)
     tn = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 0 and yp == 0)
@@ -104,28 +109,33 @@ def confusion_matrix(y_true, y_pred):
     return tp, tn, fp, fn
 
 
+# Accuracy (准确率)：正确预测的比例
 def accuracy(y_true, y_pred):
     tp, tn, fp, fn = confusion_matrix(y_true, y_pred)
     total = tp + tn + fp + fn
     return (tp + tn) / total if total > 0 else 0.0
 
 
+# Precision (精确率)：预测为正类中实际为正类的比例
 def precision(y_true, y_pred):
     tp, tn, fp, fn = confusion_matrix(y_true, y_pred)
     return tp / (tp + fp) if (tp + fp) > 0 else 0.0
 
 
+# Recall (召回率)：实际正类中被正确识别的比例
 def recall(y_true, y_pred):
     tp, tn, fp, fn = confusion_matrix(y_true, y_pred)
     return tp / (tp + fn) if (tp + fn) > 0 else 0.0
 
 
+# F1 score (F1分数)：Precision 和 Recall 的调和平均数
 def f1_score(y_true, y_pred):
     p = precision(y_true, y_pred)
     r = recall(y_true, y_pred)
     return 2 * p * r / (p + r) if (p + r) > 0 else 0.0
 
 
+# ROC curve (受试者工作特征曲线)：在不同阈值下计算 TPR 和 FPR
 def roc_curve(y_true, y_scores):
     thresholds = sorted(set(y_scores), reverse=True)
     tpr_list = []
@@ -148,6 +158,7 @@ def roc_curve(y_true, y_scores):
     return fpr_list, tpr_list, thresholds
 
 
+# AUC-ROC：ROC 曲线下的面积
 def auc_roc(y_true, y_scores):
     fpr_list, tpr_list, _ = roc_curve(y_true, y_scores)
 
@@ -164,20 +175,24 @@ def auc_roc(y_true, y_scores):
     return area
 
 
+# MSE (Mean Squared Error, 均方误差)
 def mse(y_true, y_pred):
     n = len(y_true)
     return sum((yt - yp) ** 2 for yt, yp in zip(y_true, y_pred)) / n
 
 
+# RMSE (Root Mean Squared Error, 均方根误差)
 def rmse(y_true, y_pred):
     return math.sqrt(mse(y_true, y_pred))
 
 
+# MAE (Mean Absolute Error, 平均绝对误差)
 def mae(y_true, y_pred):
     n = len(y_true)
     return sum(abs(yt - yp) for yt, yp in zip(y_true, y_pred)) / n
 
 
+# R-squared (R平方)：模型解释的方差比例
 def r_squared(y_true, y_pred):
     mean_y = sum(y_true) / len(y_true)
     ss_res = sum((yt - yp) ** 2 for yt, yp in zip(y_true, y_pred))
@@ -187,6 +202,7 @@ def r_squared(y_true, y_pred):
     return 1.0 - ss_res / ss_tot
 
 
+# Learning curve (学习曲线)：绘制训练分数和验证分数随训练集大小的变化
 def learning_curve(X, y, model_fn, metric_fn, train_sizes=None, val_ratio=0.2, seed=42):
     random.seed(seed)
     n = len(X)
@@ -223,6 +239,7 @@ def learning_curve(X, y, model_fn, metric_fn, train_sizes=None, val_ratio=0.2, s
     return train_sizes, train_scores, val_scores
 
 
+# 简单的逻辑回归分类器，用于测试评估指标
 class SimpleLogistic:
     def __init__(self, lr=0.1, epochs=100):
         self.lr = lr
@@ -256,6 +273,7 @@ class SimpleLogistic:
         return 1 if self.predict_proba(x) >= 0.5 else 0
 
 
+# 简单的线性回归模型，用于测试回归指标
 class SimpleLinearRegression:
     def __init__(self, lr=0.001, epochs=200):
         self.lr = lr
@@ -281,6 +299,7 @@ class SimpleLinearRegression:
         return sum(w * xi for w, xi in zip(self.weights, x)) + self.bias
 
 
+# 标准化：将数据缩放到零均值和单位方差
 def standardize(values):
     n = len(values)
     mean = sum(values) / n
@@ -289,6 +308,7 @@ def standardize(values):
     return [(v - mean) / std for v in values], mean, std
 
 
+# 生成分类数据集
 def make_classification_data(n=300, seed=42):
     random.seed(seed)
     X = []
@@ -302,6 +322,7 @@ def make_classification_data(n=300, seed=42):
     return X, y
 
 
+# 生成回归数据集
 def make_regression_data(n=200, seed=42):
     random.seed(seed)
     X = []
@@ -315,6 +336,7 @@ def make_regression_data(n=200, seed=42):
     return X, y
 
 
+# 生成不平衡分类数据集（少数类比例较低）
 def make_imbalanced_data(n=300, minority_ratio=0.05, seed=42):
     random.seed(seed)
     X = []
@@ -336,19 +358,19 @@ def make_imbalanced_data(n=300, minority_ratio=0.05, seed=42):
 if __name__ == "__main__":
     X_clf, y_clf = make_classification_data(300)
 
-    print("=== Train/Validation/Test Split ===")
+    print("=== 训练/验证/测试划分 ===")
     X_train, y_train, X_val, y_val, X_test, y_test = train_val_test_split(X_clf, y_clf)
-    print(f"  Train: {len(X_train)}, Val: {len(X_val)}, Test: {len(X_test)}")
-    print(f"  Train class distribution: {sum(y_train)}/{len(y_train)} positive")
-    print(f"  Val class distribution: {sum(y_val)}/{len(y_val)} positive")
+    print(f"  训练集: {len(X_train)}, 验证集: {len(X_val)}, 测试集: {len(X_test)}")
+    print(f"  训练集类别分布: {sum(y_train)}/{len(y_train)} 正类")
+    print(f"  验证集类别分布: {sum(y_val)}/{len(y_val)} 正类")
 
     model = SimpleLogistic(lr=0.1, epochs=200)
     model.fit(X_train, y_train)
 
-    print("\n=== Classification Metrics ===")
+    print("\n=== 分类指标 ===")
     y_pred = [model.predict(x) for x in X_test]
     tp, tn, fp, fn = confusion_matrix(y_test, y_pred)
-    print(f"  Confusion matrix: TP={tp}, TN={tn}, FP={fp}, FN={fn}")
+    print(f"  混淆矩阵: TP={tp}, TN={tn}, FP={fp}, FN={fn}")
     print(f"  Accuracy:  {accuracy(y_test, y_pred):.4f}")
     print(f"  Precision: {precision(y_test, y_pred):.4f}")
     print(f"  Recall:    {recall(y_test, y_pred):.4f}")
@@ -367,8 +389,8 @@ if __name__ == "__main__":
     )
     mean_cv = sum(cv_scores) / len(cv_scores)
     std_cv = math.sqrt(sum((s - mean_cv) ** 2 for s in cv_scores) / len(cv_scores))
-    print(f"  Fold scores: {[round(s, 4) for s in cv_scores]}")
-    print(f"  Mean: {mean_cv:.4f} (+/- {std_cv:.4f})")
+    print(f"  折分数: {[round(s, 4) for s in cv_scores]}")
+    print(f"  均值: {mean_cv:.4f} (+/- {std_cv:.4f})")
 
     print("\n=== Stratified K-Fold Cross-Validation (K=5) ===")
     strat_scores = cross_validate(
@@ -380,16 +402,16 @@ if __name__ == "__main__":
     )
     strat_mean = sum(strat_scores) / len(strat_scores)
     strat_std = math.sqrt(sum((s - strat_mean) ** 2 for s in strat_scores) / len(strat_scores))
-    print(f"  Fold scores: {[round(s, 4) for s in strat_scores]}")
-    print(f"  Mean: {strat_mean:.4f} (+/- {strat_std:.4f})")
+    print(f"  折分数: {[round(s, 4) for s in strat_scores]}")
+    print(f"  均值: {strat_mean:.4f} (+/- {strat_std:.4f})")
 
-    print("\n=== Imbalanced Data: Why Accuracy Lies ===")
+    print("\n=== 不平衡数据：为什么 Accuracy 会骗人 ===")
     X_imb, y_imb = make_imbalanced_data(300, minority_ratio=0.05)
     positives = sum(y_imb)
-    print(f"  Class distribution: {positives} positive, {len(y_imb) - positives} negative ({positives/len(y_imb)*100:.1f}% positive)")
+    print(f"  类别分布: {positives} 正类, {len(y_imb) - positives} 负类 ({positives/len(y_imb)*100:.1f}% 正类)")
 
     always_negative = [0] * len(y_imb)
-    print(f"  Always-negative baseline:")
+    print(f"  始终预测负类基线:")
     print(f"    Accuracy:  {accuracy(y_imb, always_negative):.4f}")
     print(f"    Precision: {precision(y_imb, always_negative):.4f}")
     print(f"    Recall:    {recall(y_imb, always_negative):.4f}")
@@ -399,13 +421,13 @@ if __name__ == "__main__":
     model_imb = SimpleLogistic(lr=0.5, epochs=500)
     model_imb.fit(X_tr_i, y_tr_i)
     y_pred_imb = [model_imb.predict(x) for x in X_te_i]
-    print(f"\n  Trained model on imbalanced data:")
+    print(f"\n  在不平衡数据上训练的模型:")
     print(f"    Accuracy:  {accuracy(y_te_i, y_pred_imb):.4f}")
     print(f"    Precision: {precision(y_te_i, y_pred_imb):.4f}")
     print(f"    Recall:    {recall(y_te_i, y_pred_imb):.4f}")
     print(f"    F1 Score:  {f1_score(y_te_i, y_pred_imb):.4f}")
 
-    print("\n=== Regression Metrics ===")
+    print("\n=== 回归指标 ===")
     X_reg, y_reg = make_regression_data(200)
 
     col0 = [x[0] for x in X_reg]
@@ -425,11 +447,11 @@ if __name__ == "__main__":
     print(f"  R-squared: {r_squared(y_te_r, y_pred_r):.4f}")
 
     mean_baseline = [sum(y_tr_r) / len(y_tr_r)] * len(y_te_r)
-    print(f"\n  Mean baseline:")
+    print(f"\n  均值基线:")
     print(f"    MSE:       {mse(y_te_r, mean_baseline):.4f}")
     print(f"    R-squared: {r_squared(y_te_r, mean_baseline):.4f}")
 
-    print("\n=== Learning Curve ===")
+    print("\n=== 学习曲线 ===")
     sizes, train_sc, val_sc = learning_curve(
         X_clf, y_clf,
         model_fn=lambda: SimpleLogistic(lr=0.1, epochs=200),
@@ -439,7 +461,7 @@ if __name__ == "__main__":
     for s, tr, va in zip(sizes, train_sc, val_sc):
         print(f"  {s:>6} {tr:>8.4f} {va:>8.4f}")
 
-    print("\n=== Statistical Model Comparison ===")
+    print("\n=== 统计模型比较 ===")
     model_a_scores = cross_validate(
         X_clf, y_clf,
         model_fn=lambda: SimpleLogistic(lr=0.1, epochs=100),
@@ -454,8 +476,8 @@ if __name__ == "__main__":
     mean_diff = sum(diffs) / len(diffs)
     std_diff = math.sqrt(sum((d - mean_diff) ** 2 for d in diffs) / len(diffs))
     t_stat = mean_diff / (std_diff / math.sqrt(len(diffs))) if std_diff > 0 else 0.0
-    print(f"  Model A (100 epochs) mean: {sum(model_a_scores)/len(model_a_scores):.4f}")
-    print(f"  Model B (500 epochs) mean: {sum(model_b_scores)/len(model_b_scores):.4f}")
-    print(f"  Mean difference: {mean_diff:.4f}")
-    print(f"  Paired t-statistic: {t_stat:.4f}")
-    print(f"  (|t| > 2.78 for significance at p<0.05 with df=4)")
+    print(f"  模型 A (100 epochs) 均值: {sum(model_a_scores)/len(model_a_scores):.4f}")
+    print(f"  模型 B (500 epochs) 均值: {sum(model_b_scores)/len(model_b_scores):.4f}")
+    print(f"  均值差异: {mean_diff:.4f}")
+    print(f"  配对 t 统计量: {t_stat:.4f}")
+    print(f"  (|t| > 2.78 表示在 df=4, p<0.05 时显著)")

@@ -1,9 +1,9 @@
-"""Video VLM frame sampler + temporal-grounding evaluator — stdlib.
+"""视频 VLM 帧采样器 + 时间定位评估器 — stdlib。
 
-Three toys:
-  1. Uniform frame sampler.
-  2. Dynamic-FPS sampler using motion proxy (synthetic per-frame motion scalar).
-  3. Temporal-grounding evaluator with IoU-style scoring.
+三个玩具：
+  1. 统一帧采样器。
+  2. 使用运动代理的动态 FPS 采样器（合成每帧运动标量）。
+  3. 带 IoU 风格评分的时间定位评估器。
 """
 
 from __future__ import annotations

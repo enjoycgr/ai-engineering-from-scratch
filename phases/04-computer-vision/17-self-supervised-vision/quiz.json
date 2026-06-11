@@ -2,38 +2,38 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "Why does SimCLR need batch sizes of 512-8192 while supervised ImageNet training works with batch 256?",
-      "options": ["SimCLR is slower", "Each sample needs many negative examples to produce a useful contrastive signal; the batch itself is the pool of negatives. Small batches starve the InfoNCE loss of negatives and training collapses or stalls", "Batch norm requires it", "Contrastive loss divides by batch size"],
+      "question": "为什么 SimCLR 需要 512-8192 的 batch size，而监督式 ImageNet 训练用 batch 256 就能工作？",
+      "options": ["SimCLR 更慢", "每个样本需要大量负样本来产生有用的对比信号；batch 本身就是负样本池。小 batch 会使 InfoNCE 损失缺乏负样本，导致训练崩溃或停滞", "Batch norm 需要它", "对比损失除以 batch size"],
       "correct": 1,
-      "explanation": "InfoNCE loss ranks the positive pair against all other samples in the batch. A batch of 32 gives 30 negatives per positive; 1024 gives 2046. More negatives = sharper contrastive signal. MoCo introduced a momentum queue of past features so effective negatives scale beyond the batch size; this is the standard trick when GPU memory limits batch size."
+      "explanation": "InfoNCE 损失将正样本对与 batch 中所有其他样本进行排名。batch 为 32 时每个正样本只有 30 个负样本；1024 时有 2046 个。更多负样本 = 更锐利的对比信号。MoCo 引入了动量队列来存储过去的特征，使有效负样本超出 batch size 的限制；这是 GPU 内存限制 batch size 时的标准技巧。"
     },
     {
       "stage": "pre",
-      "question": "What prevents DINO from collapsing to a constant output?",
-      "options": ["Strong augmentation alone", "A combination of centring (subtract per-dimension EMA mean from the teacher output) and sharpening (low teacher temperature); centring stops one dimension from dominating, sharpening stops the output collapsing to uniform", "Large batch size", "The momentum schedule"],
+      "question": "什么防止了 DINO 的输出崩溃到常数？",
+      "options": ["强增强 alone", "中心化（从教师输出中减去逐维 EMA 均值）和锐化（低教师温度）的组合；中心化阻止某一维度主导，锐化阻止输出崩溃到均匀分布", "大 batch size", "动量调度"],
       "correct": 1,
-      "explanation": "DINO does not use explicit negatives. Without centring, one output dimension can dominate and the student learns to always predict it. Without sharpening (low teacher temperature), the teacher's output becomes near-uniform and the student learns to match uniform, which is also collapse. The two together keep the output diverse across dimensions and peaked per sample."
+      "explanation": "DINO 不使用显式负样本。没有中心化，一个输出维度可能主导，学生学会始终预测它。没有锐化（低教师温度），教师的输出接近均匀分布，学生学会匹配均匀分布，这也是一种崩溃。两者共同保持输出在维度间的多样性，并在每个样本上保持峰值。"
     },
     {
       "stage": "post",
-      "question": "MAE masks 75% of patches. BERT masks 15% of tokens. Why the difference?",
-      "options": ["75% is arbitrary", "Image patches have low entropy — neighbours are highly correlated — so masking only 15% would be trivially solvable by local extrapolation. Masking 75% forces the encoder to learn global semantic features to reconstruct the missing patches", "BERT requires 15% by design", "Text tokens are larger than image patches"],
+      "question": "MAE 遮蔽 75% 的 patch。BERT 遮蔽 15% 的 token。为什么差异这么大？",
+      "options": ["75% 是任意的", "图像 patch 的熵很低 — 邻居之间高度相关 — 所以只遮蔽 15% 会通过局部外推轻易解决。遮蔽 75% 迫使编码器学习全局语义特征来重建缺失的 patch", "BERT 设计需要 15%", "文本 token 比图像 patch 大"],
       "correct": 1,
-      "explanation": "The mask ratio should match the information density of the modality. Text: 15% is enough because each token has many plausible completions. Images: neighbouring pixels almost determine each other, so low mask ratios are solvable without real representation learning. MAE's 75% is calibrated to force semantic understanding."
+      "explanation": "遮蔽比例应该与模态的信息密度匹配。文本：15% 就足够了，因为每个 token 都有很多合理的补全。图像：相邻像素几乎决定了彼此，所以低遮蔽比例可以在没有真正表征学习的情况下解决。MAE 的 75% 是为了迫使语义理解而校准的。"
     },
     {
       "stage": "post",
-      "question": "After self-supervised pretraining, the 'linear probe' evaluation trains only what?",
-      "options": ["The entire encoder", "A single linear classifier on top of the frozen encoder features; this isolates feature quality from fine-tuning dynamics", "A full MLP classifier head", "The positional embedding"],
+      "question": "自监督预训练后，'线性探测' (linear probe) 评估只训练什么？",
+      "options": ["整个编码器", "冻结编码器特征之上的单个线性分类器；这将特征质量与微调动态隔离开来", "完整的 MLP 分类头", "位置嵌入"],
       "correct": 1,
-      "explanation": "Linear probe freezes the encoder and fits Linear(features -> num_classes) on a labelled downstream dataset. The accuracy is a direct measure of the feature space's linear separability — a proxy for feature quality. Fine-tuning the whole backbone adds nonlinear capacity and usually lifts accuracy a few points, but mixes in optimisation effects. Both numbers are reported in SSL papers."
+      "explanation": "线性探测冻结编码器，在有标注的下游数据集上拟合 Linear(features -> num_classes)。准确率直接衡量特征空间的线性可分性 — 特征质量的代理指标。微调整个 backbone 增加了非线性容量，通常会将准确率提升几个百分点，但混入了优化效果。SSL 论文中通常同时报告这两个数字。"
     },
     {
       "stage": "post",
-      "question": "Why does MAE use an asymmetric encoder-decoder design (big encoder on 25% visible patches, small decoder on all tokens)?",
-      "options": ["Memory constraints", "The encoder never processes mask tokens; a small decoder only handles reconstruction. This makes encoder FLOPs proportional to visible patches (1/4 of full input) and lets pretraining run 3x faster than naive designs that process all tokens through the full encoder", "Masked tokens confuse self-attention", "The decoder needs its own backbone"],
+      "question": "为什么 MAE 使用非对称的编码器-解码器设计（大型编码器处理 25% 可见 patch，小型解码器处理所有 token）？",
+      "options": ["内存限制", "编码器从不处理 mask token；小型解码器只处理重建。这使得编码器 FLOPs 与可见 patch（完整输入的 1/4）成比例，让预训练比将所有 token 通过完整编码器的朴素设计快 3 倍", "Mask token 会混淆自注意力", "解码器需要自己的 backbone"],
       "correct": 1,
-      "explanation": "The key efficiency win in MAE: the expensive encoder only ever sees visible patches, which is 25% of the input. Mask tokens appear only in the shallow decoder. This makes pretraining roughly 3x faster than BEiT (which processes all tokens through the encoder) with equal or better downstream accuracy."
+      "explanation": "MAE 的关键效率提升：昂贵的编码器只处理可见 patch，即输入的 25%。Mask token 只出现在浅层解码器中。这使得预训练比 BEiT（将所有 token 通过编码器处理）快约 3 倍，同时达到同等或更好的下游准确率。"
     }
   ]
 }

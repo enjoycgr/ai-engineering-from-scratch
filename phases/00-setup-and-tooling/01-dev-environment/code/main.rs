@@ -1,7 +1,10 @@
 // Lesson: Dev Environment (phase 00 / lesson 01)
+// 课程：开发环境（阶段 00 / 课程 01）
 // Topic: verify that the four-layer toolchain (system, package managers, runtimes, libs)
 // is reachable from a Rust binary. Spawns each tool with `--version`, captures stdout,
 // reports PASS/FAIL plus the parsed version string. Stdlib only.
+// 主题：验证四层工具链（系统、包管理器、运行时、库）可从 Rust 二进制文件访问。
+// 通过 `--version` 启动各工具，捕获 stdout，报告 PASS/FAIL 及解析后的版本字符串。仅使用标准库。
 // Refs:
 //   https://doc.rust-lang.org/std/process/struct.Command.html
 //   https://doc.rust-lang.org/std/process/struct.Output.html
@@ -66,6 +69,7 @@ fn print_header() {
     println!("=== AI Engineering from Scratch — Environment Check (Rust) ===");
     println!();
     println!("Layer 1 (system) -> Layer 2 (package managers) -> Layer 3 (runtimes) -> Layer 4 (libs)");
+    // 四层结构：系统 -> 包管理器 -> 运行时 -> 库
     println!();
 }
 
@@ -79,7 +83,7 @@ fn main() -> ExitCode {
 
     let mut python_ok = true;
 
-    println!("Required tools:");
+    println!("Required tools:");  // 必需工具
     for check in CHECKS.iter().filter(|c| !c.optional) {
         required_total += 1;
         match run_check(check) {
@@ -107,7 +111,7 @@ fn main() -> ExitCode {
     }
 
     println!();
-    println!("Optional tools:");
+    println!("Optional tools:");  // 可选工具
     for check in CHECKS.iter().filter(|c| c.optional) {
         optional_total += 1;
         match run_check(check) {

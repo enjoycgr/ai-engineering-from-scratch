@@ -104,7 +104,7 @@ def main():
         },
     ]
 
-    print("=== toy RAG eval: faithfulness / relevance / context precision & recall / G-Eval ===")
+    print("=== 玩具级 RAG 评估：faithfulness / relevance / context precision & recall / G-Eval ===")
     print()
     for i, case in enumerate(cases):
         ctx_joined = " ".join(case["context"])

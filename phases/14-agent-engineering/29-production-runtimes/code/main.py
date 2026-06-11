@@ -1,6 +1,6 @@
 """Four production runtime shapes: request-response, streaming, queue, event.
 
-Same agent logic, four different outer shells. Stdlib only.
+相同的智能体逻辑，四种不同的外壳。仅使用 stdlib。
 """
 
 from __future__ import annotations

@@ -1,8 +1,7 @@
-"""Audio-LLM toys: log-Mel spectrogram + audio Q-former + cascaded vs end-to-end.
+"""音频-LLM 玩具：log-Mel spectrogram + 音频 Q-former + 级联 vs 端到端。
 
-Stdlib. Computes a naive DFT-based log-Mel spec from a synthetic waveform,
-runs a toy Q-former over the resulting frames, and compares task coverage
-between cascaded and end-to-end pipelines.
+Stdlib。从合成波形计算朴素 DFT 基础 log-Mel spec，
+在结果帧上运行玩具 Q-former，并对比级联和端到端流水线的任务覆盖。
 """
 
 from __future__ import annotations

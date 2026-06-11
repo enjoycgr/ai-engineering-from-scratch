@@ -1,7 +1,6 @@
-# Backpropagation in Julia. Derives the chain rule for a 2-layer MLP
-# step by step on paper, then trains it on XOR + circle classification.
-# All gradients computed manually — no autodiff library.
-# Stdlib only. Sources:
+# Julia 中的 backpropagation（反向传播）。在纸上逐步推导 2 层 MLP 的 chain rule（链式法则），
+# 然后在 XOR + 圆形分类上训练。所有 gradient（梯度）手动计算——不使用 autodiff（自动微分）库。
+# 仅使用标准库。参考来源：
 #   https://en.wikipedia.org/wiki/Backpropagation
 #   https://docs.julialang.org/en/v1/manual/arrays/#Broadcasting
 
@@ -14,14 +13,14 @@ sigmoid_d(s::Float64)::Float64 = s * (1 - s)
 
 
 mutable struct MLP
-    # First (hidden) layer: w1[i, j] = weight from input j to hidden unit i.
+    # 第一（隐藏）层：w1[i, j] = 从输入 j 到 hidden unit（隐藏单元）i 的 weight（权重）。
     w1::Matrix{Float64}
     b1::Vector{Float64}
-    # Output layer.
+    # 输出层。
     w2::Matrix{Float64}
     b2::Vector{Float64}
     lr::Float64
-    # Caches for backprop.
+    # 用于 backprop（反向传播）的缓存。
     last_x::Vector{Float64}
     z1::Vector{Float64}
     a1::Vector{Float64}
@@ -31,10 +30,10 @@ end
 
 
 function MLP(sizes::Vector{Int}; lr::Float64=1.0, seed::Int=42)
-    @assert length(sizes) == 3 "this MLP is fixed to 1 hidden layer"
+    @assert length(sizes) == 3 "此 MLP 固定为 1 个 hidden layer（隐藏层）"
     rng = MersenneTwister(seed)
     n_in, n_hid, n_out = sizes
-    # He-like init scaled for sigmoid.
+    # 类似 He 初始化，为 sigmoid 缩放。
     scale_w1 = sqrt(2.0 / n_in)
     scale_w2 = sqrt(2.0 / n_hid)
     return MLP(
@@ -59,16 +58,15 @@ function forward!(m::MLP, x::Vector{Float64})::Vector{Float64}
 end
 
 
-# Compute gradients for one (x, y) pair under squared-error loss.
-# Returns the gradients without applying them so the caller can
-# accumulate over a batch then call apply_grads!.
+# 在 squared-error loss（平方误差损失）下为单个 (x, y) 对计算 gradient（梯度）。
+# 返回 gradient（梯度）但不应用，以便调用者可以在批次上累积然后调用 apply_grads!。
 function backward(m::MLP, target::Vector{Float64})
     err = m.a2 .- target
     # d_loss/d_z2 = err .* sigmoid'(a2)
     delta2 = err .* sigmoid_d.(m.a2)
     grad_w2 = delta2 * m.a1'
     grad_b2 = delta2
-    # Backprop into hidden layer.
+    # 反向传播到 hidden layer（隐藏层）。
     delta1 = (m.w2' * delta2) .* sigmoid_d.(m.a1)
     grad_w1 = delta1 * m.last_x'
     grad_b1 = delta1
@@ -101,7 +99,7 @@ function train_xor!()
     ]
     for epoch in 0:999
         total_loss = 0.0
-        # Batch gradient: sum gradients across the four examples.
+        # Batch gradient（批次梯度）：在四个样本上累加 gradient（梯度）。
         gw1 = zeros(size(net.w1))
         gb1 = zeros(size(net.b1))
         gw2 = zeros(size(net.w2))
@@ -150,7 +148,7 @@ function train_circle!()
     data = generate_circle_data(rng; n=80)
 
     for epoch in 0:1999
-        # Shuffle each epoch for SGD.
+        # 每个 epoch 打乱顺序用于 SGD（随机梯度下降）。
         order = randperm(rng, length(data))
         total = 0.0
         for idx in order
@@ -201,7 +199,7 @@ function gradient_check_demo()
     forward!(net, x)
     dw1, db1, dw2, db2 = backward(net, y)
 
-    # Pick a weight in w1 and compare backprop grad with finite-difference grad.
+    # 选取 w1 中的一个 weight（权重），比较 backprop gradient（反向传播梯度）与有限差分 gradient（梯度）。
     h = 1e-5
     i, j = 1, 1
     saved = net.w1[i, j]
@@ -213,10 +211,10 @@ function gradient_check_demo()
     loss_minus = mse_loss(net.a2, y)
     net.w1[i, j] = saved
     numerical = (loss_plus - loss_minus) / (2h)
-    analytical = dw1[i, j]  # mse_loss is 0.5*sum((a-y)^2); backward uses err=a-y, so dw1 matches directly.
+    analytical = dw1[i, j]  # mse_loss 是 0.5*sum((a-y)^2)；backward 使用 err=a-y，因此 dw1 直接匹配。
     @printf("  w1[%d,%d]: analytical=%.6f  numerical=%.6f  diff=%.2e\n",
             i, j, analytical, numerical, abs(analytical - numerical))
-    println("  (backward() uses err=a-y, matching the 0.5*sum((a-y)^2) convention; grads align directly.)")
+    println("  (backward() 使用 err=a-y，匹配 0.5*sum((a-y)^2) 约定；gradient（梯度）直接对齐。)")
 end
 
 

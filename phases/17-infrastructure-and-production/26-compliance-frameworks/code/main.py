@@ -1,7 +1,10 @@
 """Cross-framework compliance mapping — stdlib Python.
 
+跨框架合规映射 —— 仅使用 Python 标准库。
+
 Given a control, print the frameworks it satisfies. Given a customer profile
 (geography + segment), print the required frameworks.
+给定一个控制，打印它满足的框架。给定客户画像（地理位置 + 细分），打印所需框架。
 """
 
 from __future__ import annotations
@@ -35,6 +38,7 @@ PROFILE_MAP = {
 def main() -> None:
     print("=" * 80)
     print("COMPLIANCE CONTROL MAP — one control, many frameworks")
+    print("=" * 80)
     print("=" * 80)
     for control, frameworks in CONTROL_MAP.items():
         print(f"\n{control}")

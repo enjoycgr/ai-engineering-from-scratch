@@ -1,11 +1,11 @@
-"""Qwen-VL family: M-RoPE positions + dynamic-FPS sampler + JSON tool-call parser.
+"""Qwen-VL 家族：M-RoPE 位置 + 动态 FPS 采样器 + JSON tool-call 解析器。
 
-Three toy implementations:
-  1. M-RoPE rotation table across text, image, and video tokens.
-  2. Dynamic-FPS sampler that picks frames-per-second from a target token budget.
-  3. JSON-output parser for Qwen2.5-VL-style agent tool calls.
+三个玩具实现：
+  1. 跨文本、图像和视频 token 的 M-RoPE 旋转表。
+  2. 从目标 token 预算挑选每秒帧数的动态 FPS 采样器。
+  3. Qwen2.5-VL 风格 agent tool call 的 JSON 输出解析器。
 
-Stdlib only. The intent is a working mental model, not production code.
+仅 stdlib。意图是工作的心智模型，不是生产代码。
 """
 
 from __future__ import annotations

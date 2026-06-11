@@ -1,4 +1,4 @@
-"""End-to-end LLM pipeline orchestrator.
+"""端到端 LLM pipeline orchestrator (编排器)。
 
 Twelve stages wired as a DAG. Each stage is a placeholder that emits a typed
 artifact with a content-addressed hash. The orchestrator resolves dependencies,

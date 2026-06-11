@@ -2,14 +2,17 @@ import math
 import re
 
 
+# 匹配单词（含可选内部撇号）或数字的正则表达式
 TOKEN_RE = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)?|[0-9]+")
 
 
 def tokenize(text):
+    """将原始文本拆分为小写 token。"""
     return [t.lower() for t in TOKEN_RE.findall(text)]
 
 
 def build_vocab(docs):
+    """从分词后的文档构建 {token: index} 词汇表。"""
     vocab = {}
     for doc in docs:
         for token in doc:
@@ -19,6 +22,7 @@ def build_vocab(docs):
 
 
 def bag_of_words(docs, vocab):
+    """构建文档-词项计数矩阵（Bag of Words）。"""
     matrix = [[0] * len(vocab) for _ in docs]
     for i, doc in enumerate(docs):
         for token in doc:
@@ -28,6 +32,7 @@ def bag_of_words(docs, vocab):
 
 
 def document_frequency(bow_matrix):
+    """计算每个词汇项的文档频率。"""
     df = [0] * len(bow_matrix[0])
     for row in bow_matrix:
         for j, count in enumerate(row):
@@ -37,10 +42,12 @@ def document_frequency(bow_matrix):
 
 
 def inverse_document_frequency(df, n_docs):
+    """计算平滑后的逆文档频率（IDF），与 scikit-learn 默认行为匹配。"""
     return [math.log((n_docs + 1) / (d + 1)) + 1 for d in df]
 
 
 def tfidf(bow_matrix):
+    """将 BoW 矩阵转换为 TF-IDF 矩阵。"""
     n_docs = len(bow_matrix)
     df = document_frequency(bow_matrix)
     idf = inverse_document_frequency(df, n_docs)
@@ -53,6 +60,7 @@ def tfidf(bow_matrix):
 
 
 def l2_normalize(matrix):
+    """对矩阵的每一行进行 L2 归一化。"""
     out = []
     for row in matrix:
         norm = math.sqrt(sum(x * x for x in row))
@@ -61,6 +69,7 @@ def l2_normalize(matrix):
 
 
 def cosine_similarity(a, b):
+    """计算两个 L2 归一化向量之间的余弦相似度（即点积）。"""
     return sum(x * y for x, y in zip(a, b))
 
 

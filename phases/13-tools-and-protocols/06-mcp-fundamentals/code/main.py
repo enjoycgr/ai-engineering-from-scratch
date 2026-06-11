@@ -1,10 +1,10 @@
-"""Phase 13 Lesson 06 - MCP fundamentals, JSON-RPC 2.0 lifecycle walk.
+"""Phase 13 Lesson 06 - MCP 基础，JSON-RPC 2.0 生命周期走过。
 
-Plays out the initialize -> tools/list -> tools/call sequence by hand with
-stdlib JSON-RPC envelopes. No transport, no real server - just the message
-shapes so you can compare to the 2025-11-25 spec line by line.
+手工展示 initialize -> tools/list -> tools/call 序列，
+使用标准库 JSON-RPC 信封。无传输，无真实服务器——只有消息形状，
+以便你可以逐行与 2025-11-25 规范对比。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

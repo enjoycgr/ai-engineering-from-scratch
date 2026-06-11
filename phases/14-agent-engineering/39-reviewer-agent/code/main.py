@@ -1,10 +1,10 @@
 """Reviewer agent stub with a five-dimension rubric.
 
-Consumes builder artifacts (diff summary, state, feedback, verification verdict)
-and emits review_report.json with per-dimension scores and a final verdict.
+消费构建者工件（差异摘要、状态、反馈、验证裁决）
+并发出 review_report.json，包含每维度分数和最终裁决。
 
-In production each dimension scorer calls an LLM. Here we keep them
-deterministic for the lesson — the structure is what travels.
+在生产中，每个维度评分器调用 LLM。这里我们保持它们是
+确定性的，以便课程自包含——结构才是传递的东西。
 
 Run: python3 code/main.py
 """

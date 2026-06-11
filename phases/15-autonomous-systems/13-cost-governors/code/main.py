@@ -1,13 +1,13 @@
-"""Layered cost-governor simulator — stdlib Python.
+"""分层成本治理器 (cost-governor) 模拟器 —— stdlib Python。
 
-Simulates an agent that drifts into a polling loop after 30 turns. Compares
-three configurations:
+模拟一个智能体在第 30 轮后漂入轮询循环。对比
+三种配置：
 
-  1. no caps: unbounded spend
-  2. monthly cap only: catches eventually, spends a lot first
-  3. layered stack: per-request + iteration + velocity limit + monthly cap
+  1. no caps：无界支出
+  2. monthly cap only：最终捕获，但先花很多
+  3. layered stack：per-request + iteration + velocity limit + monthly cap
 
-Metrics: turns executed, total tokens, total dollars, trigger that fired.
+指标：执行的轮数、总 token 数、总美元数、触发的限制。
 """
 
 from __future__ import annotations
@@ -15,13 +15,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
-# ---------- Simulated run profile ----------
+# ---------- 模拟运行概况 ----------
 
 NORMAL_TURN_TOKENS = 2_500
 LOOP_TURN_TOKENS = 8_000
 LOOP_STARTS_AT = 30
 
-# $/token (input+output blended) for a Sonnet-class model, mid-2026 rates
+# Sonnet 级模型的 $/token（input+output 混合），2026 年中期费率
 DOLLARS_PER_KTOK = 0.003
 
 
@@ -29,14 +29,14 @@ def turn_cost(turn: int) -> int:
     return LOOP_TURN_TOKENS if turn >= LOOP_STARTS_AT else NORMAL_TURN_TOKENS
 
 
-# ---------- Governor ----------
+# ---------- 治理器 ----------
 
 @dataclass
 class Governor:
     max_tokens_per_request: int = 10_000
     max_turns: int = 200
     max_budget_usd: float = 50.0
-    velocity_usd_per_min: float = 5.0       # cut off above this rolling rate
+    velocity_usd_per_min: float = 5.0       # 超过此滚动速率则切断
     velocity_window_min: float = 10.0
     monthly_cap_usd: float = 500.0
 
@@ -46,7 +46,7 @@ class Governor:
     enable_session_cap: bool = True
     enable_monthly_cap: bool = True
 
-    # per-minute turn rate (seconds per turn) for the simulator
+    # 模拟器的每分钟轮次速率（每轮秒数）
     seconds_per_turn: float = 30.0
 
 
@@ -55,7 +55,7 @@ class Run:
     turns: int = 0
     tokens: int = 0
     dollars: float = 0.0
-    history: list[tuple[float, float]] = field(default_factory=list)  # (minute, dollars-at-that-minute)
+    history: list[tuple[float, float]] = field(default_factory=list)  # (分钟, 该分钟美元数)
     stopped_by: str = ""
 
 
@@ -71,9 +71,9 @@ def velocity_exceeded(run: Run, gov: Governor, now_min: float) -> bool:
         return False
     start_min, start_dollars = window[0]
     window_dollars = run.dollars - start_dollars
-    # Use the actual elapsed time inside the window, not the nominal
-    # window width. During warm-up (now_min < velocity_window_min) this
-    # stops the rate being under-reported.
+    # 使用窗口内的实际经过时间，而非名义窗口宽度。
+    # 在预热期间（now_min < velocity_window_min）这
+    # 防止速率被低估。
     elapsed = max(now_min - start_min, EPSILON_MIN)
     rate = window_dollars / elapsed
     return rate > gov.velocity_usd_per_min
@@ -119,7 +119,7 @@ def main() -> None:
     print("LAYERED COST GOVERNORS (Phase 15, Lesson 13)")
     print("=" * 85)
     print()
-    print("Agent enters a polling loop at turn 30.")
+    print("智能体在第 30 轮进入轮询循环。")
     print("-" * 85)
 
     # 1. no caps
@@ -130,7 +130,7 @@ def main() -> None:
         enable_session_cap=False,
         enable_monthly_cap=False,
     )
-    # Cap at something huge so the sim terminates; this line is the "unbounded" case.
+    # 设一个很大的上限使模拟终止；这一行是 "unbounded" 情况。
     g.max_turns = 10_000
     g.enable_iter_cap = True
     simulate(g, "no caps (iter 10k sim)")
@@ -151,14 +151,14 @@ def main() -> None:
 
     print()
     print("=" * 85)
-    print("HEADLINE: caps must layer, because failure modes differ by time scale")
+    print("HEADLINE: 上限必须分层，因为失败模式随时间尺度而异")
     print("-" * 85)
-    print("  Monthly cap fires late: the wallet is already half-gone.")
-    print("  Velocity limit ($5/min rolling) catches a loop within minutes.")
-    print("  Iteration cap prevents any single run from exceeding N turns.")
-    print("  Per-request cap prevents any one completion from being unbounded.")
-    print("  Session dollar cap (max_budget_usd) closes the seatbelt on cost.")
-    print("  Each layer covers a different failure (loop, leak, surge, release).")
+    print("  Monthly cap 触发很晚：钱包已经花了一半。")
+    print("  Velocity limit ($5/min 滚动) 在几分钟内捕获循环。")
+    print("  Iteration cap 防止任何单次运行超过 N 轮。")
+    print("  Per-request cap 防止任何一次完成无界。")
+    print("  Session dollar cap (max_budget_usd) 系紧成本安全带。")
+    print("  每一层覆盖不同的失败（循环、泄露、激增、释放）。
 
 
 if __name__ == "__main__":

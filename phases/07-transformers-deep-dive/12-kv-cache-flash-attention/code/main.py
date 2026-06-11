@@ -1,9 +1,9 @@
-"""KV cache + tiled (Flash-style) attention in pure stdlib.
+"""KV cache + 分块（Flash 风格）注意力，纯标准库实现。
 
-Shows:
-- naive O(N^2) incremental decoder vs KV-cached O(N) decoder
-- running-max softmax that yields bit-identical output tile-by-tile
-- KV cache size math for realistic 2026 models
+展示内容：
+- 朴素 O(N^2) 增量解码器 vs KV 缓存 O(N) 解码器
+- 运行最大值 softmax，逐 tile 产生 bit-identical（逐位相同）输出
+- 面向 2026 年真实模型的 KV cache 大小计算
 """
 
 import math
@@ -22,7 +22,7 @@ def softmax(xs):
 
 
 def attention_full(q, Ks, Vs):
-    """Single-query attention against full lists of keys and values."""
+    """单 query 对完整 key 和 value 列表的注意力。"""
     scores = [dot(q, k) / math.sqrt(len(q)) for k in Ks]
     weights = softmax(scores)
     out = [0.0] * len(Vs[0])
@@ -33,7 +33,7 @@ def attention_full(q, Ks, Vs):
 
 
 def tiled_softmax_dot(q, Ks, Vs, tile=4):
-    """Flash-attention-style incremental softmax(qK^T)V with tile size `tile`."""
+    """Flash-attention 风格的增量 softmax(qK^T)V，tile 大小为 `tile`。"""
     d_head = len(Vs[0])
     scale = 1.0 / math.sqrt(len(q))
     m = float("-inf")
@@ -70,8 +70,8 @@ class KVCache:
 
 
 def decode_naive(all_K, all_V, all_queries):
-    """Recompute attention over the full prefix at every step.
-    Returns list of outputs, one per generated token. Op count = 1+2+...+N = N(N+1)/2.
+    """每一步都重新计算对完整前缀的注意力。
+    返回输出列表，每个生成 token 一个。操作数 = 1+2+...+N = N(N+1)/2。
     """
     outputs = []
     ops = 0
@@ -85,7 +85,7 @@ def decode_naive(all_K, all_V, all_queries):
 
 
 def decode_cached(all_K, all_V, all_queries):
-    """KV cache: each new step appends one K,V and queries against the cache."""
+    """KV cache：每一步追加一个 K,V 并用 cache 做注意力查询。"""
     cache = KVCache()
     outputs = []
     ops = 0
@@ -98,7 +98,7 @@ def decode_cached(all_K, all_V, all_queries):
 
 
 def kv_cache_bytes(N, n_layers, n_heads_kv, d_head, dtype=2):
-    """Total KV cache bytes. dtype=2 for fp16/bf16, 1 for int8, 4 for fp32."""
+    """KV cache 总字节数。dtype=2 表示 fp16/bf16，1 表示 int8，4 表示 fp32。"""
     return 2 * N * n_layers * n_heads_kv * d_head * dtype
 
 
@@ -107,7 +107,7 @@ def main():
     d_head = 8
     N = 10
 
-    # Random Q, K, V for a 10-token sequence, one head.
+    # 为一个 10-token 序列、单个 head 生成随机 Q, K, V。
     all_Q = [[rng.gauss(0, 1) for _ in range(d_head)] for _ in range(N)]
     all_K = [[rng.gauss(0, 1) for _ in range(d_head)] for _ in range(N)]
     all_V = [[rng.gauss(0, 1) for _ in range(d_head)] for _ in range(N)]
@@ -121,8 +121,8 @@ def main():
     print("outputs match (max abs diff over all tokens):",
           f"{max(abs(a - b) for va, vb in zip(naive, cached) for a, b in zip(va, vb)):.2e}")
     print()
-    print("* naive has same per-step cost; saving comes from not REcomputing earlier")
-    print("  hidden states. counting K,V recomputes would make naive O(N^2) in matmuls.")
+    print("* naive 每步成本相同；节省来自于不重新计算之前的")
+    print("  隐藏状态。统计 K,V 重算会让 naive 在矩阵乘法上达到 O(N^2)。")
     print()
 
     print("=== tiled-softmax (Flash) vs standard softmax agreement ===")
@@ -132,7 +132,7 @@ def main():
         tiled = tiled_softmax_dot(q, all_K, all_V, tile=tile)
         err = max(abs(a - b) for a, b in zip(std, tiled))
         print(f"  tile={tile:>3}  max abs diff = {err:.2e}")
-    print("  bit-identical up to floating-point reassociation. no approximation.")
+    print("  在浮点重关联范围内 bit-identical（逐位相同）。无近似。")
     print()
 
     print("=== KV cache size table (fp16) ===")
@@ -149,8 +149,8 @@ def main():
             b = kv_cache_bytes(N_ctx, L, h_kv, d_h, dtype=2)
             print(f"  {name:<24}  N={N_ctx:>7}  -> {b / 1e9:.2f} GB")
     print()
-    print("takeaway: at 128K context, 70B-class dense models use 10+ GB just for KV.")
-    print("GQA and MLA are why modern long-context inference is affordable.")
+    print("要点：在 128K 上下文下，70B 级别的稠密模型仅 KV 就占用 10+ GB。")
+    print("GQA 和 MLA 是现代长上下文推理可负担的原因。")
 
 
 if __name__ == "__main__":

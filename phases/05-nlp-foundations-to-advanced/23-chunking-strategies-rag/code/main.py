@@ -8,6 +8,8 @@ def tokenize(text):
 
 
 def hash_embed(text, dim=256):
+    # Hashing-trick 嵌入器：每个 token 向一个哈希维度贡献 +/-1。
+    # 确定性、无需训练，可作为生产级嵌入器（BGE-M3、text-embedding-3-small、voyage-3）的替代品。
     vec = [0.0] * dim
     for tok in tokenize(text):
         h = hashlib.md5(tok.encode()).digest()
@@ -62,6 +64,8 @@ def split_sentences(text):
 
 
 def chunk_semantic(text, threshold=0.3, min_chars=40):
+    # 语义分块：在相邻句子 embedding (嵌入) 相似度低于阈值处切分。
+    # threshold 过高会产生碎片；过低会产生一个巨大 chunk。
     sentences = split_sentences(text)
     if not sentences:
         return []
@@ -77,12 +81,14 @@ def chunk_semantic(text, threshold=0.3, min_chars=40):
 
 
 def chunk_sentence(text, sentences_per_chunk=3):
+    # 句子分块：每个 chunk N 个句子。成本仅为语义分块的一小部分。
     sentences = split_sentences(text)
     return [" ".join(sentences[i:i + sentences_per_chunk])
             for i in range(0, len(sentences), sentences_per_chunk)]
 
 
 def chunk_parent_child(text, parent_size=800, child_size=200):
+    # 父文档分块：存储小的子 chunk 用于检索，大的父 chunk 用于上下文。
     parents = chunk_recursive(text, size=parent_size)
     mapping = []
     for p_idx, parent in enumerate(parents):
@@ -93,6 +99,7 @@ def chunk_parent_child(text, parent_size=800, child_size=200):
 
 
 def retrieve_recall(chunks, query, gold_substrings, top_k=3):
+    # 计算 recall@k：top-k chunk 中是否包含任一 gold 子串。
     chunk_embs = [hash_embed(c) for c in chunks]
     q_emb = hash_embed(query)
     scored = sorted([(cosine(e, q_emb), i) for i, e in enumerate(chunk_embs)], reverse=True)

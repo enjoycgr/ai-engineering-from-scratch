@@ -1,6 +1,6 @@
 ---
 name: prompt-jax-optimizer
-description: Choose and configure the right JAX/Optax optimizer for a given training scenario
+description: 根据给定的训练场景选择和配置合适的 JAX/Optax optimizer (优化器)
 phase: 03
 lesson: 12
 ---

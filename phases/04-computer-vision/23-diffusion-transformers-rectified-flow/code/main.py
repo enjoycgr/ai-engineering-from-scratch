@@ -30,6 +30,7 @@ class DiTBlock(nn.Module):
     def __init__(self, dim=96, heads=3, mlp_ratio=4, cond_dim=96):
         super().__init__()
         self.adaln1 = AdaLNZero(dim, cond_dim)
+        # 多头注意力（Multihead Attention）
         self.attn = nn.MultiheadAttention(dim, heads, batch_first=True)
         self.adaln2 = AdaLNZero(dim, cond_dim)
         self.mlp = nn.Sequential(
@@ -55,6 +56,7 @@ class TinyDiT(nn.Module):
         self.num_patches = (image_size // patch_size) ** 2
         self.in_channels = in_channels
         self.patch = nn.Conv2d(in_channels, dim, kernel_size=patch_size, stride=patch_size)
+        # 可学习的位置编码（positional encoding）
         self.pos = nn.Parameter(torch.zeros(1, self.num_patches, dim))
         self.time_mlp = nn.Sequential(
             nn.Linear(dim, dim * 2),

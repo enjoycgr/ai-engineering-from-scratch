@@ -18,6 +18,7 @@ class Value:
         out = Value(self.data + other.data, (self, other), '+')
 
         def _backward():
+            # 加法: d(a+b)/da = 1, d(a+b)/db = 1
             self.grad += out.grad
             other.grad += out.grad
 
@@ -32,6 +33,7 @@ class Value:
         out = Value(self.data * other.data, (self, other), '*')
 
         def _backward():
+            # 乘法: d(a*b)/da = b, d(a*b)/db = a
             self.grad += other.data * out.grad
             other.grad += self.data * out.grad
 
@@ -48,17 +50,20 @@ class Value:
         return self + (-other)
 
     def sigmoid(self):
+        # sigmoid (S型函数) 激活函数，带数值裁剪防止溢出
         x = max(-500, min(500, self.data))
         s = 1.0 / (1.0 + math.exp(-x))
         out = Value(s, (self,), 'sigmoid')
 
         def _backward():
+            # sigmoid 导数: s * (1 - s)
             self.grad += (s * (1 - s)) * out.grad
 
         out._backward = _backward
         return out
 
     def backward(self):
+        # 通过 topological sort (拓扑排序) 构建计算图，然后反向传播 gradient (梯度)
         topo = []
         visited = set()
 
@@ -70,23 +75,26 @@ class Value:
                 topo.append(v)
 
         build_topo(self)
-        self.grad = 1.0
+        self.grad = 1.0  # dL/dL = 1
         for v in reversed(topo):
             v._backward()
 
 
 def mse_loss(predicted, target):
+    # MSE loss function (均方误差损失函数): (predicted - target)^2
     diff = predicted + Value(-target)
     return diff * diff
 
 
 class Neuron:
     def __init__(self, n_inputs):
+        # He-like 初始化，按 sqrt(2/n_inputs) 缩放，防止 sigmoid 饱和
         scale = (2.0 / n_inputs) ** 0.5
         self.weights = [Value(random.uniform(-scale, scale)) for _ in range(n_inputs)]
         self.bias = Value(0.0)
 
     def __call__(self, x):
+        # 计算 weighted sum (加权和) + bias (偏置)，然后通过 sigmoid 激活
         act = sum((wi * xi for wi, xi in zip(self.weights, x)), self.bias)
         return act.sigmoid()
 
@@ -129,6 +137,7 @@ class Network:
         return params
 
     def zero_grad(self):
+        # 将所有 parameter (参数) 的 gradient (梯度) 清零
         for p in self.parameters():
             p.grad = 0.0
 
@@ -161,6 +170,7 @@ def train_xor():
         net.zero_grad()
         total_loss.backward()
 
+        # gradient descent (梯度下降) 参数更新
         for p in net.parameters():
             p.data -= learning_rate * p.grad
 
@@ -205,6 +215,7 @@ def train_circle():
             loss = mse_loss(pred, target)
             net.zero_grad()
             loss.backward()
+            # online SGD (随机梯度下降): 每个样本后更新 weight (权重)
             for p in net.parameters():
                 p.data -= learning_rate * p.grad
             total_loss_val += loss.data

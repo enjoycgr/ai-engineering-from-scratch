@@ -25,6 +25,7 @@ DETERMINERS = {"the", "a", "an"}
 
 
 def extract_mentions(text):
+    # 提取三种提及：代词、定指名词短语（"the company"）、命名实体（大写名字）。
     mentions = []
     for sent_idx, sent in enumerate(re.split(r"(?<=[.!?])\s+", text)):
         tokens = re.findall(r"[A-Za-z]+|[^\s]", sent)
@@ -60,6 +61,7 @@ def extract_mentions(text):
 
 
 def infer_gender(name):
+    # 根据名字推断性别；未知时返回 "u"（未知）。
     first = name.split()[0].lower()
     if first in FEMALE_FIRST:
         return "f"
@@ -69,6 +71,7 @@ def infer_gender(name):
 
 
 def agreement_score(mention, candidate):
+    # 性别和数一致性打分。不匹配时给予强惩罚。
     score = 0.0
     mf = mention["features"]
     cf = candidate["features"]
@@ -82,11 +85,13 @@ def agreement_score(mention, candidate):
 
 
 def recency_score(mention, candidate):
+    # 越近的候选先行词得分越高。
     delta = (mention["span"][0] - candidate["span"][0]) * 2 + max(0, mention["span"][1] - candidate["span"][1]) * 0.01
     return -delta
 
 
 def resolve(mentions):
+    # 对每个代词，在之前的命名实体和名词性提及中选择最佳先行词。
     links = []
     for i, m in enumerate(mentions):
         if m["type"] != "pronoun":
@@ -101,6 +106,7 @@ def resolve(mentions):
 
 
 def clusters(mentions, links):
+    # 使用并查集（union-find）将共指提及聚类。
     parent = {id(m): id(m) for m in mentions}
 
     def find(x):

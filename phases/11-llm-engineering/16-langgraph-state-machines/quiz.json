@@ -3,7 +3,7 @@
   "questions": [
     {
       "stage": "post",
-      "question": "Why does the `messages` field in a LangGraph State TypedDict need `Annotated[list, add_messages]`?",
+      "question": "为什么 LangGraph State TypedDict 中的 `messages` 字段需要 `Annotated[list, add_messages]`？",
       "options": [
         "It enables streaming of token deltas from the model.",
         "Without the reducer, node updates overwrite the list instead of appending, so every turn loses the prior history.",
@@ -15,7 +15,7 @@
     },
     {
       "stage": "post",
-      "question": "What is the difference between `interrupt_before=['tools']` and `interrupt_after=['tools']`?",
+      "question": "`interrupt_before=['tools']` 和 `interrupt_after=['tools']` 有什么区别？",
       "options": [
         "No difference; they are aliases.",
         "`interrupt_before` pauses after the model emits tool_calls but before the tools execute; `interrupt_after` pauses after the tools have already run.",
@@ -27,7 +27,7 @@
     },
     {
       "stage": "post",
-      "question": "Given a thread's checkpoint history, how do you time-travel to a prior state and explore a different branch?",
+      "question": "给定一个 thread 的 checkpoint history，如何 time-travel 到先前状态并探索不同分支？",
       "options": [
         "Call `graph.reset(thread_id)` then `graph.invoke(new_input, config)`.",
         "Delete the checkpoint directory and reinvoke with the same thread_id.",
@@ -39,7 +39,7 @@
     },
     {
       "stage": "post",
-      "question": "In a four-node ReAct graph (agent, tools, conditional edge, static edge back to agent), where does the conditional edge live?",
+      "question": "在一个四节点 ReAct 图（agent、tools、conditional edge、static edge back to agent）中，conditional edge 位于哪里？",
       "options": [
         "From `tools` back to `agent`, routing on whether tool output was empty.",
         "From `agent`, routing to `tools` if the last message has tool_calls and to `END` otherwise.",
@@ -51,7 +51,7 @@
     },
     {
       "stage": "post",
-      "question": "When should you use `Send(node_name, state)` instead of a plain edge?",
+      "question": "何时应使用 `Send(node_name, state)` 而非普通 edge？",
       "options": [
         "To retry a node after a failure.",
         "To defer a node until a timer expires.",

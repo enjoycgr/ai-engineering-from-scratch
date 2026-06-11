@@ -1,7 +1,7 @@
 """Generate a handoff packet from workbench artifacts.
 
-Reads state, verdict, review, and feedback (here stubbed in-memory),
-writes handoff.md for humans and handoff.json for the next agent.
+读取状态、裁决、审查和反馈（这里以内存存根），
+为人类写 handoff.md，为下一个智能体写 handoff.json。
 
 Run: python3 code/main.py
 """

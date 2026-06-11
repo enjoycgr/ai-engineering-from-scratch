@@ -678,16 +678,16 @@ async function protocolDemo() {
     identityRegistry
   );
 
-  console.log("=== Protocol Demo ===\n");
+  console.log("=== 协议演示 ===\n");
 
-  console.log("1. Agent Discovery (A2A)");
+  console.log("1. Agent 发现 (A2A)");
   const researchAgents = registry.discoverBySkillTag("research");
   console.log(
-    `   Found ${researchAgents.length} agent(s):`,
+    `   找到 ${researchAgents.length} 个 agent:`,
     researchAgents.map((a) => a.name)
   );
 
-  console.log("\n2. Identity Verification (ANP)");
+  console.log("\n2. 身份验证 (ANP)");
   const message = textMessage("user", "Research React 19 compiler features");
   const signature = signPayload(coderIdentity, message.id);
   const verified = identityRegistry.verify(
@@ -696,9 +696,9 @@ async function protocolDemo() {
     message.id
   );
   console.log(`   Coder DID: ${coderIdentity.did}`);
-  console.log(`   Signature verified: ${verified}`);
+  console.log(`   签名已验证: ${verified}`);
 
-  console.log("\n3. Task Delegation (A2A + ACP + ANP)");
+  console.log("\n3. 任务委派 (A2A + ACP + ANP)");
   const result = await gateway.delegateTask(
     coderIdentity.did,
     signature,
@@ -708,32 +708,32 @@ async function protocolDemo() {
   );
 
   if ("error" in result) {
-    console.log(`   Error: ${result.error}`);
+    console.log(`   错误: ${result.error}`);
     return;
   }
 
-  console.log(`   Task ID: ${result.task.id}`);
-  console.log(`   Task state: ${result.task.status.state}`);
-  console.log(`   Artifacts: ${result.task.artifacts.length}`);
+  console.log(`   任务 ID: ${result.task.id}`);
+  console.log(`   任务状态: ${result.task.status.state}`);
+  console.log(`   产物: ${result.task.artifacts.length}`);
 
-  console.log("\n4. Audit Trail (ACP)");
-  console.log(`   Run ID: ${result.audit.runId}`);
-  console.log(`   Status: ${result.audit.status}`);
-  console.log(`   Trajectory steps: ${result.audit.trajectory.length}`);
+  console.log("\n4. 审计追踪 (ACP)");
+  console.log(`   运行 ID: ${result.audit.runId}`);
+  console.log(`   状态: ${result.audit.status}`);
+  console.log(`   轨迹步骤: ${result.audit.trajectory.length}`);
   for (const step of result.audit.trajectory) {
     console.log(`     - ${step.reasoning}`);
     if (step.toolName) {
-      console.log(`       Tool: ${step.toolName}`);
+      console.log(`       工具: ${step.toolName}`);
     }
   }
 
-  console.log("\n5. Full Audit Log");
+  console.log("\n5. 完整审计日志");
   const fullLog = auditRunner.getFullAuditLog();
-  console.log(`   Total runs: ${fullLog.length}`);
+  console.log(`   总运行数: ${fullLog.length}`);
   for (const entry of fullLog) {
     const duration = entry.completedAt
       ? `${entry.completedAt - entry.startedAt}ms`
-      : "in-progress";
+      : "进行中";
     console.log(`   ${entry.agentName}: ${entry.status} (${duration})`);
   }
 }

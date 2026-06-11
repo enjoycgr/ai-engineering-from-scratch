@@ -3,6 +3,7 @@ import random
 
 
 def gini_impurity(labels):
+    """计算 Gini impurity（基尼不纯度）。"""
     n = len(labels)
     if n == 0:
         return 0.0
@@ -13,6 +14,7 @@ def gini_impurity(labels):
 
 
 def entropy(labels):
+    """计算 entropy（熵）。"""
     n = len(labels)
     if n == 0:
         return 0.0
@@ -25,6 +27,7 @@ def entropy(labels):
 
 
 def information_gain(parent_labels, left_labels, right_labels, criterion="gini"):
+    """计算 information gain（信息增益）。"""
     measure = gini_impurity if criterion == "gini" else entropy
     n = len(parent_labels)
     n_left = len(left_labels)
@@ -40,6 +43,7 @@ def information_gain(parent_labels, left_labels, right_labels, criterion="gini")
 
 
 def variance_reduction(parent_values, left_values, right_values):
+    """计算 variance reduction（方差缩减），用于回归树。"""
     if len(left_values) == 0 or len(right_values) == 0:
         return 0.0
     n = len(parent_values)
@@ -52,6 +56,7 @@ def variance_reduction(parent_values, left_values, right_values):
 
 
 def _variance(values):
+    """辅助函数：计算列表的方差。"""
     n = len(values)
     if n == 0:
         return 0.0
@@ -60,12 +65,14 @@ def _variance(values):
 
 
 def _mean(values):
+    """辅助函数：计算列表的均值。"""
     if len(values) == 0:
         return 0.0
     return sum(values) / len(values)
 
 
 def majority_vote(labels):
+    """返回标签列表中的多数类。"""
     counts = {}
     for label in labels:
         counts[label] = counts.get(label, 0) + 1
@@ -73,6 +80,8 @@ def majority_vote(labels):
 
 
 class DecisionTree:
+    """从零实现的 decision tree（决策树），支持分类和回归。"""
+
     def __init__(self, max_depth=None, min_samples_split=2,
                  min_samples_leaf=1, criterion="gini",
                  max_features=None, task="classification"):
@@ -88,6 +97,7 @@ class DecisionTree:
         self.n_samples = 0
 
     def fit(self, X, y):
+        """在数据 (X, y) 上训练决策树。"""
         self.n_features = len(X[0])
         self.feature_importances_ = [0.0] * self.n_features
         self.n_samples = len(X)
@@ -99,9 +109,11 @@ class DecisionTree:
             ]
 
     def predict(self, X):
+        """对样本列表 X 进行预测。"""
         return [self._predict_one(x, self.tree) for x in X]
 
     def _build(self, X, y, depth):
+        """递归构建树。"""
         if self.task == "classification":
             all_same = len(set(y)) == 1
         else:
@@ -143,12 +155,14 @@ class DecisionTree:
         }
 
     def _make_leaf(self, y):
+        """创建叶子节点。"""
         if self.task == "classification":
             return {"leaf": True, "value": majority_vote(y)}
         else:
             return {"leaf": True, "value": _mean(y)}
 
     def _best_split(self, X, y):
+        """找到最佳分裂特征和阈值。"""
         best_feature = None
         best_threshold = None
         best_gain = -1.0
@@ -190,6 +204,7 @@ class DecisionTree:
         return best_feature, best_threshold, best_gain
 
     def _split_data(self, X, y, feature, threshold):
+        """根据特征和阈值将数据分裂为左右两部分。"""
         left_X, left_y, right_X, right_y = [], [], [], []
         for i in range(len(X)):
             if X[i][feature] <= threshold:
@@ -201,6 +216,7 @@ class DecisionTree:
         return left_X, left_y, right_X, right_y
 
     def _predict_one(self, x, node):
+        """对单个样本进行预测。"""
         if node["leaf"]:
             return node["value"]
         if x[node["feature"]] <= node["threshold"]:
@@ -208,6 +224,7 @@ class DecisionTree:
         return self._predict_one(x, node["right"])
 
     def print_tree(self, node=None, indent=""):
+        """打印树的结构。"""
         if node is None:
             node = self.tree
         if node["leaf"]:
@@ -221,6 +238,8 @@ class DecisionTree:
 
 
 class RandomForest:
+    """Random forest（随机森林）实现，使用 bagging 和特征随机化。"""
+
     def __init__(self, n_trees=100, max_depth=None,
                  min_samples_split=2, max_features="sqrt",
                  criterion="gini", task="classification"):
@@ -233,6 +252,7 @@ class RandomForest:
         self.trees = []
 
     def fit(self, X, y):
+        """在 bootstrap samples（自助样本）上训练多棵决策树。"""
         self.trees = []
         n = len(X)
         for _ in range(self.n_trees):
@@ -251,6 +271,7 @@ class RandomForest:
             self.trees.append(tree)
 
     def predict(self, X):
+        """聚合所有树的预测：分类用多数投票，回归用平均值。"""
         all_preds = [tree.predict(X) for tree in self.trees]
         predictions = []
         for i in range(len(X)):
@@ -267,6 +288,7 @@ class RandomForest:
         return predictions
 
     def feature_importances(self):
+        """返回平均后的 feature importance（特征重要性）。"""
         n_features = self.trees[0].n_features
         importances = [0.0] * n_features
         for tree in self.trees:
@@ -279,11 +301,13 @@ class RandomForest:
 
 
 def accuracy(y_true, y_pred):
+    """计算分类准确率。"""
     correct = sum(1 for a, b in zip(y_true, y_pred) if a == b)
     return correct / len(y_true)
 
 
 def generate_classification_data(n_samples=200, seed=42):
+    """生成一个 2D 三分类数据集。"""
     random.seed(seed)
     X = []
     y = []
@@ -303,6 +327,7 @@ def generate_classification_data(n_samples=200, seed=42):
 
 
 def generate_regression_data(n_samples=200, seed=42):
+    """生成一个 1D 回归数据集：y = sin(x) * x + 噪声。"""
     random.seed(seed)
     X = []
     y = []
@@ -315,6 +340,7 @@ def generate_regression_data(n_samples=200, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据随机划分为训练集和测试集。"""
     random.seed(seed)
     n = len(X)
     indices = list(range(n))
@@ -331,7 +357,7 @@ def train_test_split(X, y, test_ratio=0.2, seed=42):
 
 def demo_split_criteria():
     print("=" * 65)
-    print("SPLIT CRITERIA: GINI vs ENTROPY")
+    print("SPLIT CRITERIA: Gini vs Entropy")
     print("=" * 65)
     print()
 
@@ -358,7 +384,7 @@ def demo_split_criteria():
 
 def demo_information_gain():
     print("=" * 65)
-    print("INFORMATION GAIN: CHOOSING THE BEST SPLIT")
+    print("INFORMATION GAIN: Choosing the Best Split")
     print("=" * 65)
     print()
 
@@ -397,7 +423,7 @@ def demo_information_gain():
 
 def demo_decision_tree():
     print("=" * 65)
-    print("DECISION TREE: CLASSIFICATION")
+    print("DECISION TREE: Classification")
     print("=" * 65)
     print()
 
@@ -436,7 +462,7 @@ def demo_decision_tree():
 
 def demo_random_forest():
     print("=" * 65)
-    print("RANDOM FOREST: ENSEMBLE POWER")
+    print("RANDOM FOREST: Ensemble Power")
     print("=" * 65)
     print()
 
@@ -509,7 +535,7 @@ def demo_feature_importance():
 
 def demo_regression_tree():
     print("=" * 65)
-    print("REGRESSION TREE: PIECEWISE CONSTANT APPROXIMATION")
+    print("REGRESSION TREE: Piecewise Constant Approximation")
     print("=" * 65)
     print()
 
@@ -547,7 +573,7 @@ def demo_regression_tree():
 
 def demo_gini_vs_entropy():
     print("=" * 65)
-    print("GINI vs ENTROPY: DO THEY DISAGREE?")
+    print("GINI vs ENTROPY: Do They Disagree?")
     print("=" * 65)
     print()
 
@@ -576,7 +602,7 @@ def demo_gini_vs_entropy():
 
 def demo_single_tree_vs_forest():
     print("=" * 65)
-    print("SINGLE TREE vs RANDOM FOREST: STABILITY")
+    print("SINGLE TREE vs RANDOM FOREST: Stability")
     print("=" * 65)
     print()
 

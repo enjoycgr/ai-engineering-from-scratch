@@ -7,10 +7,12 @@ def simulate_copy_accuracy(seq_len, context_dim=8, epochs=200, n_train=300, seed
     vocab = list("abcdefghij")
     vocab_size = len(vocab)
 
+    # 为每个词生成随机 embedding (嵌入)
     embed = [[rng.gauss(0, 0.3) for _ in range(context_dim)] for _ in range(vocab_size)]
     context = [0.0] * context_dim
 
     def encode(sequence):
+        """通过衰减累加模拟 encoder (编码器) 的固定大小 context vector (上下文向量)。"""
         c = [0.0] * context_dim
         decay = 0.85
         for token in sequence:
@@ -20,6 +22,7 @@ def simulate_copy_accuracy(seq_len, context_dim=8, epochs=200, n_train=300, seed
         return c
 
     def decode_score(context, target):
+        """模拟 decoder (解码器)：随着位置推移，从 context vector 恢复 token 的能力逐渐下降。"""
         total = 0.0
         recovery = 1.0
         for token in target:

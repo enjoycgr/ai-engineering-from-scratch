@@ -1,13 +1,13 @@
 """Vision transformer patch tokenizer and geometry calculator — stdlib Python.
 
-Given a ViT config (patch size, resolution, hidden dim, depth, heads), computes:
-  - grid shape and sequence length after patch tokenization
-  - per-component parameter count (patch embed, pos, blocks, LN)
-  - FLOPs per forward (dominated by attention + MLP)
-  - comparison table across canonical 2026 encoders
+给定一个 ViT 配置（patch size、分辨率、hidden dim、depth、heads），计算：
+  - patch tokenization 后的网格形状和序列长度
+  - 每组件参数量（patch embed、pos、blocks、LN）
+  - 每次 forward 的 FLOPs（由 attention + MLP 主导）
+  - 跨 2026 年标准编码器的对比表
 
-Also walks a toy 8x8 grayscale image through the patch-flatten-project pipeline
-so the primitive is concrete. No numpy, no torch — just ints and lists.
+还走过一个玩具 8x8 灰度图像的 patch-flatten-project 流水线，
+让原语变得具体。无 numpy，无 torch——只有 int 和 list。
 """
 
 from __future__ import annotations
@@ -104,8 +104,8 @@ def fmt(n: int) -> str:
 
 
 def patch_toy_image() -> None:
-    """Walk an 8x8 grayscale image through patch-tokenize with P=4.
-    Grid is 2x2 → 4 tokens. Each patch is 4x4=16 pixels flat."""
+    """用 P=4 走过 8x8 灰度图像的 patch-tokenize。
+    网格是 2x2 → 4 个 token。每个 patch 是 4x4=16 个像素展平。"""
     print("\nToy image patch tokenization (8x8 grayscale, patch_size=4)")
     print("-" * 60)
     img = [[(r * 8 + c) % 256 for c in range(8)] for r in range(8)]

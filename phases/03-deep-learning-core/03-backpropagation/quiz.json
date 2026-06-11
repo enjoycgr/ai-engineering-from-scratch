@@ -1,37 +1,62 @@
 [
   {
-    "question": "What is the chain rule in the context of neural networks?",
-    "options": ["A rule for chaining layers together", "If y = f(g(x)), then dy/dx = f'(g(x)) * g'(x) -- multiply derivatives along the path", "A method for initializing weights", "A technique for batching data"],
+    "question": "在神经网络中，chain rule（链式法则）是什么？",
+    "options": [
+      "将层串联在一起的规则",
+      "如果 y = f(g(x))，那么 dy/dx = f'(g(x)) * g'(x) —— 沿路径相乘导数",
+      "一种初始化 weight（权重）的方法",
+      "一种数据 batching（分批）技术"
+    ],
     "correct": 1,
-    "explanation": "The chain rule lets you compute the derivative of a composite function by multiplying the local derivatives at each step. Backpropagation applies this systematically through the computational graph.",
+    "explanation": "chain rule（链式法则）让你通过将每一步的 local derivative（局部导数）相乘来计算复合函数的导数。backpropagation（反向传播）系统性地将此应用于计算图。",
     "stage": "pre"
   },
   {
-    "question": "Why is backpropagation more efficient than computing each gradient independently?",
-    "options": ["It uses less memory", "It computes all gradients in a single backward pass instead of one forward pass per parameter", "It only works on small networks", "It avoids using the chain rule"],
+    "question": "为什么 backpropagation（反向传播）比独立计算每个 gradient（梯度）更高效？",
+    "options": [
+      "它使用更少的内存",
+      "它在单次 backward pass（反向传播/后向传递）中计算所有 gradient（梯度），而不是每个参数一次 forward pass（前向传播）",
+      "它只适用于小网络",
+      "它避免使用 chain rule（链式法则）"
+    ],
     "correct": 1,
-    "explanation": "Computing gradients independently requires one forward pass per parameter (millions of passes for a large network). Backpropagation computes all gradients in one backward pass by reusing intermediate values stored during the forward pass.",
+    "explanation": "独立计算 gradient（梯度）需要每个参数一次 forward pass（前向传播）（大网络需要数百万次传递）。backpropagation（反向传播）通过复用 forward pass（前向传播）期间存储的中间值，在单次 backward pass（反向传播/后向传递）中计算所有 gradient（梯度）。",
     "stage": "pre"
   },
   {
-    "question": "In the backward pass, why do we use '+=' instead of '=' when accumulating gradients?",
-    "options": ["It's a Python convention", "A value might be used in multiple operations, so its gradient is the sum of gradients from all paths", "It prevents overflow", "It makes the code run faster"],
+    "question": "在 backward pass（反向传播/后向传递）中，为什么累积 gradient（梯度）时使用 '+=' 而不是 '='？",
+    "options": [
+      "这是 Python 的惯例",
+      "一个 Value 可能被用于多个操作，因此它的 gradient（梯度）是所有路径的 gradient（梯度）之和",
+      "它防止溢出",
+      "它让代码运行更快"
+    ],
     "correct": 1,
-    "explanation": "When a Value is used as input to multiple operations (e.g., x used in both x*w1 and x*w2), its total gradient is the sum of the gradients flowing back from each operation. Using += accumulates these correctly.",
+    "explanation": "当一个 Value 被用作多个操作的输入时（例如 x 同时用于 x*w1 和 x*w2），它的总 gradient（梯度）是从每个操作流回的 gradient（梯度）之和。使用 += 可以正确累积这些 gradient（梯度）。",
     "stage": "post"
   },
   {
-    "question": "What causes the vanishing gradient problem in deep sigmoid networks?",
-    "options": ["The learning rate is too small", "Sigmoid's derivative has a maximum of 0.25, so gradients shrink exponentially through layers", "The network has too many parameters", "The loss function is poorly chosen"],
+    "question": "深层 sigmoid 网络中 vanishing gradient（梯度消失）的原因是什么？",
+    "options": [
+      "learning rate（学习率）太小",
+      "sigmoid 的 derivative（导数）最大为 0.25，因此 gradient（梯度）在穿过各层时呈指数级缩小",
+      "网络参数太多",
+      "loss function（损失函数）选择不当"
+    ],
     "correct": 1,
-    "explanation": "The sigmoid derivative peaks at 0.25 (when z=0). Each layer multiplies the gradient by at most 0.25, so after 10 layers the gradient is at most 0.25^10 = ~0.000001 of the original signal.",
+    "explanation": "sigmoid derivative（导数）在 z=0 时达到峰值 0.25。每层将 gradient（梯度）乘以最多 0.25，因此 10 层后 gradient（梯度）最多是原始信号的 0.25^10 = ~0.000001。",
     "stage": "post"
   },
   {
-    "question": "Why does topological sort matter in the backward pass?",
-    "options": ["It makes the code cleaner", "It ensures each node's gradient is fully accumulated before propagating to its children", "It speeds up the forward pass", "It reduces memory usage"],
+    "question": "为什么在 backward pass（反向传播/后向传递）中 topological sort（拓扑排序）很重要？",
+    "options": [
+      "它让代码更整洁",
+      "它确保每个节点的 gradient（梯度）在传播给其子节点之前已完全累积",
+      "它加速 forward pass（前向传播）",
+      "它减少内存使用"
+    ],
     "correct": 1,
-    "explanation": "Topological sort ensures we process nodes in the correct order: a node's gradient must be fully accumulated from all downstream paths before we propagate through it. Without this ordering, gradients would be incomplete.",
+    "explanation": "topological sort（拓扑排序）确保我们按正确顺序处理节点：一个节点的 gradient（梯度）在通过它传播之前，必须已经从所有下游路径完全累积。没有这种排序，gradient（梯度）将不完整。",
     "stage": "post"
   }
 ]

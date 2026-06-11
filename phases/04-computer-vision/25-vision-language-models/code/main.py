@@ -39,8 +39,8 @@ def cross_modal_error_rate(image_emb, text_emb, text_confidence,
 
 def deepstack_features(per_layer_features):
     """
-    Simulate DeepStack: per_layer_features is list of (N_patches, d) tensors
-    from multiple ViT depths. Stack along channel dim and project.
+    模拟 DeepStack：per_layer_features 是来自多个 ViT 深度的 (N_patches, d) 张量列表。
+    沿通道维度拼接并投影。
     """
     return torch.cat(per_layer_features, dim=-1)
 
@@ -62,6 +62,7 @@ def synthetic_vision_class_data(num_classes=5, num_patches=16, d_vit=32, per_cla
 def main():
     torch.manual_seed(0)
 
+    # 在合成视觉 token 上训练投影器 + 分类头
     print("[toy vlm: train projector + head on synthetic vision tokens]")
     X, Y = synthetic_vision_class_data()
     split = int(0.85 * len(X))
@@ -81,13 +82,15 @@ def main():
                 acc = (model(x_va).argmax(-1) == y_va).float().mean().item()
             print(f"  step {step:3d}  ce {loss.item():.3f}  val_acc {acc:.3f}")
 
+    # DeepStack 拼接
     print("\n[deepstack concatenation]")
-    layers = [torch.randn(4, 16, 32) for _ in range(3)]  # 3 ViT depths
+    layers = [torch.randn(4, 16, 32) for _ in range(3)]  # 3 个 ViT 深度
     stacked = deepstack_features(layers)
     print(f"  3 layers of (4, 16, 32) -> deepstack {tuple(stacked.shape)}")
 
+    # CMER 模拟
     print("\n[CMER simulation]")
-    # Simulated scenario: 8 outputs, half hallucinate (low sim, high conf)
+    # 模拟场景：8 个输出，一半幻觉（低相似度，高置信度）
     image = F.normalize(torch.randn(8, 32), dim=-1)
     text_good = image + 0.05 * torch.randn_like(image)
     text_good = F.normalize(text_good, dim=-1)

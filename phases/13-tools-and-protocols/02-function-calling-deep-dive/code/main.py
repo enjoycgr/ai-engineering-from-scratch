@@ -1,10 +1,9 @@
-"""Phase 13 Lesson 02 - function calling deep dive across three providers.
+"""Phase 13 Lesson 02 - 跨三个提供商的函数调用深度解析。
 
-Takes one canonical Tool, emits the OpenAI, Anthropic, and Gemini declaration
-payloads, then parses a hand-crafted response of each shape back into a
-provider-agnostic Call object. Stdlib only; no network.
+取一个规范化的 Tool，发出 OpenAI、Anthropic 和 Gemini 的声明载荷，
+然后将每种形状的自定义响应解析回提供商无关的 Call 对象。仅标准库；无网络。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

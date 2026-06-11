@@ -1,7 +1,7 @@
-"""Long-video token budget + needle-in-a-haystack simulator + agentic retrieval.
+"""长视频 token 预算 + needle-in-a-haystack 模拟器 + agentic 检索。
 
-Stdlib. Prints budget tables for long videos, runs a synthetic NIH recall test,
-simulates a VideoAgent-style retrieval loop.
+Stdlib。打印长视频预算表，运行合成 NIH 召回测试，
+模拟 VideoAgent 风格检索循环。
 """
 
 from __future__ import annotations

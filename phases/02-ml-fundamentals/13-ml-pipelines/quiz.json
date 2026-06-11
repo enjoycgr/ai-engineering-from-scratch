@@ -2,66 +2,66 @@
   {
     "id": "pipeline-pre-1",
     "stage": "pre",
-    "question": "What is data leakage in the context of ML pipelines?",
+    "question": "在 ML pipeline (机器学习流水线) 的上下文中，什么是 data leakage (数据泄漏)？",
     "options": [
-      "Data being accidentally deleted during preprocessing",
-      "Information from the test set or future data contaminating the training process",
-      "The model being too slow to process the data",
-      "Features being dropped during encoding"
+      "预处理期间数据被意外删除",
+      "测试集或未来数据的信息污染了训练过程",
+      "模型处理数据的速度太慢",
+      "编码过程中特征被丢弃"
     ],
     "correct": 1,
-    "explanation": "Data leakage occurs when information that would not be available at prediction time is used during training. Example: computing the scaler's mean/std on the full dataset including test data."
+    "explanation": "Data leakage (数据泄漏) 发生在预测时本不可用的信息被用于训练阶段。例如：在包含测试数据的完整数据集上计算 scaler 的均值/标准差。"
   },
   {
     "id": "pipeline-pre-2",
     "stage": "pre",
-    "question": "Why is fitting a scaler on the full dataset before splitting into train/test considered leaky?",
+    "question": "为什么在拆分为训练集/测试集之前，先在整个数据集上拟合 scaler 是泄漏的？",
     "options": [
-      "Scaling changes the data distribution",
-      "The scaler's statistics (mean, std) include test data, so the model indirectly sees test information during training",
-      "Scaling should only be done on the test set",
-      "Fitting the scaler takes too long on large datasets"
+      "缩放会改变数据分布",
+      "scaler 的统计量（均值、标准差）包含了测试数据，因此模型在训练时间接看到了测试信息",
+      "缩放应该只在测试集上进行",
+      "在大数据集上拟合 scaler 耗时太长"
     ],
     "correct": 1,
-    "explanation": "When the scaler is fit on all data, its mean and standard deviation encode information from test samples. Training features are then shifted using test statistics, leaking future information into training."
+    "explanation": "当 scaler 在所有数据上拟合时，其均值和标准差编码了测试样本的信息。训练特征随后使用测试统计量进行偏移，将未来信息泄漏到训练中。"
   },
   {
     "id": "pipeline-post-1",
     "stage": "post",
-    "question": "In sklearn, what is the difference between calling fit_transform and transform on a pipeline step?",
+    "question": "在 sklearn 中，对 pipeline 的某一步调用 fit_transform 和 transform 有什么区别？",
     "options": [
-      "They are identical -- both fit and transform",
-      "fit_transform learns parameters from the data and applies the transform; transform only applies previously learned parameters",
-      "transform is for training data; fit_transform is for test data",
-      "fit_transform is slower but more accurate"
+      "它们完全相同——都是拟合并转换",
+      "fit_transform 从数据中学习参数并应用转换；transform 只应用之前学习到的参数",
+      "transform 用于训练数据；fit_transform 用于测试数据",
+      "fit_transform 更慢但更准确"
     ],
     "correct": 1,
-    "explanation": "fit_transform computes statistics (e.g., mean, std) from the data AND transforms it. transform applies the already-learned statistics without recomputing. On test data, you must use transform to avoid leakage."
+    "explanation": "fit_transform 计算统计量（如均值、标准差）并转换数据。transform 应用已学习到的统计量而不重新计算。在测试数据上必须使用 transform 以避免泄漏。"
   },
   {
     "id": "pipeline-post-2",
     "stage": "post",
-    "question": "Why is a ColumnTransformer necessary for real-world datasets?",
+    "question": "为什么 ColumnTransformer (列转换器) 对真实世界的数据集是必要的？",
     "options": [
-      "It makes the pipeline run in parallel on multiple CPUs",
-      "It applies different preprocessing steps to numeric and categorical columns within the same pipeline",
-      "It removes columns with missing values automatically",
-      "It converts all columns to the same data type"
+      "它让 pipeline 在多个 CPU 上并行运行",
+      "它在同一个 pipeline 中对数值列和分类型列应用不同的预处理步骤",
+      "它自动删除包含缺失值的列",
+      "它把所有列转换为相同的数据类型"
     ],
     "correct": 1,
-    "explanation": "Real datasets have mixed types. Numeric columns need scaling, categorical columns need encoding. ColumnTransformer routes each column subset to the appropriate transformer within a single pipeline."
+    "explanation": "真实数据集包含混合类型。数值列需要缩放 (scaling)，分类型列需要编码 (encoding)。ColumnTransformer 将每个列子集路由到相应的转换器，全部在同一个 pipeline 内完成。"
   },
   {
     "id": "pipeline-post-3",
     "stage": "post",
-    "question": "A production model receives a categorical value it never saw during training ('new_category'). What should the pipeline handle?",
+    "question": "生产环境中，模型收到一个在训练期间从未见过的分类型值（'new_category'）。Pipeline 应该如何处理？",
     "options": [
-      "Ignore the row entirely and return no prediction",
-      "Retrain the entire model from scratch",
-      "Handle unknown categories gracefully, e.g., by using an 'unknown' bucket or the global mean in target encoding",
-      "Convert the unknown category to the number zero"
+      "完全忽略该行并返回无预测",
+      "从头开始重新训练整个模型",
+      "优雅地处理未知类别，例如使用 'unknown' 桶或在目标编码中使用全局均值",
+      "将未知类别转换为数字零"
     ],
     "correct": 2,
-    "explanation": "Robust pipelines anticipate unseen categories in production. Solutions include an 'unknown' fallback for one-hot encoding, or defaulting to the global mean for target encoding."
+    "explanation": "健壮的 pipeline 会预判生产环境中出现未见过类别的情况。解决方案包括为 one-hot encoding 设置 'unknown' 回退，或在目标编码中默认使用全局均值。"
   }
 ]

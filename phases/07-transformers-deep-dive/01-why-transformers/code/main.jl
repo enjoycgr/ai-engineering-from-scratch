@@ -4,6 +4,12 @@
 #   https://docs.julialang.org/en/v1/manual/control-flow/
 #   https://docs.julialang.org/en/v1/stdlib/Base/
 #   https://en.wikipedia.org/wiki/Prefix_sum
+# 为什么在 Julia 中讨论 transformer。对比 RNN 风格的串行循环与
+# attention 风格的并行归约，并验证 Hillis-Steele 并行前缀扫描
+# 与串行扫描结果一致。仅使用标准库。来源：
+#   https://docs.julialang.org/en/v1/manual/control-flow/
+#   https://docs.julialang.org/en/v1/stdlib/Base/
+#   https://en.wikipedia.org/wiki/Prefix_sum
 
 using Printf
 

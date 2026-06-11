@@ -1,8 +1,12 @@
 """PII scrubber with consistent tokenization + audit log — stdlib Python.
 
+带一致性分词的 PII 脱敏器 + 审计日志 —— 仅使用 Python 标准库。
+
 Masks SSNs, emails, phone numbers; maps each distinct value to a stable
 placeholder so the LLM can still reason about relationships. Appends to an
 immutable audit log on every call.
+屏蔽 SSN、邮箱、电话号码；将每个不同的值映射到稳定的占位符，
+使 LLM 仍能推理关系。每次调用追加到不可变审计日志。
 """
 
 from __future__ import annotations
@@ -75,6 +79,7 @@ def audit_log_call(entry: AuditEntry) -> str:
 def main() -> None:
     print("=" * 80)
     print("PII SCRUBBER + AUDIT LOG — consistent tokenization across calls")
+    print("=" * 80)
     print("=" * 80)
     scrubber = Scrubber()
 

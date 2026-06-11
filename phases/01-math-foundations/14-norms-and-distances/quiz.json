@@ -2,63 +2,63 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What does cosine similarity measure between two vectors?",
-      "options": [
-        "The Euclidean distance between them",
-        "The angle between them, ignoring their magnitudes",
-        "The sum of their element-wise products",
-        "The maximum difference in any single dimension"
+"question": "Cosine similarity 度量两个向量之间的什么？",
+"options": [
+        "它们之间的 Euclidean distance",
+        "它们之间的夹角，忽略模长",
+        "它们逐元素乘积之和",
+        "任一维度上的最大差值"
       ],
       "correct": 1,
-      "explanation": "Cosine similarity measures the cosine of the angle between two vectors, normalized by their magnitudes. It ranges from -1 (opposite) to +1 (same direction) and ignores vector length, which is why it dominates in NLP where document length is noise."
+"explanation": "Cosine similarity 度量两个向量夹角的余弦，由它们的模长归一化。范围从 -1（方向相反）到 +1（方向相同），并忽略向量长度。这正是它在 NLP 中占主导地位的原因：文档长度是噪声。"
     },
     {
       "stage": "pre",
-      "question": "Why is L1 distance called 'Manhattan distance'?",
-      "options": [
-        "It was invented in Manhattan",
-        "It measures distance along a grid, as if walking on city blocks",
-        "It only works in exactly two dimensions",
-        "It computes the maximum difference across all dimensions"
+"question": "为什么 L1 distance 被称为 'Manhattan distance'？",
+"options": [
+        "它在 Manhattan 被发明",
+        "它沿网格度量距离，就像在城市街区中行走",
+        "它只在恰好二维时有效",
+        "它计算所有维度中的最大差值"
       ],
       "correct": 1,
-      "explanation": "L1 distance sums the absolute differences along each axis, which corresponds to the shortest path on a grid where you can only move along axes (no diagonals) — like walking on a city street grid."
+"explanation": "L1 distance 将每条轴上的绝对差值求和，对应于只能沿坐标轴移动（无对角线）的网格上的最短路径——就像在城市的街道网格上行走。"
     },
     {
       "stage": "post",
-      "question": "Why does L1 regularization (Lasso) produce sparse weights while L2 regularization (Ridge) does not?",
-      "options": [
-        "L1 uses a larger penalty constant than L2",
-        "The L1 diamond constraint has corners on the axes where weights are zero; loss contours are likely to touch at corners",
-        "L2 regularization only applies to the bias terms",
-        "L1 regularization clips weights below a threshold to zero"
+"question": "为什么 L1 regularization (Lasso) 产生稀疏权重，而 L2 regularization (Ridge) 不会？",
+"options": [
+        "L1 使用的惩罚常数比 L2 大",
+        "L1 的菱形约束在轴上有角，权重在此处为零；损失等高线最可能触及角落",
+        "L2 regularization 只适用于偏置项",
+        "L1 regularization 将低于阈值的权重裁剪为零"
       ],
       "correct": 1,
-      "explanation": "The L1 constraint region is a diamond shape with corners aligned with the axes. The loss function's contour ellipses are most likely to first touch the diamond at a corner, where one or more weights are exactly zero. The L2 constraint is a circle with no corners, so the touch point has all weights nonzero."
+"explanation": "L1 约束区域是菱形，其角落在坐标轴上。损失函数的等高线椭圆最可能首先触及菱形的角落，该处一个或多个权重恰好为零。L2 约束是圆形，没有角落，因此接触点处所有权重都非零。"
     },
     {
       "stage": "post",
-      "question": "What advantage does Wasserstein distance have over KL divergence when comparing probability distributions?",
-      "options": [
-        "Wasserstein is always smaller than KL divergence",
-        "Wasserstein provides meaningful gradients even when distributions do not overlap, while KL goes to infinity",
-        "Wasserstein is symmetric but KL is not",
-        "Both B and C are correct"
+"question": "比较概率分布时，Wasserstein distance 相比 KL divergence 有什么优势？",
+"options": [
+        "Wasserstein distance 总是比 KL divergence 小",
+        "即使分布不重叠，Wasserstein distance 仍提供有意义的梯度，而 KL divergence 趋于无穷",
+        "Wasserstein distance 是对称的，但 KL divergence 不是",
+        "B 和 C 都正确"
       ],
       "correct": 3,
-      "explanation": "Wasserstein distance is a true metric (symmetric, satisfies triangle inequality) and provides gradients even for non-overlapping distributions. KL divergence is asymmetric and goes to infinity when distributions don't overlap, which is why WGANs replaced KL-based GANs."
+"explanation": "Wasserstein distance 是真正的度量（对称、满足三角不等式），即使对不重叠的分布也能提供梯度。KL divergence 是非对称的，当分布不重叠时趋于无穷，这正是 WGAN 取代基于 KL 的 GAN 的原因。"
     },
     {
       "stage": "post",
-      "question": "When would you use Mahalanobis distance instead of Euclidean distance?",
-      "options": [
-        "When features are all binary (0 or 1)",
-        "When features have different scales and are correlated with each other",
-        "When you are comparing strings instead of vectors",
-        "When you need a faster computation than L2"
+"question": "何时应使用 Mahalanobis distance 而不是 Euclidean distance？",
+"options": [
+        "当特征都是二元的（0 或 1）",
+        "当特征具有不同尺度且相互相关",
+        "当比较字符串而非向量时",
+        "当需要比 L2 更快的计算时"
       ],
       "correct": 1,
-      "explanation": "Mahalanobis distance accounts for the covariance structure of the data, decorrelating and normalizing features before computing L2 distance. It correctly handles features at different scales and with correlations, whereas Euclidean distance treats all dimensions equally."
+"explanation": "Mahalanobis distance 考虑数据的协方差结构，在计算 L2 distance 之前先对特征去相关和归一化。它能正确处理不同尺度和相关性的特征，而 Euclidean distance 平等对待所有维度。"
     }
   ]
 }

@@ -1,37 +1,37 @@
 [
   {
-    "question": "How much VRAM does a 70B parameter model in FP16 require just for weights?",
+    "question": "一个 70B 参数的 FP16 模型仅权重就需要多少 VRAM？",
     "options": ["35 GB", "70 GB", "140 GB", "280 GB"],
     "correct": 2,
-    "explanation": "70 billion parameters * 2 bytes per FP16 parameter = 140 billion bytes = 140 GB. This exceeds a single A100 (80GB), requiring at least two GPUs just to load the weights.",
+    "explanation": "700 亿参数 × 每个 FP16 参数 2 字节 = 1400 亿字节 = 140 GB。这超过了单张 A100（80GB），至少需要两块 GPU 才能加载权重。",
     "stage": "pre"
   },
   {
-    "question": "What is quantization in the context of LLMs?",
-    "options": ["Removing unused model layers", "Reducing the numerical precision of weights (e.g., FP16 to INT4) to decrease memory usage and increase inference speed", "Compressing the training data", "Reducing the vocabulary size"],
+    "question": "在 LLM 语境中，quantization（量化）是什么？",
+    "options": ["移除未使用的模型层", "降低权重的数值精度（例如 FP16 到 INT4）以减少显存占用并提升 inference（推理）速度", "压缩训练数据", "缩减词表大小"],
     "correct": 1,
-    "explanation": "Quantization maps high-precision floating point weights to lower-precision integers. INT4 quantization stores each weight in 4 bits instead of 16, reducing memory by 4x with minimal accuracy loss.",
+    "explanation": "Quantization 将高精度浮点权重映射到低精度整数。INT4 quantization 每个权重只用 4 位存储，而非 16 位，显存减少 4 倍，精度损失极小。",
     "stage": "pre"
   },
   {
-    "question": "What is the key difference between post-training quantization (PTQ) and quantization-aware training (QAT)?",
-    "options": ["PTQ is more accurate", "PTQ quantizes after training with no retraining; QAT simulates quantization during training so the model learns to tolerate reduced precision", "QAT doesn't use gradients", "PTQ requires more data"],
+    "question": "Post-training quantization (PTQ) 与 quantization-aware training (QAT) 的关键区别是什么？",
+    "options": ["PTQ 更精确", "PTQ 在训练后量化，无需重新训练；QAT 在训练期间模拟量化，使模型学会容忍降低的精度", "QAT 不使用梯度", "PTQ 需要更多数据"],
     "correct": 1,
-    "explanation": "PTQ is fast (just calibrate and quantize) but can lose accuracy. QAT includes fake quantization during training, allowing the model to adjust its weights to be more robust to precision loss. QAT usually gives better accuracy.",
+    "explanation": "PTQ 快速（只需校准并量化），但可能损失精度。QAT 在前向传播中包含 fake quantization，让模型调整权重以更好地抵抗精度损失。QAT 通常精度更好。",
     "stage": "post"
   },
   {
-    "question": "What does 'per-channel' quantization mean and why is it better than 'per-tensor'?",
-    "options": ["It quantizes each output channel separately, using different scale/zero-point for each, reducing quantization error", "It processes one color channel at a time", "It uses separate GPUs per channel", "It's a type of data parallelism"],
+    "question": "'Per-channel' quantization（逐通道量化）是什么意思，为什么比 'per-tensor'（逐张量）更好？",
+    "options": ["对每个输出通道单独量化，使用不同的 scale/zero-point，从而减少量化误差", "一次处理一个颜色通道", "每个通道使用单独的 GPU", "一种数据并行方式"],
     "correct": 0,
-    "explanation": "Per-tensor uses one scale factor for the entire weight matrix. Per-channel uses a separate scale for each output channel (row). Since different channels have different value ranges, per-channel captures them more accurately.",
+    "explanation": "Per-tensor 对整个权重矩阵使用一个 scale factor。Per-channel 对每个输出通道（行）使用独立的 scale。由于不同通道的值范围不同，per-channel 能更精确地捕捉它们。",
     "stage": "post"
   },
   {
-    "question": "Why do 95% of weights in Llama 3 70B fall between -0.1 and +0.1?",
-    "options": ["The model is poorly trained", "Weight decay and normalization during training push weights toward small values, making the full FP16 range wasteful", "The weights haven't converged yet", "This is specific to the Llama architecture"],
+    "question": "为什么 Llama 3 70B 中 95% 的权重落在 -0.1 到 +0.1 之间？",
+    "options": ["模型训练得不好", "训练中的 weight decay 和 normalization 将权重推向小值，使得完整的 FP16 范围被浪费", "权重尚未收敛", "这是 Llama 架构特有的"],
     "correct": 1,
-    "explanation": "Weight decay regularization shrinks weights toward zero. Layer normalization keeps activations centered. Combined, they produce weight distributions concentrated near zero, making low-precision quantization effective.",
+    "explanation": "Weight decay regularization 将权重收缩到零附近。Layer normalization 保持 activations 居中。两者结合产生集中在零附近的权重分布，使低精度 quantization 非常有效。",
     "stage": "post"
   }
 ]

@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "post",
-      "question": "What discount does Anthropic apply to cache reads versus the base input rate?",
+      "question": "Anthropic 对 cache reads 相对于 base input rate 应用多少折扣？",
       "options": [
         "25% off",
         "50% off",
@@ -16,7 +16,7 @@
     },
     {
       "stage": "post",
-      "question": "Why must dynamic timestamps go below the cache breakpoint, not above it?",
+      "question": "为什么动态时间戳必须放在缓存断点下方，而不是上方？",
       "options": [
         "Caches only hit when the prefix is byte-identical; a changing timestamp breaks the match for everything after it",
         "Timestamps confuse the tokenizer",
@@ -28,7 +28,7 @@
     },
     {
       "stage": "post",
-      "question": "OpenAI's prompt caching is configured how?",
+      "question": "OpenAI 的 prompt caching 如何配置？",
       "options": [
         "Explicit cache_control markers",
         "A CachedContent API you create and reference",
@@ -40,7 +40,7 @@
     },
     {
       "stage": "post",
-      "question": "For Anthropic, what write premium does the 1-hour extended TTL cost vs the 5-minute default?",
+      "question": "对于 Anthropic，1 小时 extended TTL 的写入溢价是 5 分钟默认值的多少倍？",
       "options": [
         "Same",
         "2x the write premium (50% over baseline)",
@@ -52,7 +52,7 @@
     },
     {
       "stage": "post",
-      "question": "How many reuses are needed to break even on Anthropic's 25% write premium?",
+      "question": "Anthropic 的 25% 写入溢价需要多少次复用才能盈亏平衡？",
       "options": [
         "1",
         "2",

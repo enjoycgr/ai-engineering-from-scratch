@@ -23,6 +23,7 @@ MODEL_PRICING = {
 
 
 def calculate_cost(model, input_tokens, output_tokens, cached_input_tokens=0):
+    """根据定价表计算单次 API 调用的成本（美元）。"""
     if model not in MODEL_PRICING:
         return {"error": f"Unknown model: {model}"}
     pricing = MODEL_PRICING[model]
@@ -44,6 +45,7 @@ def calculate_cost(model, input_tokens, output_tokens, cached_input_tokens=0):
 
 
 class ExactCache:
+    """基于 SHA256 哈希的精确匹配缓存：仅适用于 temperature=0 的确定性调用。"""
     def __init__(self, max_size=1000, ttl_seconds=3600):
         self.cache = {}
         self.max_size = max_size
@@ -94,6 +96,7 @@ class ExactCache:
 
 
 def simple_embed(text):
+    """使用词频的简单 embedding：将文本映射为归一化的词袋向量。"""
     words = text.lower().split()
     vocab = {}
     for w in words:
@@ -105,6 +108,7 @@ def simple_embed(text):
 
 
 def cosine_similarity(a, b):
+    """计算两个稀疏词频向量之间的余弦相似度。"""
     if not a or not b:
         return 0.0
     all_keys = set(a) | set(b)
@@ -113,6 +117,7 @@ def cosine_similarity(a, b):
 
 
 class SemanticCache:
+    """基于余弦相似度的语义缓存：使用简单词袋 embedding 匹配释义查询。"""
     def __init__(self, similarity_threshold=0.85, max_size=500, ttl_seconds=3600):
         self.entries = []
         self.threshold = similarity_threshold
@@ -163,6 +168,7 @@ class SemanticCache:
 
 
 class TokenBucketRateLimiter:
+    """基于令牌桶算法的速率限制器：支持多用户、多层级配额。"""
     def __init__(self):
         self.buckets = {}
         self.tiers = {
@@ -228,6 +234,7 @@ class TokenBucketRateLimiter:
 
 
 class CostTracker:
+    """跟踪每次 API 调用的成本、延迟和缓存状态，支持预算告警。"""
     def __init__(self, monthly_budget=1000.0):
         self.logs = []
         self.monthly_budget = monthly_budget
@@ -309,6 +316,7 @@ COMPLEX_KEYWORDS = ["analyze", "compare", "explain why", "write code", "debug", 
 
 
 def classify_complexity(query):
+    """基于关键词和查询长度对查询复杂度进行简单分类。"""
     q = query.lower()
     if len(q.split()) <= 5 or any(kw in q for kw in SIMPLE_KEYWORDS):
         return "simple"
@@ -318,6 +326,7 @@ def classify_complexity(query):
 
 
 def route_model(query, tier="pro"):
+    """根据查询复杂度和用户层级将查询路由到最具成本效益的模型。"""
     complexity = classify_complexity(query)
     routing_table = {
         "simple": {"free": "gpt-4.1-nano", "pro": "gpt-4o-mini", "enterprise": "gpt-4o-mini"},
@@ -329,6 +338,7 @@ def route_model(query, tier="pro"):
 
 
 def simulate_llm_call(model, query):
+    """模拟 LLM 调用：基于查询长度估算 token 数量和延迟。"""
     input_tokens = len(query.split()) * 4 + 500
     output_tokens = 150 + (len(query.split()) * 2)
     latency = 200 + (output_tokens * 2)
@@ -342,6 +352,7 @@ def simulate_llm_call(model, query):
 
 
 def run_demo():
+    """运行完整的缓存、速率限制和成本优化演示。"""
     print("=" * 60)
     print("  Caching, Rate Limiting & Cost Optimization Demo")
     print("=" * 60)

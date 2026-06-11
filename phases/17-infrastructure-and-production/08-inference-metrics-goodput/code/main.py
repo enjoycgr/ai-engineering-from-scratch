@@ -1,8 +1,8 @@
-"""Toy goodput calculator — stdlib Python.
+"""玩具 goodput 计算器 —— 标准库 Python。
 
-Simulate a population of LLM requests with realistic right-skewed latency,
-apply a multi-constraint SLO, compute goodput, and show the GenAI-Perf
-vs LLMPerf TPOT calculation divergence on the same trace.
+模拟具有真实右偏延迟分布的 LLM 请求群体，
+应用多约束 SLO，计算 goodput，并展示同一 trace 上
+GenAI-Perf 与 LLMPerf 的 TPOT 计算分歧。
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from dataclasses import dataclass
 class RequestTrace:
     queue_ms: float
     prefill_ms: float
-    decode_ms_per_token: list[float]      # per-token decode latency
+    decode_ms_per_token: list[float]      # 逐 token 解码延迟
     output_tokens: int
 
     @property
@@ -28,11 +28,11 @@ class RequestTrace:
         return self.ttft_ms + sum(self.decode_ms_per_token)
 
     def tpot_llmperf(self) -> float:
-        """LLMPerf: include TTFT in ITL calculation."""
+        """LLMPerf: 在 ITL 计算中包含 TTFT。"""
         return self.e2e_ms / self.output_tokens
 
     def tpot_genaiperf(self) -> float:
-        """GenAI-Perf: ITL starts from token 2."""
+        """GenAI-Perf: ITL 从第 2 个 token 开始。"""
         if self.output_tokens <= 1:
             return 0.0
         return sum(self.decode_ms_per_token) / (self.output_tokens - 1)
@@ -44,14 +44,14 @@ def synth_workload(n: int = 1000, seed: int = 7, tail_spike_rate: float = 0.02) 
     for _ in range(n):
         prompt_len = rng.choice([128, 256, 512, 2048, 8192])
         output_tokens = rng.randint(50, 300)
-        queue = rng.expovariate(1 / 40.0)           # avg 40 ms queue
-        prefill = prompt_len * 0.05                 # ~50 us per input token
-        decode_base = 7.0                            # 7 ms mean TPOT
+        queue = rng.expovariate(1 / 40.0)           # 平均 40 ms 队列
+        prefill = prompt_len * 0.05                 # 每个输入 token 约 50 us
+        decode_base = 7.0                            # TPOT 均值 7 ms
         decodes = []
         for _ in range(output_tokens):
             t = max(1.5, rng.gauss(decode_base, decode_base * 0.15))
             if rng.random() < tail_spike_rate:
-                t *= rng.uniform(3, 8)              # tail spike
+                t *= rng.uniform(3, 8)              # 尾部尖峰
             decodes.append(t)
         traces.append(RequestTrace(queue, prefill, decodes, output_tokens))
     return traces
@@ -98,19 +98,19 @@ def main() -> None:
     print()
 
     traces = synth_workload(n=2000)
-    report_latency("Synthetic workload (2000 requests)", traces)
+    report_latency("合成工作负载 (2000 个请求)", traces)
     print()
 
     slos = [
-        ("loose   TTFT<800 TPOT<25 E2E<3000", 800, 25, 3000),
-        ("target  TTFT<500 TPOT<15 E2E<2000", 500, 15, 2000),
-        ("tight   TTFT<300 TPOT<10 E2E<1500", 300, 10, 1500),
+        ("宽松   TTFT<800 TPOT<25 端到端<3000", 800, 25, 3000),
+        ("目标   TTFT<500 TPOT<15 端到端<2000", 500, 15, 2000),
+        ("严格   TTFT<300 TPOT<10 端到端<1500", 300, 10, 1500),
     ]
     print("Goodput under three SLO profiles")
     print("-" * 76)
     for label, t1, t2, t3 in slos:
         g = goodput(traces, t1, t2, t3)
-        tag = "  SHIPPABLE" if g >= 0.99 else ("  DEGRADED" if g >= 0.95 else "  FAILING")
+        tag = "  可发布" if g >= 0.99 else ("  降级" if g >= 0.95 else "  失败")
         print(f"  {label}  goodput={g:6.2%}{tag}")
 
     print()

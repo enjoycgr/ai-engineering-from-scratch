@@ -11,6 +11,7 @@ sys.path.insert(
 from main import MiniGPT, LayerNorm, Embedding, TransformerBlock
 
 
+# 合成偏好数据：preferred 响应更简洁、更准确
 PREFERENCE_DATA = [
     {
         "prompt": "What is the capital of France?",
@@ -46,10 +47,17 @@ PREFERENCE_DATA = [
 
 
 def tokenize_sequence(text, vocab_size=256):
+    """将文本编码为字节级 token 序列。"""
     return [min(t, vocab_size - 1) for t in list(text.encode("utf-8"))]
 
 
 def compute_sequence_log_prob(model, prompt_tokens, response_tokens, max_seq_len=128):
+    """计算响应 token 在给定 prompt 下的总 log-probability。
+
+    这是 DPO 的核心工作函数。对于每个偏好对，它运行四次：
+    policy 上的 preferred、policy 上的 rejected、
+    reference 上的 preferred、reference 上的 rejected。
+    """
     full_sequence = prompt_tokens + response_tokens
     if len(full_sequence) > max_seq_len:
         full_sequence = full_sequence[:max_seq_len]
@@ -86,6 +94,7 @@ def compute_sequence_log_prob(model, prompt_tokens, response_tokens, max_seq_len
 
 
 def sigmoid(x):
+    """数值稳定的 sigmoid 实现。"""
     return np.where(
         x >= 0, 1.0 / (1.0 + np.exp(-x)), np.exp(x) / (1.0 + np.exp(x))
     )
@@ -98,6 +107,18 @@ def dpo_loss(
     ref_logprob_rejected,
     beta=0.1,
 ):
+    """DPO loss function——无需 reward model 的成对偏好优化。
+
+    参数：
+        policy_logprob_preferred: 当前模型下 preferred 响应的 log-prob
+        policy_logprob_rejected:  当前模型下 rejected 响应的 log-prob
+        ref_logprob_preferred:    reference 模型下 preferred 响应的 log-prob
+        ref_logprob_rejected:     reference 模型下 rejected 响应的 log-prob
+        beta:                     温度参数（越高 = 与 reference 越接近）
+
+    返回：
+        loss 标量和用于调试的指标字典
+    """
     preferred_ratio = policy_logprob_preferred - ref_logprob_preferred
     rejected_ratio = policy_logprob_rejected - ref_logprob_rejected
 
@@ -119,6 +140,7 @@ def dpo_loss(
 
 
 def copy_model_weights(source, target):
+    """将权重从 source model 深拷贝到 target model。"""
     target.embedding.token_embed = source.embedding.token_embed.copy()
     target.embedding.pos_embed = source.embedding.pos_embed.copy()
     target.ln_f.gamma = source.ln_f.gamma.copy()
@@ -147,6 +169,12 @@ def dpo_train(
     beta=0.1,
     max_seq_len=128,
 ):
+    """在偏好对上运行 Direct Preference Optimization (DPO)。
+
+    与 RLHF/PPO 不同，这只是一个监督学习循环：
+    计算 log-probabilities，代入 DPO loss，更新 policy。
+    无需 reward model，无需 advantage estimation，无需 clipping。
+    """
     print(
         f"DPO Training: {len(preference_data)} pairs, {num_epochs} epochs, "
         f"lr={lr}, beta={beta}"
@@ -187,6 +215,7 @@ def dpo_train(
                 pi_logprob_w, pi_logprob_l, ref_logprob_w, ref_logprob_l, beta
             )
 
+            # 简化的梯度更新（演示用——非生产级 optimizer）
             update_direction = 1.0 if metrics["logit"] < 0 else -0.1
             for block in policy_model.blocks:
                 block.ffn.W1 += (
@@ -222,6 +251,7 @@ def dpo_train(
 def evaluate_preference_accuracy(
     model, reference_model, preference_data, beta=0.1, max_seq_len=128
 ):
+    """计算模型正确将 preferred 响应排在 rejected 响应之上的比例。"""
     correct = 0
     total = 0
 
@@ -256,6 +286,7 @@ def evaluate_preference_accuracy(
 def analyze_implicit_rewards(
     model, reference_model, preference_data, beta=0.1, max_seq_len=128
 ):
+    """打印每个偏好对的隐式 reward 分数（用于调试）。"""
     print("Implicit Reward Analysis:")
     print("-" * 65)
     print(
@@ -297,6 +328,7 @@ def analyze_implicit_rewards(
 
 
 def beta_sensitivity_analysis(sft_model, preference_data, betas, max_seq_len=128):
+    """扫描一系列 beta 值以显示 DPO 的稳定性-学习权衡。"""
     print("Beta Sensitivity Analysis")
     print("-" * 60)
     print(f"  {'Beta':>8} {'Final Loss':>12} {'Final Margin':>14} {'Accuracy':>10}")

@@ -1,9 +1,9 @@
 """Deterministic verification gate with coverage floor, --strict mode, and signed overrides.
 
-Combines a task's scope_report, rule_report, feedback log, and an optional
-coverage_report into a single verification_report.json. No LLM judges; LLM
-judgment lives on the reviewer side (Phase 14 · 39). Overrides require a signed
-entry in overrides.jsonl with reason, user, and HEAD commit.
+将任务的范围报告（scope_report）、规则报告（rule_report）、反馈日志（feedback log）
+和可选的覆盖率报告（coverage_report）组合为单一的 verification_report.json。
+不使用 LLM 裁判；LLM 判断属于审查者侧（Phase 14 · 39）。
+覆盖需要在 overrides.jsonl 中的签名条目，包含原因、用户和 HEAD 提交。
 
 Run: python3 code/main.py
 """
@@ -25,9 +25,9 @@ OVERRIDES_PATH = HERE / "overrides.jsonl"
 COVERAGE_FLOOR_DEFAULT = 0.80
 COVERAGE_REGRESSION_DELTA = 0.01
 
-# Audit secret used to sign override entries. In production read from a secrets
-# manager. Fail closed: only fall back to a demo secret when VERIFY_DEMO_MODE=1
-# is set explicitly, and shout about it so it cannot land in CI by accident.
+# 用于签名覆盖条目的审计密钥。在生产中从密钥管理器读取。
+# 失败关闭（fail closed）：仅在 VERIFY_DEMO_MODE=1 被显式设置时才回退到演示密钥，
+# 并大声警告，使其不会意外进入 CI。
 _OVERRIDE_SECRET_ENV = "VERIFY_OVERRIDE_SECRET"
 _DEMO_MODE_ENV = "VERIFY_DEMO_MODE"
 
@@ -112,10 +112,10 @@ def _rule_findings(art: Artifacts) -> list[Finding]:
 
 
 def _coverage_findings(art: Artifacts, floor: float) -> list[Finding]:
-    """Anthropic Hybrid Norm: pair verifiable rewards (tests + coverage) with rubric judging.
+    """Anthropic Hybrid Norm：将可验证奖励（测试 + 覆盖率）与评分标准判断配对。
 
-    Floor failure is a block. Regression versus the previous merge by more than
-    COVERAGE_REGRESSION_DELTA is a block; smaller drops are warnings.
+    下限失败是阻断（block）。与上一次合并相比下降超过
+    COVERAGE_REGRESSION_DELTA 是阻断；较小的下降是警告（warning）。
     """
     findings: list[Finding] = []
     if not art.coverage_report:
@@ -149,7 +149,7 @@ def verify(
         + _coverage_findings(art, coverage_floor)
     )
     if strict:
-        # --strict promotes every warning to a block. Opt-in by release branch only.
+        # --strict 将每个警告提升为阻断。仅发布分支选择加入。
         findings = [Finding(f.code, "block" if f.severity == "warn" else f.severity, f.detail)
                     for f in findings]
     blocking = [f for f in findings if f.severity == "block"]
@@ -171,7 +171,7 @@ def _sign(payload: dict[str, object]) -> str:
 def record_override(
     task_id: str, finding_code: str, reason: str, user_id: str, head_commit: str
 ) -> dict[str, object]:
-    """Append a signed override entry. Refuses without all five fields populated."""
+    """追加一条签名覆盖条目。如果五个字段未全部填写则拒绝。"""
     if not all([task_id, finding_code, reason, user_id, head_commit]):
         raise ValueError("override requires task_id, finding_code, reason, user_id, head_commit")
     payload = {

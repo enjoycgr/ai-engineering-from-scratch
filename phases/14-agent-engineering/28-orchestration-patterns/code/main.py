@@ -1,7 +1,7 @@
 """Four orchestration patterns: supervisor, swarm, hierarchical, debate.
 
-Same three-intent task (refund / bug / sales) handled four ways. Measure
-op count per pattern to see cost trade-offs.
+同一三意图任务（退款 / 缺陷 / 销售）以四种方式处理。
+测量每种模式的操作计数以观察成本权衡。
 """
 
 from __future__ import annotations

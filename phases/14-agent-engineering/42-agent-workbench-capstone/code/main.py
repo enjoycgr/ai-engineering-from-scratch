@@ -1,9 +1,8 @@
-"""Assemble the capstone agent-workbench-pack into outputs/.
+"""将 capstone（结业项目）agent-workbench-pack（智能体工作台包）组装进 outputs/。
 
-Seeds schemas, scripts, and docs from the surfaces built in the
-preceding lessons of this mini-track. Idempotent. Prints the tree.
+用本迷你课程前几节课中构建的 surface（工作面）生成的 schema（模式）、脚本和文档作为种子。幂等 idempotent（幂等）。打印目录树。
 
-Run: python3 code/main.py
+运行：python3 code/main.py
 """
 
 from __future__ import annotations

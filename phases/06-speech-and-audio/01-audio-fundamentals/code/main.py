@@ -1,7 +1,7 @@
-"""Audio fundamentals from scratch: synthesize, DFT, detect peak, demonstrate aliasing.
+"""从零实现音频基础：合成、DFT、检测峰值、演示混叠。
 
-Stdlib only: math, wave, struct, os, tempfile.
-Run: python3 code/main.py
+仅标准库：math、wave、struct、os、tempfile。
+运行：python3 code/main.py
 """
 
 import math
@@ -73,55 +73,55 @@ def main():
     sr = 8000
     duration = 0.064
 
-    print("=== Step 1: synthesize a 440 Hz sine, 8 kHz, 64 ms ===")
+    print("=== 步骤 1：合成 440 Hz 正弦波, 8 kHz, 64 ms ===")
     a = sine(440.0, sr, duration)
-    print(f"  samples: {len(a)}")
-    print(f"  first 5: {[round(x, 4) for x in a[:5]]}")
+    print(f"  样本数: {len(a)}")
+    print(f"  前 5 个: {[round(x, 4) for x in a[:5]]}")
 
     print()
-    print("=== Step 2: round-trip through a WAV file ===")
+    print("=== 步骤 2：WAV 文件往返 ===")
     tmpdir = tempfile.mkdtemp(prefix="audio_fundamentals_")
     path = os.path.join(tmpdir, "a440.wav")
     write_wav(path, a, sr)
     loaded, loaded_sr = read_wav(path)
     size = os.path.getsize(path)
-    print(f"  wrote {path} ({size} bytes, sr={loaded_sr})")
+    print(f"  写入 {path} ({size} 字节, sr={loaded_sr})")
     diff = max(abs(a[i] - loaded[i]) for i in range(len(a)))
-    print(f"  round-trip max abs error (16-bit quantization): {diff:.5f}")
+    print(f"  往返最大绝对误差 (16-bit 量化): {diff:.5f}")
 
     print()
-    print("=== Step 3: DFT peak detection on 440 Hz ===")
+    print("=== 步骤 3：440 Hz 的 DFT 峰值检测 ===")
     freq, k = peak_freq(a, sr)
-    print(f"  peak bin k={k}, freq={freq:.1f} Hz (expected ~440.0 Hz, bin resolution {sr / len(a):.2f} Hz)")
+    print(f"  峰值 bin k={k}, freq={freq:.1f} Hz (期望 ~440.0 Hz, bin 分辨率 {sr / len(a):.2f} Hz)")
 
     print()
-    print("=== Step 4: mixed signal (220 + 440 + 880) ===")
+    print("=== 步骤 4：混合信号 (220 + 440 + 880) ===")
     mixed = mix(sine(220, sr, duration), sine(440, sr, duration), sine(880, sr, duration))
     mags = magnitudes(dft(mixed))[: len(mixed) // 2]
     top3 = sorted(range(len(mags)), key=lambda i: -mags[i])[:3]
     peaks_hz = sorted(round(k * sr / len(mixed), 1) for k in top3)
-    print(f"  top 3 peaks: {peaks_hz} Hz")
+    print(f"  前 3 个峰值: {peaks_hz} Hz")
 
     print()
-    print("=== Step 5: aliasing — 7 kHz tone sampled at 10 kHz ===")
+    print("=== 步骤 5：混叠 —— 7 kHz 音调以 10 kHz 采样 ===")
     alias_sr = 10000
     tone = sine(7000.0, alias_sr, 0.0512)
     alias_freq, _ = peak_freq(tone, alias_sr)
     folded = alias_sr - 7000.0
-    print(f"  true frequency: 7000.0 Hz (above Nyquist = {alias_sr / 2} Hz)")
-    print(f"  DFT reports:    {alias_freq:.1f} Hz")
-    print(f"  expected alias: {folded:.1f} Hz  (= sr - f_true)")
+    print(f"  真实频率: 7000.0 Hz (高于奈奎斯特 = {alias_sr / 2} Hz)")
+    print(f"  DFT 报告:    {alias_freq:.1f} Hz")
+    print(f"  期望混叠: {folded:.1f} Hz  (= sr - f_true)")
 
     print()
-    print("=== Step 6: proper downsample vs naive decimation ===")
+    print("=== 步骤 6：正确下采样 vs 朴素抽取 ===")
     orig_sr = 24000
     sig = sine(7000.0, orig_sr, 0.032)
     decimated = downsample_naive(sig, 3)
     new_sr = orig_sr // 3
     peak_new, _ = peak_freq(decimated, new_sr)
-    print(f"  24 kHz 7 kHz tone, decimated to 8 kHz without low-pass:")
-    print(f"    peak after decimation: {peak_new:.1f} Hz (should be 1000 Hz from folding)")
-    print(f"    lesson: always low-pass filter before decimating")
+    print(f"  24 kHz 7 kHz 音调, 无低通抽取到 8 kHz:")
+    print(f"    抽取后峰值: {peak_new:.1f} Hz (应为折叠导致的 1000 Hz)")
+    print(f"    教训: 抽取前始终要低通滤波")
 
 
 if __name__ == "__main__":

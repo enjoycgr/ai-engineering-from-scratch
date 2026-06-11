@@ -1,9 +1,9 @@
-"""CAIS four-risk inventory — stdlib Python.
+"""CAIS 四风险清单 —— stdlib Python。
 
-Given a proposed deployment described by a short feature set, tag the
-deployment against the CAIS four-risk categories (malicious use, AI
-races, organizational risks, rogue AIs) and return a mitigation checklist.
-Pedagogical only; the framework requires human judgment for real use.
+给定由短特征集描述的拟议部署，对照 CAIS 四风险类别
+（malicious use、AI races、organizational risks、rogue AIs）
+标记部署并返回缓解清单。
+仅用于教学；该框架在实际使用中需要人类判断。
 """
 
 from __future__ import annotations
@@ -15,12 +15,12 @@ from dataclasses import dataclass
 class Deployment:
     name: str
     public_facing: bool
-    handles_harmful_capabilities: bool   # e.g. bio/cyber uplift possible?
-    competitive_pressure: bool           # rushed to launch ahead of rivals?
+    handles_harmful_capabilities: bool   # 例如 bio/cyber uplift 可能？
+    competitive_pressure: bool           # 急于在竞争对手之前发布？
     independent_audit: bool
     multi_layer_defense: bool
-    information_security: bool           # weights / evals / keys hardened
-    agent_autonomy_hours: float          # per Lesson 1 / 21
+    information_security: bool           # weights / evals / keys 已加固
+    agent_autonomy_hours: float          # 根据第 1 / 21 课
 
 
 MITIGATIONS = {
@@ -55,7 +55,7 @@ def tag(d: Deployment) -> list[str]:
         tags.append("malicious_use")
     if d.competitive_pressure:
         tags.append("ai_races")
-    # Organizational risk fires when any sub-lever is missing.
+    # 当任何子杠杆缺失时触发组织风险。
     org_missing = (
         (not d.independent_audit)
         or (not d.multi_layer_defense)
@@ -63,7 +63,7 @@ def tag(d: Deployment) -> list[str]:
     )
     if org_missing:
         tags.append("organizational_risks")
-    # Rogue AI risk grows with autonomy horizon.
+    # Rogue AI 风险随自主性时间跨度增长。
     if d.agent_autonomy_hours >= 4.0:
         tags.append("rogue_ais")
     return tags
@@ -132,14 +132,14 @@ def main() -> None:
 
     print()
     print("=" * 70)
-    print("HEADLINE: organizational risk is the lever practitioners actually pull")
+    print("HEADLINE: 组织风险是实践者实际能拉的杠杆")
     print("-" * 70)
-    print("  Malicious use, AI races, and rogue AIs are structural forces.")
-    print("  Organizational risk is internal to your org. Safety culture,")
-    print("  independent audit, multi-layered defenses, and information")
-    print("  security are four levers every team controls. Deployment speed")
-    print("  pressure trades against all four; CAIS lists this as a named")
-    print("  risk class for a reason.")
+    print("  Malicious use、AI races 和 rogue AIs 是结构性力量。")
+    print("  组织风险是你组织内部的。安全文化、")
+    print("  独立审计、多层防御和信息")
+    print("  安全是每个团队都能控制的四个杠杆。部署速度")
+    print("  压力与这四个杠杆相权衡；CAIS 将其列为命名")
+    print("  风险类别是有原因的。")
 
 
 if __name__ == "__main__":

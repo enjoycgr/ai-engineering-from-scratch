@@ -1,12 +1,12 @@
-"""Toy Tree-of-Thoughts BFS and LATS MCTS on a stylized arithmetic search.
+"""Toy Tree-of-Thoughts BFS 和 LATS MCTS，在风格化算术搜索上。
 
-Task: given integers [4, 6, 4, 1], find an expression using +, -, *, / that
-evaluates to 24. This mirrors the Game of 24 benchmark from Yao et al.
+任务：给定整数 [4, 6, 4, 1]，找到使用 +、-、*、/ 且结果为 24 的表达式。
+这镜像了 Yao 等人的 Game of 24 基准。
 
-ToT is a BFS with a prompted value function. LATS is MCTS over the same
-search space with UCT selection.
+ToT 是带 prompted value function（提示式价值函数）的 BFS。LATS 是在相同
+搜索空间上的 MCTS，带 UCT selection（UCT 选择）。
 
-Stdlib only; no LLM. Value function is symbolic (distance from 24).
+纯 stdlib；无 LLM。Value function（价值函数）是符号式的（距 24 的距离）。
 """
 
 from __future__ import annotations

@@ -1,9 +1,9 @@
 """Voting and debate topology harness, stdlib only.
 
-Runs star / chain / tree / graph topologies under a scripted task. Each
-agent has a base-accuracy probability and an error_bias direction (which
-wrong answer it drifts to on miss). We simulate N agents, rounds of
-refinement, and measure (accuracy, tokens, simulated latency).
+在脚本化任务下运行 star (星型) / chain (链式) / tree (树形) / graph (图状) topology (拓扑结构)。
+每个 agent 有一个 base-accuracy probability (基础准确率概率) 和一个 error_bias (错误偏置) 方向
+（失误时偏向哪个错误答案）。我们模拟 N 个 agent、多轮 refinement (精炼)，
+并测量 (accuracy (准确率), tokens (令牌数), simulated latency (模拟延迟))。
 """
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ class SimAgent:
     tokens_per_call: int = 400
 
     def answer(self, correct: str, rng: random.Random) -> str:
+        # 以 base_accuracy 概率返回正确答案，否则返回 error_bias (错误偏置)
         return correct if rng.random() < self.base_accuracy else self.error_bias
 
 
@@ -43,6 +44,7 @@ def majority(items: list[str]) -> str:
 
 
 def run_star(agents: list[SimAgent], correct: str, rng: random.Random) -> RunResult:
+    # star topology (星型拓扑): hub (中心节点) 轮询每个 worker，然后聚合
     hub = agents[0]
     workers = agents[1:]
     answers = [w.answer(correct, rng) for w in workers]
@@ -52,6 +54,7 @@ def run_star(agents: list[SimAgent], correct: str, rng: random.Random) -> RunRes
 
 
 def run_chain(agents: list[SimAgent], correct: str, rng: random.Random) -> RunResult:
+    # chain topology (链式拓扑): 顺序 refinement (精炼)
     current = agents[0].answer(correct, rng)
     tokens = agents[0].tokens_per_call
     for a in agents[1:]:
@@ -62,6 +65,7 @@ def run_chain(agents: list[SimAgent], correct: str, rng: random.Random) -> RunRe
 
 
 def run_tree(agents: list[SimAgent], correct: str, rng: random.Random) -> RunResult:
+    # tree topology (树形拓扑): 层级聚合，深度为 2
     root = agents[0]
     leaves = agents[1:]
     if len(leaves) <= 1:
@@ -77,8 +81,9 @@ def run_tree(agents: list[SimAgent], correct: str, rng: random.Random) -> RunRes
 
 
 def run_graph(agents: list[SimAgent], correct: str, rng: random.Random, rounds: int = 2) -> RunResult:
-    # Every agent proposes, then every agent sees all proposals and may update
-    # (scaled down accuracy if they drift toward consensus).
+    # graph topology (图状拓扑): 全对全辩论，有界轮次
+    # 每个 agent 提出提案，然后每个 agent 看到所有提案并可能更新
+    # (如果它们向共识漂移，则准确率降低)。
     positions = [a.answer(correct, rng) for a in agents]
     tokens = sum(a.tokens_per_call for a in agents)
     for _ in range(rounds - 1):
@@ -139,11 +144,11 @@ def bench(correct: str, trials: int, heterogeneous: bool) -> None:
 def main() -> None:
     bench(correct="RIGHT", trials=200, heterogeneous=False)
     bench(correct="RIGHT", trials=200, heterogeneous=True)
-    print("\nTakeaways:")
-    print("  heterogeneous ensembles outperform homogeneous at every topology/N.")
-    print("  graph/N=7 shows coordination tax: tokens inflate ~7x over star/N=3.")
-    print("  star is the cost-sweet-spot for low-stakes aggregation.")
-    print("  chain underperforms on monoculture because one bias propagates along the chain.")
+    print("\n要点：")
+    print("  heterogeneous (异构) ensemble 在每个 topology/N 上都优于 homogeneous (同构)。")
+    print("  graph/N=7 显示出 coordination tax (协调税): token 膨胀约 7 倍于 star/N=3。")
+    print("  star 是 low-stakes aggregation (低风险聚合) 的成本甜点。")
+    print("  chain 在 monoculture (单一文化) 下表现不佳，因为一个偏置会沿链传播。")
 
 
 if __name__ == "__main__":

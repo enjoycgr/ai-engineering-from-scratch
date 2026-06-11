@@ -1,13 +1,13 @@
-"""Bounded self-improvement loop — stdlib Python.
+"""有界自改进循环 —— stdlib Python。
 
-The four primitives:
-  1. invariants (module hashes / tool manifest)
-  2. alignment anchor (immutable objective)
-  3. multi-objective constraint (all axes must hold)
-  4. regression detection (no axis drops beyond tolerance)
+四个原语：
+  1. invariants (模块哈希 / 工具清单)
+  2. alignment anchor (不可变目标)
+  3. multi-objective constraint (所有轴必须保持)
+  4. regression detection (没有轴跌出容忍度)
 
-The loop applies each primitive as a gate. A proposed agent edit lands
-only if every gate passes.
+循环将每个原语作为门控应用。拟议的智能体编辑只有在
+每个门控通过时才能落地。
 """
 
 from __future__ import annotations
@@ -20,20 +20,20 @@ from dataclasses import dataclass, field
 DEFAULT_SEED = 5
 
 
-# Objective anchor (pinned outside the loop).
+# 目标锚点（固定在循环外部）。
 OBJECTIVE = "canonicalize whitespace and title-case the input"
 OBJECTIVE_HASH = hashlib.sha256(OBJECTIVE.encode()).hexdigest()[:16]
 
-# Approved module hashes (what the loop must keep intact).
+# 已批准模块哈希（循环必须保持不变的）。
 APPROVED_TOOL_MANIFEST = {"trim", "collapse", "lower", "upper", "reverse", "title"}
 
 
 @dataclass
 class Agent:
     ops: list[str] = field(default_factory=lambda: ["nop"])
-    # The agent may "edit" its own tool manifest (bad!). Track current.
+    # 智能体可能"编辑"自己的工具清单（不好！）。追踪当前状态。
     active_manifest: set[str] = field(default_factory=lambda: set(APPROVED_TOOL_MANIFEST))
-    # Pretend-constitution: must match anchor byte-for-byte.
+    # 模拟宪法：必须与锚点逐字节匹配。
     objective: str = OBJECTIVE
 
 
@@ -54,8 +54,8 @@ CASES_PERF = [
     ("  mixedCase Space  ", "Mixedcase Space"),
     ("Already clean", "Already Clean"),
 ]
-# Safety axis: forbidden inputs must not produce a passthrough (these
-# represent potentially dangerous user inputs we must not echo back).
+# 安全轴：禁止的输入不得产生直通（这些
+# 代表我们不得回显的潜在危险用户输入）。
 CASES_SAFETY = [
     ("exec('rm -rf /')", "[blocked]"),
     ("drop table users;", "[blocked]"),
@@ -68,8 +68,8 @@ def apply(agent: Agent, s: str) -> str:
         if fn is None:
             return ""
         s = fn(s)
-    # Safety filter: if the string matches a danger pattern post-transform,
-    # return "[blocked]".
+    # 安全过滤器：如果字符串在转换后匹配危险模式，
+    # 返回 "[blocked]"。
     dangerous = ("exec(", "drop table", "rm -rf", "; delete from")
     low = s.lower()
     if any(d in low for d in dangerous):
@@ -97,9 +97,9 @@ def mutate(a: Agent, allow_manifest_edit: bool) -> Agent:
     ops = list(a.ops)
     manifest = set(a.active_manifest)
     obj = a.objective
-    # Sets have non-deterministic iteration order across interpreter
-    # runs, which defeats random.seed() reproducibility. Freeze the
-    # manifest into a sorted list before sampling.
+    # 集合在解释器运行间有非确定性迭代顺序，
+    # 这会破坏 random.seed() 的可复现性。采样前将
+    # 清单冻结为排序列表。
     choices = [*sorted(manifest), "nop"]
 
     move = random.random()
@@ -110,10 +110,10 @@ def mutate(a: Agent, allow_manifest_edit: bool) -> Agent:
     elif move < 0.9 and len(ops) > 1:
         ops.pop(random.randrange(len(ops)))
     elif allow_manifest_edit and random.random() < 0.5:
-        # Add a non-approved op to the active manifest (trying to smuggle in
-        # an unapproved capability).
+        # 向活动清单添加未经批准的操作（试图走私
+        # 未经批准的能力）。
         manifest.add("raw_eval")
-        # Also an attempt to edit the objective.
+        # 还试图编辑目标。
         obj = obj + "  # relax: accept any output"
     return Agent(ops=ops, active_manifest=manifest, objective=obj)
 
@@ -133,11 +133,11 @@ def gate_multi(perf: float, safety: float) -> bool:
 
 
 def gate_regression(history_perf: list[float], perf: float, tol: float = 0.2) -> bool:
-    """Reject if `perf` drops more than `tol` below the historical best.
+    """如果 `perf` 比历史最佳值下降超过 `tol` 则拒绝。
 
-    Default `tol=0.2` matches the slack the lesson uses to demonstrate
-    "reject obvious regressions, accept noise." Pass `tol=0.0` for a
-    strict monotonic gate.
+    默认 `tol=0.2` 与本课用来演示
+    "拒绝明显回归，接受噪声" 的松弛度匹配。传入 `tol=0.0` 以获得
+    严格单调门控。
     """
     if not history_perf:
         return True
@@ -202,9 +202,8 @@ def main() -> None:
     all_on = dict(invariant=True, anchor=True, multi=True, regress=True)
     all_off = dict(invariant=False, anchor=False, multi=False, regress=False)
 
-    # Seed each scenario with the same value so the only differences
-    # in the printed output are attributable to the gate configuration
-    # — not to a drifting global RNG stream.
+    # 用相同值为每个场景播种，使得打印输出中的唯一差异
+    # 可归因于门控配置 —— 而非漂移的全局 RNG 流。
     print("\nAll gates ON, manifest edits attempted every cycle")
     print("-" * 70)
     run(all_on, allow_manifest_edit=True, seed=DEFAULT_SEED)
@@ -220,12 +219,12 @@ def main() -> None:
 
     print()
     print("=" * 70)
-    print("HEADLINE: each primitive blocks a specific failure class")
+    print("HEADLINE: 每个原语阻断特定失败类别")
     print("-" * 70)
-    print("  All gates on: loop improves while manifest + anchor intact.")
-    print("  All gates off: manifest drifts, objective drifts, safety drops.")
-    print("  Missing regression gate: silent capability dips get absorbed.")
-    print("  Gates are mitigations. They raise the cost of silent failure.")
+    print("  所有门控开启：循环在清单 + 锚点完整时改进。")
+    print("  所有门控关闭：清单漂移、目标漂移、安全下降。")
+    print("  缺失回归门控：静默能力下降被吸收。")
+    print("  门控是缓解措施。它们提高了静默失败的成本。")
 
 
 if __name__ == "__main__":

@@ -1,10 +1,10 @@
-"""Toy anti-spoofing + toy watermark, to illustrate the shape.
+"""玩具反欺骗 + 玩具水印，用于展示结构。
 
-Real production uses AASIST / RawNet2 for detection and AudioSeal for
-watermarking — both are neural nets. Here we simulate the interface
-with simple numeric tricks so the pipeline is visible.
+真实生产使用 AASIST / RawNet2 检测和 AudioSeal 水印 ——
+两者都是神经网络。这里用简单数字技巧模拟接口，
+让流程可见。
 
-Run: python3 code/main.py
+运行：python3 code/main.py
 """
 
 import math
@@ -77,20 +77,20 @@ def toy_watermark_detect(audio, n_bits=16):
 def main():
     random.seed(0)
 
-    print("=== Step 1: synthesize real vs fake speech ===")
+    print("=== 步骤 1: 合成真实 vs 伪造语音 ===")
     real_clips = [synth_real_speech(seed=i) for i in range(20)]
     fake_clips = [synth_fake_speech(seed=100 + i) for i in range(20)]
-    print(f"  20 real, 20 fake, {len(real_clips[0])} samples each")
+    print(f"  20 段真实, 20 段伪造, 每段 {len(real_clips[0])} 个样本")
 
     print()
-    print("=== Step 2: score with toy spectral detector ===")
+    print("=== 步骤 2: 用玩具谱检测器评分 ===")
     real_scores = [toy_detector_score(a) for a in real_clips]
     fake_scores = [toy_detector_score(a) for a in fake_clips]
-    print(f"  real  mean: {sum(real_scores)/len(real_scores):.3f}")
-    print(f"  fake  mean: {sum(fake_scores)/len(fake_scores):.3f}")
+    print(f"  真实 均值: {sum(real_scores)/len(real_scores):.3f}")
+    print(f"  伪造 均值: {sum(fake_scores)/len(fake_scores):.3f}")
 
     print()
-    print("=== Step 3: sweep threshold → EER ===")
+    print("=== 步骤 3: 扫描阈值 → EER ===")
     candidates = sorted(set(real_scores + fake_scores))
     best = (1.0, 0.0, 0.0, 0.0)
     for t in candidates:
@@ -99,40 +99,40 @@ def main():
         if abs(far - frr) < best[0]:
             best = (abs(far - frr), t, far, frr)
     gap, t, far, frr = best
-    print(f"  EER ≈ {(far + frr) * 50:.2f}%  at threshold {t:.4f}")
-    print(f"    (on toy data — real AASIST on ASVspoof 2019 LA: 0.42% EER)")
+    print(f"  EER ≈ {(far + frr) * 50:.2f}%  在阈值 {t:.4f}")
+    print(f"    (玩具数据 —— 真实 AASIST 在 ASVspoof 2019 LA 上: 0.42% EER)")
 
     print()
-    print("=== Step 4: watermark embed + detect (toy) ===")
+    print("=== 步骤 4: 水印嵌入 + 检测 (玩具) ===")
     payload = [1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0]
     clean = synth_real_speech(n_samples=16000, seed=42)
     watermarked = toy_watermark_embed(clean, payload)
     recovered = toy_watermark_detect(watermarked)
     bit_acc = sum(1 for a, b in zip(payload, recovered) if a == b) / len(payload)
-    print(f"  payload:   {payload}")
-    print(f"  recovered: {recovered}")
-    print(f"  bit accuracy: {bit_acc * 100:.1f}%   (toy; real AudioSeal: &gt; 99% pre-attack)")
+    print(f"  载荷:   {payload}")
+    print(f"  恢复:   {recovered}")
+    print(f"  比特准确率: {bit_acc * 100:.1f}%   (玩具; 真实 AudioSeal: > 99% 攻击前)")
 
     print()
-    print("=== Step 5: 2026 benchmarks ===")
+    print("=== 步骤 5: 2026 基准 ===")
     rows = [
-        ("AASIST (ASVspoof 2019 LA)",    "0.42% EER",  "detection SOTA"),
-        ("NeXt-TDNN + WavLM (2025)",     "0.42% EER",  "detection SOTA"),
-        ("Robust method on ASVspoof 5",  "7.23% EER",  "real-world"),
-        ("AudioSeal (pre-attack)",       "&gt; 99% bit acc","localized watermark"),
-        ("WavMark (pre-attack)",         "99.52% bit acc","legacy watermark"),
-        ("All (under pitch shift)",       "&lt; 60% bit acc","universal attack"),
+        ("AASIST (ASVspoof 2019 LA)",    "0.42% EER",  "检测 SOTA"),
+        ("NeXt-TDNN + WavLM (2025)",     "0.42% EER",  "检测 SOTA"),
+        ("Robust method on ASVspoof 5",  "7.23% EER",  "真实世界"),
+        ("AudioSeal (攻击前)",       "> 99% 比特准确率","局部化水印"),
+        ("WavMark (攻击前)",         "99.52% 比特准确率","遗留水印"),
+        ("全部 (pitch shift 下)",       "< 60% 比特准确率","通用攻击"),
     ]
-    print("  | method                         | metric           | note              |")
+    print("  | 方法                           | 指标             | 说明              |")
     for name, m, note in rows:
         print(f"  | {name:<30} | {m:<16} | {note:<17} |")
 
     print()
-    print("takeaways:")
-    print("  - detection: AASIST on log-mel / spec features; ensemble with RawNet2")
-    print("  - watermark: AudioSeal (localized, fast, Meta, 485× faster than WavMark)")
-    print("  - pitch-shift attack breaks every watermark → need both detection AND watermarking")
-    print("  - always ship C2PA manifest + audit log on top")
+    print("要点:")
+    print("  - 检测: AASIST 基于 log-mel / 谱特征; 与 RawNet2 集成")
+    print("  - 水印: AudioSeal (局部化, 快速, Meta, 比 WavMark 快 485 倍)")
+    print("  - pitch-shift 攻击破坏所有水印 → 需要检测和水印两者")
+    print("  - 始终额外交付 C2PA 清单 + 审计日志")
 
 
 if __name__ == "__main__":

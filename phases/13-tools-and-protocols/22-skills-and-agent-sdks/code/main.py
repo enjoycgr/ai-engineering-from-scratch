@@ -1,12 +1,12 @@
-"""Phase 13 Lesson 22 - SKILL.md loader and agent bundle demo.
+"""Phase 13 Lesson 22 - SKILL.md 加载器和智能体包演示。
 
-Parses SKILL.md files with a stdlib YAML-frontmatter parser (no pyyaml),
-builds an in-memory skill registry, and simulates an agent loop that loads
-a skill by name and uses it to prefix the system prompt.
+用 stdlib YAML-frontmatter 解析器（无 pyyaml）解析 SKILL.md 文件，
+构建内存中的技能注册表，并模拟一个按名称加载技能并用它
+前缀系统提示的智能体循环。
 
-Skills live under ./skills/*/SKILL.md (created in /tmp for this demo).
+技能位于 ./skills/*/SKILL.md（本演示中创建于 /tmp）。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

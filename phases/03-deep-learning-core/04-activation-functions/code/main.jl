@@ -1,8 +1,8 @@
-# Activation functions in Julia. Sigmoid, tanh, ReLU, leaky ReLU,
-# GELU, Swish — each with hand-derived analytical gradients.
-# Plus dead-neuron detection on ReLU and a vanishing-gradient demo.
-# Trains a tiny 2-h-1 MLP with each activation on circle data.
-# Stdlib only. Sources:
+# Julia 中的 activation function (激活函数)。Sigmoid、tanh (双曲正切)、ReLU (修正线性单元)、
+# Leaky ReLU (泄漏修正线性单元)、GELU (高斯误差线性单元)、Swish —— 每个都附带手推解析 gradient (梯度)。
+# 外加 ReLU 的 dead-neuron (死亡神经元) 检测和一个 vanishing-gradient (梯度消失) 演示。
+# 使用每个 activation (激活) 在一个微型 2-h-1 MLP 上训练 circle data。
+# 仅使用标准库。来源：
 #   https://docs.julialang.org/en/v1/base/math/  (tanh, erf, sqrt)
 #   https://arxiv.org/abs/1606.08415  (GELU: Hendrycks & Gimpel)
 
@@ -10,8 +10,8 @@ using Random
 using Printf
 
 
-# Hand-rolled erf via Abramowitz & Stegun 7.1.26 (max error ~1.5e-7).
-# Stdlib only — Julia 1.x Base does not ship erf.
+# 通过 Abramowitz & Stegun 7.1.26 手搓 erf (最大误差 ~1.5e-7)。
+# 仅标准库 —— Julia 1.x Base 不自带 erf。
 function erf_approx(x::Float64)::Float64
     sign_x = x < 0 ? -1.0 : 1.0
     ax = abs(x)
@@ -37,7 +37,7 @@ leaky_relu_d(x::Float64; alpha::Float64=0.01)::Float64 = x > 0 ? 1.0 : alpha
 
 
 function gelu(x::Float64)::Float64
-    # Exact form x * Phi(x); keeps gelu and gelu_d consistent for backprop.
+    # 精确形式 x * Phi(x)；保持 gelu 和 gelu_d 在 backprop (反向传播) 中一致。
     return 0.5 * x * (1 + erf_approx(x / sqrt(2.0)))
 end
 
@@ -84,8 +84,8 @@ end
 function vanishing_gradient_experiment(act, act_d, name::String; n_layers::Int=10, n_inputs::Int=5)
     rng = MersenneTwister(42)
     values = randn(rng, n_inputs)
-    # Track the running product of |f'(z)| across layers — this is the
-    # quantity that actually vanishes during backprop, not the signal.
+    # 追踪各层 |f'(z)| 的累积乘积 —— 这是 backprop (反向传播) 中实际消失的量，
+    # 而不是信号本身。
     chain_grad = 1.0
     println("\n$name through $n_layers layers:")
     for layer in 1:n_layers
@@ -155,7 +155,7 @@ mutable struct ActivationNetwork
     b1::Vector{Float64}
     w2::Vector{Float64}
     b2::Float64
-    # caches
+    # 缓存
     x::Vector{Float64}
     z1::Vector{Float64}
     h::Vector{Float64}

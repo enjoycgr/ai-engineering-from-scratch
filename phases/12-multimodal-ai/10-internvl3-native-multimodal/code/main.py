@@ -1,11 +1,11 @@
-"""InternVL3-style native pretraining corpus mixer + ViR router simulator.
+"""InternVL3 风格原生预训练语料混合器 + ViR 路由器模拟器。
 
-Three toys:
-  1. Corpus mix planner — given target percentages, compute steps per modality.
-  2. ViR router sim — given a query distribution, estimate avg tokens per request.
-  3. DvD throughput estimate — given encoder FLOPs and LLM FLOPs, pick serving.
+三个玩具：
+  1. 语料混合规划器 — 给定目标百分比，计算每模态步数。
+  2. ViR 路由器模拟 — 给定查询分布，估计每请求平均 token。
+  3. DvD 吞吐估计 — 给定编码器 FLOPs 和 LLM FLOPs，挑选服务方式。
 
-Stdlib only. Not a real trainer; illustrates the accounting InternVL3 runs.
+仅 stdlib。不是真实训练器；说明 InternVL3 运行的核算。
 """
 
 from __future__ import annotations

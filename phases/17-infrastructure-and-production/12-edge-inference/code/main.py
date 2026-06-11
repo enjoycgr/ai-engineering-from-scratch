@@ -1,8 +1,7 @@
-"""Edge-inference bandwidth-bound decode simulator — stdlib Python.
+"""边缘推理带宽受限 decode 模拟器 —— 标准库 Python。
 
-Computes theoretical decode throughput from (weights_bytes / bandwidth_bytes_per_sec)
-for a range of edge targets. Compares to observed benchmarks. Demonstrates that
-decode is memory-bound, not compute-bound, on edge devices.
+从（权重字节 / 带宽字节每秒）计算一系列边缘目标的理论 decode 吞吐量。
+与实测基准比较。证明 decode 在边缘设备上是内存受限而非算力受限。
 """
 
 from __future__ import annotations

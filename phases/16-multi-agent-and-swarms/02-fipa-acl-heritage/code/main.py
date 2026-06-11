@@ -1,9 +1,9 @@
 """FIPA-ACL translator and mini contract-net demo, stdlib only.
 
-Shows that every 2026 agent-protocol message (MCP tools/call, MCP
-resources/read, A2A task creation) reduces to a FIPA-ACL envelope with a
-different syntax. Then runs a 3-bidder contract-net negotiation using the
-canonical cfp / propose / accept-proposal / reject-proposal performatives.
+展示每一个 2026 年的 agent-protocol 消息（MCP tools/call、MCP
+resources/read、A2A task creation）都可以归约为一个 FIPA-ACL envelope（信封），
+只是语法不同。然后使用规范的 cfp / propose / accept-proposal / reject-proposal
+performatives（言语行为）运行一个 3-bidder contract-net negotiation（合同网协商）。
 """
 from __future__ import annotations
 

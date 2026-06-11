@@ -1,30 +1,30 @@
 ---
 name: deepseek-v3-reader
-description: Read a DeepSeek-family config and produce a component-by-component architecture analysis.
+description: 读取 DeepSeek 家族配置并生成逐组件架构分析。
 version: 1.0.0
 phase: 10
 lesson: 20
 tags: [deepseek-v3, deepseek-r1, mla, moe, mtp, dualpipe, architecture]
 ---
 
-Given a DeepSeek-family model (V3, R1, or any derivative) and its config (hidden_size, layers, num_experts, kv_lora_rank, etc.), produce an architecture analysis that breaks the model down by component and identifies which DeepSeek-specific innovations it uses.
+给定 DeepSeek 家族模型（V3、R1 或任何衍生）及其配置（hidden_size、layers、num_experts、kv_lora_rank 等），生成按组件分解模型并识别其使用哪些 DeepSeek 特定创新的架构分析。
 
-Produce:
+产出：
 
-1. Field-by-field config read. For each field, name the component it maps to and the parameter count it contributes. Format: `field_name: value → interpretation → parameter contribution`.
-2. Parameter breakdown. Total parameters, active parameters, active ratio. Split by embedding, per-layer attention, per-layer MLP (dense vs expert), router, MTP module, LM head, RMSNorm total.
-3. KV cache at target context. Report BF16 and FP8 values. Include a comparison to a Llama-3-style GQA(8/128) baseline at the same context and hidden size.
-4. Innovation checklist. For each of MLA, MTP, aux-loss-free routing, DualPipe, identify whether the model uses it and where in the config/paper this is visible.
-5. Sanity check. Compute the model's inference memory budget (weights + KV cache + activations) on a specific deployment target (H100 80GB, H200 141GB, MI300X 192GB, single node vs multi-node). Report whether it fits and what quantization would be needed.
+1. 逐字段配置读取。对于每个字段，命名它映射到的组件及其贡献的参数计数。格式：`field_name: value → interpretation → parameter contribution`。
+2. 参数分解。总参数、活跃参数、活跃比率。按 embedding、每层 attention、每层 MLP（dense vs expert）、router、MTP 模块、LM head、RMSNorm 总计拆分。
+3. 目标上下文时的 KV cache。报告 BF16 和 FP8 值。包括与相同上下文和隐藏大小下 Llama-3 风格 GQA(8/128) 基线的比较。
+4. 创新检查清单。对于 MLA、MTP、aux-loss-free routing、DualPipe 中的每一项，识别模型是否使用它以及在配置/论文的哪里可见。
+5. 合理性检查。计算模型在特定部署目标（H100 80GB、H200 141GB、MI300X 192GB、单节点 vs 多节点）上的推理内存预算（权重 + KV cache + 激活）。报告是否容纳以及需要什么量化。
 
-Hard rejects:
-- Any analysis that conflates DeepSeek-V3 with GPT-class dense models. The architecture is materially different.
-- Claiming MLA is faster than GQA without specifying context length. At short context (under 4k) they are comparable; MLA wins at long context.
-- Interpreting MTP as a replacement for speculative decoding. It is a pre-training objective that also doubles as a draft.
+硬性拒绝：
+- 任何将 DeepSeek-V3 与 GPT 类密集模型混为一谈的分析。架构有本质不同。
+- 声称 MLA 比 GQA 快而不指定上下文长度。短上下文（4k 以下）下它们相当；MLA 在长上下文获胜。
+- 将 MTP 解释为 speculative decoding 的替代品。它是也兼作 draft 的预训练目标。
 
-Refusal rules:
-- If the provided config is missing `kv_lora_rank`, `num_experts`, or `first_k_dense_layers`, refuse — this is not a DeepSeek-family model.
-- If the user asks for the exact published parameter count match (to the nearest 100M), refuse and explain that the published number includes implementation-specific structural parameters a simplified calculator does not exactly reproduce. Direct them to the paper's Section 2 appendix.
-- If the target deployment target is a consumer GPU (24GB or less), refuse and recommend a quantized distilled DeepSeek-family derivative instead.
+拒绝规则：
+- 如果提供的配置缺少 `kv_lora_rank`、`num_experts` 或 `first_k_dense_layers`，拒绝——这不是 DeepSeek 家族模型。
+- 如果用户要求精确匹配发布参数计数（精确到最近 100M），拒绝并解释发布数字包含简化计算器无法精确复现的实现特定结构参数。引导他们到论文的 Section 2 附录。
+- 如果目标部署目标是消费级 GPU（24GB 或更少），拒绝并推荐量化蒸馏的 DeepSeek 家族衍生模型替代。
 
-Output: a one-page architecture analysis listing fields, parameter breakdown, KV cache, innovation checklist, and deployment fit. End with a "what to read next" paragraph naming one of NSA (Phase 10 · 17), MLA ablations from the V2 paper, or the V3 technical report's Section 2 appendix, depending on what question the analysis surfaced.
+输出：一页架构分析，列出字段、参数分解、KV cache、创新检查清单和部署适配。最后以"接下来读什么"段落结束，命名 NSA（Phase 10 · 17）、V2 论文的 MLA 消融或 V3 技术报告的 Section 2 附录之一，取决于分析浮现了什么问题。

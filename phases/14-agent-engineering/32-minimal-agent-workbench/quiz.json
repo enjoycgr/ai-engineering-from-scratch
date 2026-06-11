@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What three files form the smallest useful workbench?",
+      "question": "哪三个文件构成最小可用的 workbench？",
       "options": [
         "AGENTS.md (router), agent_state.json (state), task_board.json (queue)",
         "README.md, CHANGELOG.md, LICENSE",
@@ -12,79 +12,79 @@
         "Dockerfile, Makefile, .gitignore"
       ],
       "correct": 0,
-      "explanation": "A short router, durable state, and a task queue are the floor."
+      "explanation": "一个简短的 router、durable state 和 task queue 是底线。"
     },
     {
       "stage": "pre",
-      "question": "What is the lesson's framing of AGENTS.md?",
+      "question": "课程如何定位 AGENTS.md？",
       "options": [
-        "A 3000-line onboarding manual",
-        "A short router that points at deeper docs and the state and board",
-        "A pure prompt-cache key",
-        "A secret kept out of the repo"
+        "一份 3000 行的 onboarding manual（入职手册）",
+        "一个简短的 router，指向深层文档、state 和 board",
+        "一个纯 prompt-cache key",
+        "一个藏在仓库外的秘密"
       ],
       "correct": 1,
-      "explanation": "AGENTS.md is a router, not a manual; long manuals get ignored."
+      "explanation": "AGENTS.md 是 router，不是 manual；长 manual 会被忽略。"
     },
     {
       "stage": "check",
-      "question": "What does Augment Code's data say about a good AGENTS.md?",
+      "question": "Augment Code 的数据对一份好的 AGENTS.md 怎么说？",
       "options": [
-        "It has no measurable effect",
-        "A good AGENTS.md gives a quality jump equivalent to upgrading from Haiku to Opus; a bad one is worse than no file",
-        "Length always helps",
-        "Only Claude reads it"
+        "没有可测量的效果",
+        "一份好的 AGENTS.md 带来的质量提升相当于从 Haiku 升级到 Opus；差的比没有文件还糟",
+        "长度总是有帮助",
+        "只有 Claude 会读它"
       ],
       "correct": 1,
-      "explanation": "Augment Code's measurement: best files are model-upgrade-shaped, worst are worse than nothing."
+      "explanation": "Augment Code 的测量：最好的文件带来模型升级级别的提升，最差的比没有还糟。"
     },
     {
       "stage": "check",
-      "question": "Why does the lesson recommend file-backed state over chat-history state?",
+      "question": "为什么课程推荐 file-backed state 而非 chat-history state？",
       "options": [
-        "Disk is cheaper",
-        "Chat history is volatile; the file survives session death, conversation trimming, and tool resets",
-        "Files are smaller",
-        "It is required by SOC 2"
+        "磁盘更便宜",
+        "Chat history 是 volatile（易失的）；文件能在 session 死亡、对话截断和工具重置中存活",
+        "文件更小",
+        "这是 SOC 2 要求的"
       ],
       "correct": 1,
-      "explanation": "Sessions die and chat gets trimmed; the file is the durable system of record."
+      "explanation": "Session 会死亡，chat 会被截断；文件是 durable system of record。"
     },
     {
       "stage": "check",
-      "question": "What does the lesson say happens when conflicting instructions land in AGENTS.md?",
+      "question": "课程说当冲突的 instructions 出现在 AGENTS.md 中时会发生什么？",
       "options": [
-        "Latency drops",
-        "Conflicting instructions silently drop the agent from interactive to greedy mode (AMBIG-SWE: 48.8% to 28% resolve rate)",
-        "Cost rises slightly",
-        "Nothing"
+        "延迟下降",
+        "冲突的 instructions 会静默将 agent 从 interactive mode（交互模式）降级为 greedy mode（贪婪模式）（AMBIG-SWE：48.8% 到 28% 解决率）",
+        "成本略微上升",
+        "什么都不会发生"
       ],
       "correct": 1,
-      "explanation": "AMBIG-SWE measured a large resolve-rate drop when contradictions appear; number priorities instead."
+      "explanation": "AMBIG-SWE 测量到矛盾出现时解决率大幅下降；应使用数字优先级替代。"
     },
     {
       "stage": "post",
-      "question": "Why does the lesson recommend cross-tool symlinks like CLAUDE.md -> AGENTS.md?",
+      "question": "为什么课程推荐跨工具 symlinks，如 CLAUDE.md -> AGENTS.md？",
       "options": [
-        "To save bytes",
-        "So a single source of truth fans out to every coding agent without forking",
-        "To pass auditing",
-        "To satisfy MIT"
+        "为了节省字节",
+        "让单一 source of truth（真相来源）无需分叉即可分发给每个 coding agent",
+        "为了通过审计",
+        "为了满足 MIT"
       ],
       "correct": 1,
-      "explanation": "Symlinks (or Nx-style generators) keep one canonical source across Claude Code, Codex, Cursor, Copilot, etc."
+      "explanation": "Symlinks（或 Nx 风格的生成器）在 Claude Code、Codex、Cursor、Copilot 等工具之间保持单一 canonical source。"
     },
     {
       "stage": "post",
-      "question": "What pattern do nested AGENTS.md files follow?",
+      "question": "嵌套的 AGENTS.md 文件遵循什么模式？",
       "options": [
-        "Only the root file is read",
-        "Walk from the working file toward the repo root, concatenate every AGENTS.md found on the way (nearest wins; sub-directories extend root)",
-        "Random selection",
-        "Alphabetical merge"
+        "只读取根文件",
+        "从工作文件走向仓库根目录，沿途拼接每一份找到的 AGENTS.md（最近优先；子目录扩展根文件）",
+        "随机选择",
+        "按字母合并"
       ],
       "correct": 1,
-      "explanation": "OpenAI ships 88 AGENTS.md files across its main repo; tools concatenate nearest-up-tree."
+      "explanation": "OpenAI 在其主仓库中放置了 88 份 AGENTS.md；工具会拼接最近的上层树。"
     }
   ]
 }

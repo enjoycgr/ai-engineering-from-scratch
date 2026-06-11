@@ -1,31 +1,31 @@
 ---
 name: hybrid-picker
-description: Pick between pure Transformer, Jamba-style hybrid, and pure SSM for a given workload.
+description: 为给定工作负载选择纯 Transformer、Jamba 风格混合或纯 SSM。
 version: 1.0.0
 phase: 10
 lesson: 21
 tags: [jamba, mamba, ssm, hybrid, long-context, memory-budget, architecture]
 ---
 
-Given a workload specification (context length profile p50/p99, task mix, memory budget per GPU, target throughput, quality-vs-speed priority), recommend between a pure Transformer (+MoE +MLA), a Jamba-style hybrid, and a pure Mamba model.
+给定工作负载规范（上下文长度分布 p50/p99、任务混合、每 GPU 内存预算、目标吞吐量、质量 vs 速度优先级），在纯 Transformer（+MoE +MLA）、Jamba 风格混合和纯 Mamba 模型之间推荐。
 
-Produce:
+产出：
 
-1. Context-length bucket. Short (under 16k), medium (16k-64k), long (64k-256k), or ultra-long (256k-plus). Drives the first-pass decision.
-2. Architecture recommendation. Pick one of pure Transformer, 1:7 hybrid, 1:3 hybrid, 1:15 hybrid, or pure Mamba. Justify using the context bucket plus the task's in-context-recall demands.
-3. Memory budget check. Compute KV cache + SSM state at target context. Confirm it fits on the target accelerator after accounting for weights and activation memory (typically 10-20 GB on top of weights and KV cache).
-4. Quality tradeoff disclosure. Document the quality cost of the chosen sparsity level. Hybrids below 1:7 ratio degrade on in-context retrieval by measurable amounts; pure Mamba fails on some state-tracking tasks.
-5. Inference stack compatibility. Confirm the chosen architecture is supported by the target stack (vLLM, TensorRT-LLM, SGLang, llama.cpp). Hybrids have thinner tooling coverage than pure Transformers.
+1. 上下文长度分桶。短（16k 以下）、中（16k-64k）、长（64k-256k）、超长（256k 以上）。驱动第一遍决策。
+2. 架构推荐。从纯 Transformer、1:7 混合、1:3 混合、1:15 混合或纯 Mamba 中选择。使用上下文分桶加任务的上下文内召回需求证明合理性。
+3. 内存预算检查。计算目标上下文时的 KV cache + SSM state。确认在考虑权重和激活内存后（通常在权重和 KV cache 之上 10-20 GB）可容纳在目标加速器上。
+4. 质量权衡披露。记录所选稀疏性水平的质量成本。1:7 以下比率的混合在上下文内检索上可测量地退化；纯 Mamba 在某些状态跟踪任务上失败。
+5. 推理栈兼容性。确认所选架构被目标栈（vLLM、TensorRT-LLM、SGLang、llama.cpp）支持。混合模型比纯 Transformer 的工具覆盖更薄。
 
-Hard rejects:
-- Jamba-style hybrid for context under 16k. The architectural overhead is not justified.
-- Pure Mamba for reasoning-heavy or multi-document cross-reference tasks. State-tracking limits bite.
-- Sub-1:15 hybrid ratios. Below this, in-context recall is unreliable.
-- Any recommendation that does not fit the computed memory budget on the specified accelerator.
+硬性拒绝：
+- 16k 以下上下文的 Jamba 风格混合。架构开销不合理。
+- 推理密集型或多文档交叉引用任务的纯 Mamba。状态跟踪限制会咬人。
+- 1:15 以下混合比率。低于此值，上下文内召回不可靠。
+- 任何在指定加速器上不符合计算内存预算的推荐。
 
-Refusal rules:
-- If the workload is genuinely mixed short and long context, refuse the hybrid recommendation and recommend the pure Transformer (with MLA if possible) — hybrids shine on long-context workloads specifically.
-- If the accelerator is consumer-grade (24GB or less), refuse hybrid-size models and recommend a distilled small hybrid or a quantized pure Transformer.
-- If the workload is latency-sensitive batch-1 generation and the model is new (no existing deployment path), refuse and recommend a well-supported pure Transformer with speculative decoding (Phase 10 · 15) as the simpler path.
+拒绝规则：
+- 如果工作负载真正混合短上下文和长上下文，拒绝混合推荐并推荐纯 Transformer（如果可能带 MLA）——混合模型专门在长上下文工作负载上发光。
+- 如果加速器是消费级（24GB 或更少），拒绝混合大小模型并推荐蒸馏小混合或量化纯 Transformer。
+- 如果工作负载是延迟敏感的 batch-1 生成且模型是新的（无现有部署路径），拒绝并推荐支持良好的纯 Transformer 加 speculative decoding（Phase 10 · 15）作为更简单路径。
 
-Output: a one-page recommendation listing context bucket, architecture choice, KV cache at target context, quality tradeoff disclosure, and inference stack compatibility. End with a "what to monitor" paragraph naming the specific long-context evaluation (RULER, LongBench, needle-in-haystack) that would confirm the recommendation in the first 10k production requests.
+输出：一页推荐，列出上下文分桶、架构选择、目标上下文时的 KV cache、质量权衡披露和推理栈兼容性。最后以"监控什么"段落结束，命名在前 10k 生产请求中确认推荐的特定长上下文评估（RULER、LongBench、needle-in-haystack）。

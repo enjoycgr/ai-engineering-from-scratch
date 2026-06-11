@@ -1,7 +1,7 @@
 """Sequential A/B test simulator — stdlib Python.
 
-Compares fixed-sample vs always-valid sequential testing on a binary outcome.
-Illustrates CUPED-style variance reduction.
+在二元结果上对比固定样本与 always-valid sequential testing。
+演示 CUPED 风格的 variance reduction。
 """
 
 from __future__ import annotations
@@ -97,7 +97,6 @@ def main() -> None:
     print("\nRead: on strong signals the sequential bound fires early (the 50% lift")
     print("case above), and the returned n_a/n_b reflect samples *up to* the stop")
     print("point, not the full horizon. For small or zero effects the bound is")
-    print("deliberately conservative — that is the Type-I guarantee.")
 
 
 if __name__ == "__main__":

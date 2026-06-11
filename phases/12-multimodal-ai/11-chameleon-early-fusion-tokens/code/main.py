@@ -1,13 +1,12 @@
-"""Chameleon-style early-fusion: toy VQ quantizer + shared-vocab autoregressive decoder.
+"""Chameleon 风格早期融合：玩具 VQ 量化器 + 共享词汇自回归 decoder。
 
-End-to-end pipeline:
-  1. VQ-VAE-ish quantizer: 8x8 grayscale patch -> integer codebook index, K=16.
-  2. Shared vocab: text ids 0..31, image ids 32..47, separators 48 (<image>), 49 (</image>).
-  3. Bigram decoder trained on synthetic (text + <image> codes </image>) pairs.
-  4. Sampling loop that emits mixed-modality output.
+端到端流水线：
+  1. VQ-VAE-ish 量化器：8x8 灰度 patch -> 整数 codebook 索引，K=16。
+  2. 共享词汇：text ids 0..31，image ids 32..47，分隔符 48 (<image>)，49 (</image>)。
+  3. 在合成 (text + <image> codes </image>) 对上训练的 bigram decoder。
+  4. 发出混合模态输出的采样循环。
 
-Stdlib only. The transformer is a bigram count table — the point is to see the
-shared-vocabulary loop in miniature, not to get image quality.
+仅 stdlib。Transformer 是 bigram 计数表——重点是微型中看共享词汇循环，不是图像质量。
 """
 
 from __future__ import annotations

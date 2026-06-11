@@ -1,10 +1,10 @@
-// Phase 11 · Lesson 06 — Minimal RAG (TypeScript port).
-// TF-IDF vector store + cosine similarity + retrieval + prompt assembly,
-// over a toy corpus. End-to-end pipeline runs on Node stdlib only.
-// Swap the embedder for OpenAI text-embedding-3-small (or any 1536-dim
-// model) and the simple_generate stub for a real /v1/messages call —
-// the rest of the pipeline stays.
-// Refs: https://platform.openai.com/docs/guides/embeddings
+// Phase 11 · Lesson 06 — 最小 RAG（TypeScript 版本）。
+// 基于玩具语料库的 TF-IDF 向量存储 + 余弦相似度 + 检索 + 提示组装。
+// 端到端流水线仅使用 Node 标准库运行。
+// 将嵌入器替换为 OpenAI text-embedding-3-small（或任何 1536 维模型），
+// 并将 simple_generate 存根替换为真实的 /v1/messages 调用 ——
+// 流水线的其余部分保持不变。
+// 参考: https://platform.openai.com/docs/guides/embeddings
 //       https://en.wikipedia.org/wiki/Tf%E2%80%93idf
 //       https://docs.anthropic.com/en/docs/build-with-claude/embeddings
 
@@ -37,8 +37,8 @@ function computeTF(text: string, vocab: string[]): number[] {
   return vocab.map((w) => (counts.get(w) ?? 0) / total);
 }
 
-// Smoothed IDF (the `+1`s avoid divide-by-zero and a zero IDF for terms in
-// every document). Matches scikit-learn's default formula.
+// 平滑 IDF（`+1` 避免除零，并避免出现在每个文档中的词的 IDF 为零）。
+// 与 scikit-learn 的默认公式匹配。
 function computeIDF(documents: string[], vocab: string[]): number[] {
   const n = documents.length;
   const docTokens = documents.map((d) => new Set(d.toLowerCase().split(/\s+/)));
@@ -92,9 +92,8 @@ function buildRagPrompt(query: string, chunks: string[]): string {
   ].join("\n");
 }
 
-// Stand-in for the generation step. Picks the chunk-sentence with most
-// non-stopword overlap with the question. In production this is one
-// /v1/messages call with `prompt` as the user message.
+// 生成步骤的占位实现。选择与非停用词重叠最多的 chunk 句子。
+// 在生产环境中，这是使用 `prompt` 作为用户消息的 /v1/messages 调用。
 const STOPWORDS = new Set([
   "the", "a", "an", "is", "are", "was", "were", "what", "how",
   "why", "when", "where", "do", "does", "for", "of", "in", "to",

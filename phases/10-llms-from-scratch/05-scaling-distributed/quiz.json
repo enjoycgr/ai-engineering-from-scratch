@@ -1,37 +1,37 @@
 [
   {
-    "question": "A 7B parameter model in FP16 needs how much VRAM just for weights?",
+    "question": "一个 7B 参数模型在 FP16 下仅权重就需要多少显存？",
     "options": ["7 GB", "14 GB", "28 GB", "56 GB"],
     "correct": 1,
-    "explanation": "Each parameter in FP16 is 2 bytes. 7 billion * 2 bytes = 14 GB. With Adam optimizer states (2 copies) and gradients, total training memory is roughly 56 GB before accounting for activations.",
+    "explanation": "FP16 下每个参数占 2 字节。70 亿 * 2 字节 = 14 GB。加上 Adam optimizer states（2 份副本）和 gradients，总训练内存在考虑 activations 之前约为 56 GB。",
     "stage": "pre"
   },
   {
-    "question": "What are the three types of parallelism used in distributed training?",
-    "options": ["CPU, GPU, and TPU parallelism", "Data parallelism, tensor parallelism, and pipeline parallelism", "Batch, sequence, and token parallelism", "Forward, backward, and optimizer parallelism"],
+    "question": "分布式训练中使用的三种并行类型是什么？",
+    "options": ["CPU、GPU 和 TPU 并行", "Data parallelism、tensor parallelism 和 pipeline parallelism", "Batch、sequence 和 token 并行", "Forward、backward 和 optimizer 并行"],
     "correct": 1,
-    "explanation": "Data parallelism replicates the model on each GPU and splits the data. Tensor parallelism splits individual layers across GPUs. Pipeline parallelism splits the model's layers into stages across GPUs.",
+    "explanation": "Data parallelism 在每块 GPU 上复制模型并拆分数据。Tensor parallelism 在 GPU 间拆分单个层。Pipeline parallelism 在 GPU 间拆分模型的层组。",
     "stage": "pre"
   },
   {
-    "question": "What does FSDP (Fully Sharded Data Parallel) do that standard DDP does not?",
-    "options": ["It uses a different optimizer", "It shards model parameters, gradients, and optimizer states across GPUs instead of replicating the full model on each", "It processes data faster", "It supports more GPUs"],
+    "question": "FSDP（Fully Sharded Data Parallel，全分片数据并行）与标准 DDP 相比做了什么不同？",
+    "options": ["它使用不同的优化器", "它在 GPU 间分片模型参数、gradients 和 optimizer states，而不是在每块 GPU 上复制完整模型", "它处理数据更快", "它支持更多 GPU"],
     "correct": 1,
-    "explanation": "Standard DDP replicates the entire model on every GPU (wasteful). FSDP shards parameters across GPUs so each holds only a fraction. Parameters are gathered on-demand for computation and released after.",
+    "explanation": "标准 DDP 在每块 GPU 上复制整个模型（浪费）。FSDP 在 GPU 间分片参数，每块只持有部分。参数在计算时按需收集，计算后释放。",
     "stage": "post"
   },
   {
-    "question": "What is DeepSpeed ZeRO Stage 3?",
-    "options": ["A quantization method", "It partitions optimizer states, gradients, AND model parameters across GPUs, achieving maximum memory efficiency", "A learning rate schedule", "A data preprocessing pipeline"],
+    "question": "DeepSpeed ZeRO Stage 3 是什么？",
+    "options": ["一种量化方法", "它在 GPU 间划分 optimizer states、gradients 和模型参数，实现最大内存效率", "一种学习率调度", "一种数据预处理流水线"],
     "correct": 1,
-    "explanation": "ZeRO Stage 1 shards optimizer states, Stage 2 adds gradient sharding, Stage 3 adds parameter sharding. Stage 3 gives maximum memory savings, allowing training of models that far exceed single-GPU memory.",
+    "explanation": "ZeRO Stage 1 分片 optimizer states，Stage 2 增加 gradient 分片，Stage 3 增加 parameter 分片。Stage 3 提供最大内存节省，允许训练远超单卡内存的模型。",
     "stage": "post"
   },
   {
-    "question": "Why is gradient synchronization necessary in data-parallel training?",
-    "options": ["To prevent overfitting", "Each GPU computes gradients on different data; averaging gradients across GPUs ensures all replicas update identically", "To reduce memory usage", "To speed up the forward pass"],
+    "question": "为什么 data-parallel training 中需要 gradient synchronization（梯度同步）？",
+    "options": ["为了防止过拟合", "每块 GPU 在不同数据上计算 gradients；跨 GPU 平均 gradients 确保所有副本一致更新", "为了减少内存使用", "为了加速 forward pass"],
     "correct": 1,
-    "explanation": "In data parallelism, each GPU processes a different batch and computes different gradients. AllReduce averages these gradients across all GPUs so every replica applies the same update and stays in sync.",
+    "explanation": "在 data parallelism 中，每块 GPU 处理不同的 batch 并计算不同的 gradients。AllReduce 在所有 GPU 间平均这些 gradients，使每个副本应用相同的更新并保持同步。",
     "stage": "post"
   }
 ]

@@ -1,90 +1,90 @@
 {
   "lesson": "10-skill-libraries-voyager",
-  "title": "Skill Libraries and Lifelong Learning (Voyager)",
+  "title": "技能库与终身学习 (Voyager)",
   "questions": [
     {
       "stage": "pre",
-      "question": "What does Voyager treat as the action space?",
+      "question": "Voyager 将什么视为动作空间 (action space)？",
       "options": [
-        "Primitive Minecraft commands",
-        "Executable code (JavaScript functions) stored, retrieved, and composed",
-        "Text prompts only",
-        "Reinforcement learning Q-values"
+        "原始 Minecraft 命令",
+        "可执行代码（JavaScript 函数），可存储、检索和组合",
+        "仅文本提示",
+        "强化学习 Q-values"
       ],
       "correct": 1,
-      "explanation": "Voyager's contribution is making code the action: skills are programs, not raw commands."
+      "explanation": "Voyager 的贡献是将代码作为动作：skills 是程序，而非原始命令。"
     },
     {
       "stage": "pre",
-      "question": "What three components define a Voyager agent?",
+      "question": "哪三个组件定义了一个 Voyager 智能体？",
       "options": [
-        "Encoder, decoder, value head",
-        "Automatic curriculum, skill library, iterative prompting",
-        "Planner, executor, judge",
-        "Retriever, generator, ranker"
+        "Encoder、decoder、value head",
+        "Automatic curriculum、skill library、iterative prompting",
+        "Planner、executor、judge",
+        "Retriever、generator、ranker"
       ],
       "correct": 1,
-      "explanation": "Voyager structures the agent around curriculum, skill library, and iterative prompting."
+      "explanation": "Voyager 围绕 curriculum、skill library 和 iterative prompting 构建智能体。"
     },
     {
       "stage": "check",
-      "question": "What three signals can return from a skill execution attempt?",
+      "question": "Skill 执行尝试可能返回哪三种信号？",
       "options": [
-        "Pass, fail, retry",
-        "Success, error (with stack trace), self-verification failure",
-        "Green, yellow, red",
-        "Heartbeat, ack, nack"
+        "Pass、fail、retry",
+        "Success、error（带 stack trace）、self-verification failure",
+        "Green、yellow、red",
+        "Heartbeat、ack、nack"
       ],
       "correct": 1,
-      "explanation": "Voyager's iterative prompting mechanism is driven by these three signals folded back into the next version."
+      "explanation": "Voyager 的迭代提示机制由这三种信号驱动，它们被折叠进下一版本。"
     },
     {
       "stage": "check",
-      "question": "How does the automatic curriculum pick the next task?",
+      "question": "Automatic curriculum 如何挑选下一个任务？",
       "options": [
-        "Random uniform over the action space",
-        "Just above current capability, based on environment state and skill inventory (the exploration sweet spot)",
-        "Always the hardest available task",
-        "User-supplied list only"
+        "在动作空间上均匀随机",
+        "略高于当前能力，基于环境状态和技能库存（探索最佳点）",
+        "始终是最难可用任务",
+        "仅限用户提供的列表"
       ],
       "correct": 1,
-      "explanation": "The proposer aims for tasks just above current capability so progress is steady."
+      "explanation": "提议器瞄准略高于当前能力的任务，以保持稳定进步。"
     },
     {
       "stage": "check",
-      "question": "Which 2026 product is the lesson's clearest match for the Voyager skill?",
+      "question": "本课认为哪个 2026 年产品与 Voyager skill 最匹配？",
       "options": [
         "OpenAI fine-tuning",
-        "Claude Agent SDK skills: named, retrievable code plus instructions loaded on demand",
+        "Claude Agent SDK skills：命名的、可检索的代码加指令，按需加载",
         "Pinecone indices",
         "AWS Lambda layers"
       ],
       "correct": 1,
-      "explanation": "Agent SDK skills match Voyager's named-retrievable-composable code pattern."
+      "explanation": "Agent SDK skills 匹配 Voyager 的命名-可检索-可组合代码模式。"
     },
     {
       "stage": "post",
-      "question": "Why does the lesson recommend dedup on write for the skill library?",
+      "question": "为什么本课建议对技能库做写入时去重 (dedup on write)？",
       "options": [
-        "Disk is expensive",
-        "Without dedup, the same skill gets added many times with slightly different descriptions; retrieval should return one canonical version",
-        "Providers reject duplicates",
-        "Git blocks duplicates"
+        "磁盘昂贵",
+        "没有去重，同一 skill 会以略有不同的描述被多次添加；检索应返回单一规范版本",
+        "供应商拒绝重复",
+        "Git 阻止重复"
       ],
       "correct": 1,
-      "explanation": "Near-duplicate descriptions collapse to a single canonical skill so retrieval stays clean."
+      "explanation": "近似重复描述坍缩为单一规范 skill，使检索保持干净。"
     },
     {
       "stage": "post",
-      "question": "What problem does composed-skill drift describe?",
+      "question": "Composed-skill drift 描述的是什么问题？",
       "options": [
-        "A skill stops compiling after a Python upgrade",
-        "A parent skill silently picks up a refined child version it was never tested against; fix by pinning skill versions",
-        "Skills get encrypted in storage",
-        "Retrieval returns nothing"
+        "Python 升级后 skill 停止编译",
+        "父 skill 静默获取了一个它从未测试过的精炼子版本；通过 skill 版本锁定修复",
+        "Skills 在存储中被加密",
+        "检索什么都不返回"
       ],
       "correct": 1,
-      "explanation": "Without version pinning, a refinement to a child silently changes the parent's behavior."
+      "explanation": "没有版本锁定，子 skill 的精炼会静默改变父 skill 的行为。"
     }
   ]
 }

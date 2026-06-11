@@ -1,9 +1,9 @@
-"""Role specialization: planner, executor, critic, verifier.
+"""Role specialization (角色特化): planner, executor, critic, verifier.
 
-Builds a small Python function. Critic (LLM-simulated) and verifier (code)
-together catch bugs that either alone would miss.
+构建一个小型 Python 函数。Critic (LLM 模拟) 和 verifier (代码)
+共同捕捉到单独任何一个都会遗漏的 bug。
 
-Run twice: once with correct executor output, once with off-spec output.
+运行两次：一次使用正确的 executor 输出，一次使用 off-spec (偏离规格) 输出。
 """
 from __future__ import annotations
 
@@ -36,7 +36,7 @@ class VerifierReport:
 
 
 def planner(user_wish: str) -> Spec:
-    """Produces a structured spec from a high-level wish."""
+    """从高层愿望生成结构化 spec (规格说明)。"""
     return Spec(
         task_name="add_two",
         signature="add_two(a: int, b: int) -> int",
@@ -54,8 +54,8 @@ def executor_buggy(spec: Spec) -> Artifact:
 
 
 def critic(spec: Spec, art: Artifact) -> CriticReport:
-    """LLM-style review. Pattern-matches against common issues but can be fooled
-    by plausible-looking code that is semantically wrong."""
+    """LLM 风格审查。对常见问题进行模式匹配，但可能被
+    看起来合理但语义错误的代码欺骗。"""
     notes: list[str] = []
     if "def" not in art.code:
         notes.append("missing def statement")
@@ -68,7 +68,7 @@ def critic(spec: Spec, art: Artifact) -> CriticReport:
 
 
 def verifier(spec: Spec, art: Artifact) -> VerifierReport:
-    """Run the code in a sandbox namespace and execute the tests. Deterministic."""
+    """在 sandbox namespace (沙箱命名空间) 中运行代码并执行测试。确定性的。"""
     ns: dict = {}
     try:
         exec(art.code, ns, ns)
@@ -123,9 +123,9 @@ def main() -> None:
         "Buggy executor output (looks plausible; fails runtime)",
     )
 
-    print("\nKey insight: the critic passes the buggy code because it looks fine.")
-    print("Only the verifier -- deterministic test execution -- catches the semantic bug.")
-    print("All-LLM pipelines (no verifier) would ship the bug. Classic MAST failure mode.")
+    print("\n关键洞察: critic 通过了有 bug 的代码，因为它看起来没问题。")
+    print("只有 verifier -- 确定性测试执行 -- 捕捉到了语义 bug。")
+    print("全 LLM pipeline (没有 verifier) 会交付这个 bug。经典的 MAST 失效模式。")
 
 
 if __name__ == "__main__":

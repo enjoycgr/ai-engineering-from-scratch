@@ -1,16 +1,16 @@
-// Positional encodings: sinusoidal, RoPE, ALiBi. Stdlib only.
-// Topic: encode token position into queries, keys, or attention bias.
-// References (cited in spirit, not as deps):
+// 位置编码 (Positional encodings)：正弦编码 (sinusoidal)、RoPE、ALiBi。仅使用标准库。
+// 主题：将 token 位置编码到 query、key 或 attention bias 中。
+// 参考文献（精神上引用，不作为依赖）：
 //   - Vaswani 2017 (sinusoidal):     https://arxiv.org/abs/1706.03762
 //   - Su et al. 2021 (RoPE):         https://arxiv.org/abs/2104.09864
 //   - Press et al. 2021 (ALiBi):     https://arxiv.org/abs/2108.12409
 //   - candle rope impl:              https://github.com/huggingface/candle/blob/main/candle-nn/src/rotary_emb.rs
 //
-// Compile + run:  rustc --edition 2021 main.rs -o /tmp/pe && /tmp/pe
+// 编译 + 运行:  rustc --edition 2021 main.rs -o /tmp/pe && /tmp/pe
 
 use std::f32::consts::PI;
 
-// Sinusoidal positional encoding table [n, d].
+// 正弦位置编码表 [n, d]。
 fn sinusoidal_pe(n: usize, d: usize, base: f32) -> Vec<Vec<f32>> {
     let mut pe = vec![vec![0.0f32; d]; n];
     for pos in 0..n {
@@ -23,7 +23,7 @@ fn sinusoidal_pe(n: usize, d: usize, base: f32) -> Vec<Vec<f32>> {
     pe
 }
 
-// Rotate even/odd pairs of x by angle pos * theta_i. Returns a new Vec.
+// 将 x 的偶数/奇数维度对按角度 pos * theta_i 旋转。返回新的 Vec。
 fn apply_rope(x: &[f32], pos: usize, base: f32) -> Vec<f32> {
     let d = x.len();
     let mut out = x.to_vec();
@@ -43,14 +43,14 @@ fn dot(a: &[f32], b: &[f32]) -> f32 {
     a.iter().zip(b.iter()).map(|(x, y)| x * y).sum()
 }
 
-// ALiBi slopes: 2^(-8*(h+1)/n_heads) for h in 0..n_heads.
+// ALiBi 斜率: 2^(-8*(h+1)/n_heads) for h in 0..n_heads.
 fn alibi_slopes(n_heads: usize) -> Vec<f32> {
     (0..n_heads)
         .map(|h| 2.0f32.powf(-8.0 * (h + 1) as f32 / n_heads as f32))
         .collect()
 }
 
-// ALiBi bias matrix for each head: -slope * |i - j|, with optional causal mask.
+// 每个 head 的 ALiBi 偏置矩阵: -slope * |i - j|，可选因果掩码 (causal mask)。
 fn alibi_bias(n_heads: usize, seq_len: usize, causal: bool) -> Vec<Vec<Vec<f32>>> {
     let slopes = alibi_slopes(n_heads);
     let mut out = Vec::with_capacity(n_heads);
@@ -70,7 +70,7 @@ fn alibi_bias(n_heads: usize, seq_len: usize, causal: bool) -> Vec<Vec<Vec<f32>>
     out
 }
 
-// Tiny LCG for deterministic Gaussian samples.
+// 微型 LCG，用于确定性高斯采样。
 struct Rng { state: u64 }
 impl Rng {
     fn new(seed: u64) -> Self { Rng { state: seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1 } }

@@ -1,14 +1,14 @@
-"""CodeAct vs JSON tool-call scaffold comparison — stdlib Python.
+"""CodeAct vs JSON tool-call scaffold 对比 —— stdlib Python。
 
-Both scaffolds use the same stub "model" (deterministic rules) so the
-comparison isolates the scaffold from model quality. Metrics:
-  - tasks solved
-  - turns used
-  - per-action blast radius (number of files an action can touch)
+两种 scaffold 使用相同的存根 "模型"（确定性规则），因此
+对比将 scaffold 与模型质量隔离。指标：
+  - 解决的任务数
+  - 使用的轮数
+  - 每动作爆炸半径 (blast radius)（一个动作可触及的文件数）
 
-The point is pedagogical: scaffolding is load-bearing. OpenHands
-(arXiv:2407.16741) made the CodeAct bet explicitly; JSON tool calls
-dominate managed services where the provider controls the executor.
+要点是教学性的：scaffolding 是承重的。OpenHands
+(arXiv:2407.16741) 明确下了 CodeAct 赌注；JSON tool calls
+在提供者控制执行器的托管服务中占主导。
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import json
 from dataclasses import dataclass, field
 
 
-# ---------- Mini-world: a tiny in-memory "repo" ----------
+# ---------- 迷你世界：一个微型内存 "仓库" ----------
 
 INITIAL_REPO = {
     "app.py": "def add(a, b):\n    return a - b\n",
@@ -31,9 +31,9 @@ TESTS = [
     ("cli.py", "VERSION == 'v1.0'"),
 ]
 
-# Per-path replacement the stub "model" applies when a test fails.
-# Centralizing the table avoids duplicating the if/elif chain across
-# both scaffolds and avoids UnboundLocalError if TESTS later grows.
+# 存根 "模型" 在测试失败时应用的每路径替换。
+# 集中化该表可避免在两种 scaffold 间重复 if/elif 链，
+# 并在 TESTS 后续增长时避免 UnboundLocalError。
 FIXES: dict[str, tuple[str, str]] = {
     "app.py": ("a - b", "a + b"),
     "util.py": ("s.upper()", "s.lower()"),
@@ -42,7 +42,7 @@ FIXES: dict[str, tuple[str, str]] = {
 
 
 def run_tests(repo: dict[str, str]) -> list[bool]:
-    """Deterministic stub: simulate the test suite against the repo string."""
+    """确定性存根：针对仓库字符串模拟测试套件。"""
     results = []
     for path, _expr in TESTS:
         src = repo.get(path, "")
@@ -58,7 +58,7 @@ def run_tests(repo: dict[str, str]) -> list[bool]:
 
 
 def _apply_fix(repo: dict[str, str], path: str) -> bool:
-    """Apply the per-path fix in place. Returns True iff a fix was applied."""
+    """原地应用每路径修复。仅当修复被应用时返回 True。"""
     rule = FIXES.get(path)
     if rule is None:
         return False
@@ -67,7 +67,7 @@ def _apply_fix(repo: dict[str, str], path: str) -> bool:
     return True
 
 
-# ---------- JSON tool-call scaffold: one action per turn ----------
+# ---------- JSON tool-call scaffold：每轮一个动作 ----------
 
 @dataclass
 class JsonScaffold:
@@ -75,7 +75,7 @@ class JsonScaffold:
     turns: int = 0
 
     def step(self) -> str:
-        """Return one JSON action at a time, based on current failing test."""
+        """每次返回一个 JSON 动作，基于当前失败的测试。"""
         self.turns += 1
         results = run_tests(self.repo)
         for (path, _), ok in zip(TESTS, results, strict=True):
@@ -97,21 +97,21 @@ class JsonScaffold:
         return passed, self.turns
 
 
-# ---------- CodeAct scaffold: one snippet may touch many files ----------
+# ---------- CodeAct scaffold：一个代码片段可能触及多个文件 ----------
 
 @dataclass
 class CodeActScaffold:
     repo: dict[str, str] = field(default_factory=lambda: dict(INITIAL_REPO))
     turns: int = 0
-    # Track the observed max number of files touched by a single action.
-    # This is more honest than a static upper bound of len(repo) because
+    # 追踪单个动作触及的观察到的最大文件数。
+    # 这比 len(repo) 的静态上界更诚实，因为
     # it would not silently inflate if someone adds an untested helper.
     worst_touched: int = 0
 
     def step(self) -> str:
-        """Return one Python snippet that may edit multiple files in one go."""
+        """返回一个可能一次性编辑多个文件的 Python 代码片段。"""
         self.turns += 1
-        # A single "snippet" action rewrites every failing file at once.
+        # 单个 "snippet" 动作一次性重写每个失败的文件。
         snippet_lines = []
         results = run_tests(self.repo)
         for (path, _), ok in zip(TESTS, results, strict=True):
@@ -125,7 +125,7 @@ class CodeActScaffold:
         return "; ".join(snippet_lines)
 
     def blast_radius(self) -> int:
-        # observed worst-case: files touched by a single action.
+        # 观察到的最坏情况：单个动作触及的文件数。
         return self.worst_touched
 
     def run(self, max_turns: int = 10) -> tuple[int, int]:
@@ -137,7 +137,7 @@ class CodeActScaffold:
         return passed, self.turns
 
 
-# ---------- Driver ----------
+# ---------- 驱动 ----------
 
 def report(name: str, passed: int, turns: int, blast: int) -> None:
     total = len(TESTS)
@@ -150,7 +150,7 @@ def main() -> None:
     print("CODEACT vs JSON TOOL-CALL SCAFFOLDS (Phase 15, Lesson 9)")
     print("=" * 70)
     print()
-    print("Same stub model, three-bug toy repo. Scaffold-only comparison.")
+    print("相同存根模型，三个 bug 的玩具仓库。仅 scaffold 对比。")
     print("-" * 70)
 
     js = JsonScaffold()
@@ -163,14 +163,14 @@ def main() -> None:
 
     print()
     print("=" * 70)
-    print("HEADLINE: scaffolding is not scenery. It is the product.")
+    print("HEADLINE: scaffold 不是布景。它就是产品本身。")
     print("-" * 70)
-    print("  Same model, two scaffolds, different turn counts.")
-    print("  CodeAct compresses multiple edits into one action.")
-    print("  The cost is blast radius: CodeAct needs hardened sandbox")
-    print("  isolation (OpenHands uses Docker). JSON tool-calls get safety")
-    print("  by construction since every action is independently validated.")
-    print("  Neither is strictly better; the trade-off is what to audit.")
+    print("  相同模型，两种 scaffold，不同轮数。")
+    print("  CodeAct 将多次编辑压缩为一个动作。")
+    print("  代价是爆炸半径：CodeAct 需要加固的 sandbox")
+    print("  隔离（OpenHands 使用 Docker）。JSON tool-calls 通过构造获得安全，")
+    print("  因为每个动作都被独立验证。")
+    print("  两者没有严格优劣；权衡在于审计什么。")
 
 
 if __name__ == "__main__":

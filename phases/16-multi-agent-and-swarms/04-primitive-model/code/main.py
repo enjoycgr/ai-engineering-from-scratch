@@ -1,14 +1,13 @@
-"""Four multi-agent primitives, stdlib only.
+"""四个 multi-agent 原语，仅使用标准库。
 
-Primitives:
+原语：
   - Agent(name, system_prompt, tools, policy)
   - Handoff(from_agent, to_agent, reason)
-  - SharedState (thread-safe message pool)
-  - Orchestrator (Static, Handoff-driven, LLM-selected)
+  - SharedState（线程安全的消息池）
+  - Orchestrator（Static、Handoff-driven、LLM-selected）
 
-Runs the same three-agent pipeline (researcher -> writer -> reviewer) under
-three orchestrator types. Agents are scripted policies, not LLM calls -- the
-point is the coordination structure.
+在三种 orchestrator 类型下运行相同的三 agent pipeline（researcher -> writer -> reviewer）。
+Agent 是 scripted policies，不是 LLM 调用——重点是协调结构。
 """
 from __future__ import annotations
 
@@ -80,7 +79,7 @@ def make_team() -> dict[str, Agent]:
 
 
 class StaticOrchestrator:
-    """Fixed sequential order, LangGraph-style deterministic edges."""
+    """固定的顺序执行，LangGraph 风格的确定性边。"""
 
     def __init__(self, order: list[str]) -> None:
         self.order = order
@@ -92,7 +91,7 @@ class StaticOrchestrator:
 
 
 class HandoffOrchestrator:
-    """OpenAI Swarm-style: the current agent returns its own handoff target."""
+    """OpenAI Swarm 风格：当前 agent 返回自己的 handoff 目标。"""
 
     def __init__(self, start: str) -> None:
         self.start = start
@@ -111,8 +110,8 @@ class HandoffOrchestrator:
 
 
 class LLMSelectorOrchestrator:
-    """AutoGen GroupChat-style speaker selection. The selector function is
-    scripted here, but in production it would be an LLM call reading the pool."""
+    """AutoGen GroupChat 风格的 speaker selection。这里的 selector function
+    是脚本化的，但在生产环境中它会是一个读取消息池的 LLM 调用。"""
 
     def __init__(self, start: str, selector: Callable[[SharedState, dict[str, Agent]], Optional[str]]) -> None:
         self.start = start

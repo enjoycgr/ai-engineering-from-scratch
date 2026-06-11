@@ -1,12 +1,12 @@
-"""Toy quantization memory and throughput calculator — stdlib Python.
+"""玩具量化内存和吞吐量计算器 —— 标准库 Python。
 
-For a set of quantization formats and model sizes, compute:
-  - weight memory
-  - KV cache memory (separate, scales with concurrency and context)
-  - activations memory (approximate)
-  - relative decode throughput (memory-bandwidth-limited shape)
+对于一组量化格式和模型大小，计算：
+  - 权重内存
+  - KV cache 内存（独立的，随并发数和上下文缩放）
+  - 激活值内存（近似）
+  - 相对 decode 吞吐量（内存带宽受限形态）
 
-Formats are represented by effective weight bits and KV bits. Pedagogical.
+格式由有效权重位数和 KV 位数表示。教学用途。
 """
 
 from __future__ import annotations
@@ -37,13 +37,13 @@ FORMATS = [
 def memory_breakdown(params_b: float, fmt: Format,
                      concurrency: int = 128, ctx: int = 2048) -> dict:
     weight_gb = params_b * fmt.weight_bits / 8
-    # KV cache approximation: num_layers * 2 * kv_heads * head_dim * ctx * bytes/element
+    # KV cache 近似：num_layers * 2 * kv_heads * head_dim * ctx * bytes/element
     layers = 64 * (params_b / 70.0)**0.5
     kv_heads = 8
     head_dim = 128
     per_seq_kv_gb = layers * 2 * kv_heads * head_dim * ctx * (fmt.kv_bits / 8) / 1e9
     kv_total = per_seq_kv_gb * concurrency
-    activations_gb = 0.05 * params_b       # rough constant
+    activations_gb = 0.05 * params_b       # 粗略常数
     return {
         "weight": weight_gb,
         "kv": kv_total,
@@ -53,8 +53,8 @@ def memory_breakdown(params_b: float, fmt: Format,
 
 
 def relative_throughput(fmt: Format) -> float:
-    """Decode is memory-bandwidth-limited. Fewer weight bytes per token = higher throughput.
-    Normalize to BF16 = 1.0."""
+    """Decode 受内存带宽限制。每个 token 的权重字节越少 = 吞吐量越高。
+    以 BF16 = 1.0 为基准归一化。"""
     return 16 / fmt.weight_bits
 
 

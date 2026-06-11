@@ -7,21 +7,25 @@ def euclidean_distance(a, b):
 
 
 def kmeans(data, k, max_iterations=100, seed=42):
+    """K-Means (K均值) 聚类：将数据划分为 k 个球形聚类。"""
     random.seed(seed)
     n_features = len(data[0])
 
+    # 随机选择 k 个初始 centroid (质心)
     centroids = random.sample(data, k)
 
     for iteration in range(max_iterations):
         clusters = [[] for _ in range(k)]
         assignments = []
 
+        # 将每个点分配到最近的 centroid
         for point in data:
             distances = [euclidean_distance(point, c) for c in centroids]
             nearest = distances.index(min(distances))
             clusters[nearest].append(point)
             assignments.append(nearest)
 
+        # 重新计算每个 centroid 为分配点的均值
         new_centroids = []
         for cluster in clusters:
             if len(cluster) == 0:
@@ -33,6 +37,7 @@ def kmeans(data, k, max_iterations=100, seed=42):
             ]
             new_centroids.append(centroid)
 
+        # 检查收敛：centroid 移动是否小于阈值
         if all(
             euclidean_distance(old, new) < 1e-6
             for old, new in zip(centroids, new_centroids)
@@ -46,6 +51,7 @@ def kmeans(data, k, max_iterations=100, seed=42):
 
 
 def compute_inertia(data, assignments, centroids):
+    """计算 inertia (惯性)：每个点到其 centroid 的平方距离之和。"""
     total = 0.0
     for point, cluster_id in zip(data, assignments):
         total += euclidean_distance(point, centroids[cluster_id]) ** 2
@@ -53,10 +59,12 @@ def compute_inertia(data, assignments, centroids):
 
 
 def silhouette_score(data, assignments):
+    """计算 silhouette score (轮廓系数)：衡量聚类的紧密度和分离度。"""
     n = len(data)
     if n < 2:
         return 0.0
 
+    # 按聚类 ID 分组点的索引
     clusters = {}
     for i, c in enumerate(assignments):
         clusters.setdefault(c, []).append(i)
@@ -73,8 +81,10 @@ def silhouette_score(data, assignments):
             scores.append(0.0)
             continue
 
+        # a: 到同聚类其他点的平均距离（ cohesion，紧密度）
         a = sum(euclidean_distance(data[i], data[j]) for j in own_members) / len(own_members)
 
+        # b: 到最近其他聚类的平均距离（separation，分离度）
         b = float("inf")
         for cluster_id, members in clusters.items():
             if cluster_id == own_cluster:
@@ -91,6 +101,7 @@ def silhouette_score(data, assignments):
 
 
 def find_best_k(data, max_k=10):
+    """使用 elbow method (肘部法则) 和 silhouette score 寻找最佳 K。"""
     print("Elbow method:")
     inertias = []
     for k in range(1, max_k + 1):
@@ -109,11 +120,13 @@ def find_best_k(data, max_k=10):
 
 
 def dbscan(data, eps, min_samples):
+    """DBSCAN：基于密度的聚类，可发现任意形状的聚类并检测噪声点 (noise point)。"""
     n = len(data)
     labels = [-1] * n
     cluster_id = 0
 
     def region_query(point_idx):
+        """查找在 eps 半径内的所有邻居点。"""
         neighbors = []
         for i in range(n):
             if euclidean_distance(data[point_idx], data[i]) <= eps:
@@ -129,14 +142,17 @@ def dbscan(data, eps, min_samples):
 
         neighbors = region_query(i)
 
+        # 如果邻居不足，标记为 noise point (噪声点)
         if len(neighbors) < min_samples:
             labels[i] = -1
             continue
 
+        # 从 core point (核心点) 开始一个新的聚类
         labels[i] = cluster_id
         seed_set = list(neighbors)
         seed_set.remove(i)
 
+        # 扩展聚类：将密度可达的点加入
         j = 0
         while j < len(seed_set):
             q = seed_set[j]
@@ -145,10 +161,12 @@ def dbscan(data, eps, min_samples):
                 visited[q] = True
                 q_neighbors = region_query(q)
                 if len(q_neighbors) >= min_samples:
+                    # q 也是 core point，将其邻居加入种子集
                     for nb in q_neighbors:
                         if nb not in seed_set:
                             seed_set.append(nb)
 
+            # 将 border point (边界点) 或之前的噪声点分配给当前聚类
             if labels[q] == -1:
                 labels[q] = cluster_id
 
@@ -160,22 +178,26 @@ def dbscan(data, eps, min_samples):
 
 
 def gmm(data, k, max_iterations=100, seed=42):
+    """Gaussian Mixture Model (高斯混合模型)：使用 EM algorithm (EM算法) 进行软聚类。"""
     random.seed(seed)
     n = len(data)
     d = len(data[0])
 
+    # 随机初始化 means (均值)、variances (方差) 和 weights (权重)
     indices = random.sample(range(n), k)
     means = [list(data[i]) for i in indices]
     variances = [1.0] * k
     weights = [1.0 / k] * k
 
     def gaussian_pdf(x, mean, variance):
+        """多维高斯概率密度函数。"""
         d = len(x)
         coeff = 1.0 / ((2 * math.pi * variance) ** (d / 2))
         exponent = -sum((xi - mi) ** 2 for xi, mi in zip(x, mean)) / (2 * variance)
         return coeff * math.exp(max(exponent, -500))
 
     for iteration in range(max_iterations):
+        # E-step: 计算 responsibilities（每个点属于每个高斯分量的概率）
         responsibilities = []
         for i in range(n):
             probs = []
@@ -188,6 +210,7 @@ def gmm(data, k, max_iterations=100, seed=42):
 
         old_means = [list(m) for m in means]
 
+        # M-step: 更新 means、variances 和 weights 以最大化似然
         for j in range(k):
             r_sum = sum(responsibilities[i][j] for i in range(n))
             if r_sum < 1e-10:
@@ -207,6 +230,7 @@ def gmm(data, k, max_iterations=100, seed=42):
             ) / (r_sum * d)
             variances[j] = max(variances[j], 1e-6)
 
+        # 检查 mean 的收敛
         shift = sum(
             euclidean_distance(old_means[j], means[j]) for j in range(k)
         )
@@ -214,6 +238,7 @@ def gmm(data, k, max_iterations=100, seed=42):
             print(f"  GMM converged at iteration {iteration + 1}")
             break
 
+    # 将每个点分配给概率最高的分量（硬分配用于评估）
     assignments = []
     for i in range(n):
         assignments.append(responsibilities[i].index(max(responsibilities[i])))
@@ -222,12 +247,14 @@ def gmm(data, k, max_iterations=100, seed=42):
 
 
 def agglomerative_clustering(data, n_clusters=3, linkage="ward"):
+    """Agglomerative hierarchical clustering (凝聚式层次聚类)：自底向上合并聚类。"""
     n = len(data)
     cluster_map = {i: [i] for i in range(n)}
     active_clusters = list(range(n))
     merge_history = []
 
     def cluster_distance(c1_indices, c2_indices):
+        """根据 linkage 类型计算两个聚类之间的距离。"""
         if linkage == "single":
             return min(
                 euclidean_distance(data[i], data[j])
@@ -248,6 +275,7 @@ def agglomerative_clustering(data, n_clusters=3, linkage="ward"):
             )
             return total / (len(c1_indices) * len(c2_indices))
         elif linkage == "ward":
+            # Ward's linkage：最小化合并后的 within-cluster variance
             merged = c1_indices + c2_indices
             centroid_merged = [
                 sum(data[i][d] for i in merged) / len(merged)
@@ -277,6 +305,7 @@ def agglomerative_clustering(data, n_clusters=3, linkage="ward"):
         best_dist = float("inf")
         best_pair = None
 
+        # 找到距离最近的一对聚类进行合并
         for idx_a in range(len(active_clusters)):
             for idx_b in range(idx_a + 1, len(active_clusters)):
                 c_a = active_clusters[idx_a]
@@ -294,6 +323,7 @@ def agglomerative_clustering(data, n_clusters=3, linkage="ward"):
         active_clusters.append(next_id)
         next_id += 1
 
+    # 为原始数据点分配最终聚类标签
     labels = [0] * n
     for cluster_label, cluster_id in enumerate(active_clusters):
         for point_idx in cluster_map[cluster_id]:
@@ -303,6 +333,7 @@ def agglomerative_clustering(data, n_clusters=3, linkage="ward"):
 
 
 def make_blobs(centers, n_per_cluster=50, spread=0.5, seed=42):
+    """生成围绕指定中心的高斯 blob 数据。"""
     random.seed(seed)
     data = []
     true_labels = []
@@ -316,6 +347,7 @@ def make_blobs(centers, n_per_cluster=50, spread=0.5, seed=42):
 
 
 def make_moons(n_samples=200, noise=0.1, seed=42):
+    """生成两个交错的半圆形（moon）数据集，用于测试非球形聚类。"""
     random.seed(seed)
     data = []
     labels = []

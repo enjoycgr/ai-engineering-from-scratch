@@ -23,7 +23,7 @@ def register_tool(name, description, parameters, function):
 def calculator(expression, precision=2):
     allowed = set("0123456789+-*/.() ")
     if not all(c in allowed for c in expression):
-        return {"error": True, "message": f"Invalid characters in expression: {expression}"}
+        return {"error": True, "message": f"表达式中包含无效字符: {expression}"}
     try:
         result = eval(expression, {"__builtins__": {}}, {"math": math})
         return {"result": round(float(result), precision), "expression": expression}
@@ -46,7 +46,7 @@ def get_weather(city, units="celsius"):
         suggestions = [c for c in WEATHER_DB if c.startswith(key[:3])]
         return {
             "error": True,
-            "message": f"City '{city}' not found.",
+            "message": f"未找到城市 '{city}'。",
             "suggestions": suggestions,
             "code": "CITY_NOT_FOUND",
         }
@@ -89,21 +89,21 @@ FILE_SYSTEM = {
 
 def read_file(path):
     if ".." in path or path.startswith("/"):
-        return {"error": True, "message": "Path traversal not allowed.", "code": "FORBIDDEN"}
+        return {"error": True, "message": "不允许路径遍历。", "code": "FORBIDDEN"}
     if path not in FILE_SYSTEM:
         available = list(FILE_SYSTEM.keys())
-        return {"error": True, "message": f"File '{path}' not found.", "available_files": available, "code": "NOT_FOUND"}
+        return {"error": True, "message": f"未找到文件 '{path}'。", "available_files": available, "code": "NOT_FOUND"}
     content = FILE_SYSTEM[path]
     return {"path": path, "content": content, "size_bytes": len(content), "lines": content.count("\n") + 1}
 
 
 def run_code(code, language="python"):
     if language != "python":
-        return {"error": True, "message": f"Language '{language}' not supported. Only 'python' is available."}
+        return {"error": True, "message": f"不支持语言 '{language}'。仅支持 'python'。"}
     forbidden = ["import os", "import sys", "import subprocess", "exec(", "eval(", "__import__", "open("]
     for pattern in forbidden:
         if pattern in code:
-            return {"error": True, "message": f"Forbidden operation: {pattern}", "code": "SECURITY_VIOLATION"}
+            return {"error": True, "message": f"禁止的操作: {pattern}", "code": "SECURITY_VIOLATION"}
     try:
         local_vars = {}
         exec(
@@ -132,12 +132,12 @@ def run_code(code, language="python"):
 def register_all_tools():
     register_tool(
         "calculator",
-        "Evaluate a mathematical expression. Supports +, -, *, /, parentheses, and decimals. Returns the numeric result.",
+        "计算数学表达式。支持 +、-、*、/、括号和十进制数。返回数值结果。",
         {
             "type": "object",
             "properties": {
-                "expression": {"type": "string", "description": "Math expression, e.g. '(10 + 5) * 3'"},
-                "precision": {"type": "integer", "description": "Decimal places in result", "default": 2},
+                "expression": {"type": "string", "description": "数学表达式，例如 '(10 + 5) * 3'"},
+                "precision": {"type": "integer", "description": "结果的小数位数", "default": 2},
             },
             "required": ["expression"],
         },
@@ -145,12 +145,12 @@ def register_all_tools():
     )
     register_tool(
         "get_weather",
-        "Get current weather for a city. Returns temperature, condition, humidity, and wind speed.",
+        "获取城市的当前天气。返回温度、天气状况、湿度和风速。",
         {
             "type": "object",
             "properties": {
-                "city": {"type": "string", "description": "City name, e.g. 'Tokyo' or 'San Francisco'"},
-                "units": {"type": "string", "enum": ["celsius", "fahrenheit"], "description": "Temperature units, defaults to celsius"},
+                "city": {"type": "string", "description": "城市名称，例如 'Tokyo' 或 'San Francisco'"},
+                "units": {"type": "string", "enum": ["celsius", "fahrenheit"], "description": "温度单位，默认为摄氏度"},
             },
             "required": ["city"],
         },
@@ -158,12 +158,12 @@ def register_all_tools():
     )
     register_tool(
         "web_search",
-        "Search the web for information. Returns a list of results with title, URL, and snippet.",
+        "搜索网页信息。返回包含标题、URL 和摘要的结果列表。",
         {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "Search query"},
-                "max_results": {"type": "integer", "description": "Maximum results to return", "default": 3},
+                "query": {"type": "string", "description": "搜索查询"},
+                "max_results": {"type": "integer", "description": "返回的最大结果数", "default": 3},
             },
             "required": ["query"],
         },
@@ -171,11 +171,11 @@ def register_all_tools():
     )
     register_tool(
         "read_file",
-        "Read the contents of a file. Returns the file content, size, and line count.",
+        "读取文件内容。返回文件内容、大小和行数。",
         {
             "type": "object",
             "properties": {
-                "path": {"type": "string", "description": "Relative file path, e.g. 'data/config.json'"},
+                "path": {"type": "string", "description": "相对文件路径，例如 'data/config.json'"},
             },
             "required": ["path"],
         },
@@ -183,12 +183,12 @@ def register_all_tools():
     )
     register_tool(
         "run_code",
-        "Execute Python code in a sandboxed environment. Set a 'result' variable to return output.",
+        "在沙箱环境中执行 Python 代码。设置 'result' 变量以返回输出。",
         {
             "type": "object",
             "properties": {
-                "code": {"type": "string", "description": "Python code to execute"},
-                "language": {"type": "string", "enum": ["python"], "description": "Programming language"},
+                "code": {"type": "string", "description": "要执行的 Python 代码"},
+                "language": {"type": "string", "enum": ["python"], "description": "编程语言"},
             },
             "required": ["code"],
         },
@@ -246,7 +246,7 @@ def execute_tool_call(tool_call):
     args = tool_call["arguments"]
 
     if name not in TOOL_REGISTRY:
-        return {"tool": name, "result": {"error": True, "message": f"Unknown tool: {name}", "code": "UNKNOWN_TOOL"}, "execution_time_ms": 0}
+        return {"tool": name, "result": {"error": True, "message": f"未知工具: {name}", "code": "UNKNOWN_TOOL"}, "execution_time_ms": 0}
 
     tool = TOOL_REGISTRY[name]
     func = tool["function"]
@@ -255,7 +255,7 @@ def execute_tool_call(tool_call):
     try:
         result = func(**args)
     except TypeError as e:
-        result = {"error": True, "message": f"Invalid arguments: {e}"}
+        result = {"error": True, "message": f"无效参数: {e}"}
 
     elapsed_ms = round((time.time() - start) * 1000, 2)
     return {"tool": name, "result": result, "execution_time_ms": elapsed_ms}
@@ -263,22 +263,22 @@ def execute_tool_call(tool_call):
 
 def validate_tool_arguments(tool_name, arguments):
     if tool_name not in TOOL_REGISTRY:
-        return [f"Unknown tool: {tool_name}"]
+        return [f"未知工具: {tool_name}"]
 
     schema = TOOL_REGISTRY[tool_name]["definition"]["function"]["parameters"]
     errors = []
 
     if not isinstance(arguments, dict):
-        return [f"Arguments must be an object, got {type(arguments).__name__}"]
+        return [f"参数必须是对象，得到 {type(arguments).__name__}"]
 
     for required_field in schema.get("required", []):
         if required_field not in arguments:
-            errors.append(f"Missing required argument: {required_field}")
+            errors.append(f"缺少必需参数: {required_field}")
 
     properties = schema.get("properties", {})
     for arg_name, arg_value in arguments.items():
         if arg_name not in properties:
-            errors.append(f"Unknown argument: {arg_name}")
+            errors.append(f"未知参数: {arg_name}")
             continue
 
         prop_schema = properties[arg_name]
@@ -294,10 +294,10 @@ def validate_tool_arguments(tool_name, arguments):
         }
         if expected_type in type_checks:
             if not isinstance(arg_value, type_checks[expected_type]):
-                errors.append(f"Argument '{arg_name}': expected {expected_type}, got {type(arg_value).__name__}")
+                errors.append(f"参数 '{arg_name}': 预期 {expected_type}，得到 {type(arg_value).__name__}")
 
         if "enum" in prop_schema and arg_value not in prop_schema["enum"]:
-            errors.append(f"Argument '{arg_name}': '{arg_value}' not in {prop_schema['enum']}")
+            errors.append(f"参数 '{arg_name}': '{arg_value}' 不在 {prop_schema['enum']} 中")
 
     return errors
 
@@ -341,30 +341,30 @@ def run_demo():
     register_all_tools()
 
     print("=" * 60)
-    print("  Function Calling & Tool Use Demo")
+    print("  函数调用与工具使用演示")
     print("=" * 60)
 
-    print("\n--- Registered Tools ---")
+    print("\n--- 已注册工具 ---")
     for name, tool in TOOL_REGISTRY.items():
         desc = tool["definition"]["function"]["description"][:60]
         params = list(tool["definition"]["function"]["parameters"].get("properties", {}).keys())
         print(f"  {name}: {desc}...")
-        print(f"    params: {params}")
+        print(f"    参数: {params}")
 
-    print(f"\n--- Argument Validation ---")
+    print(f"\n--- 参数验证 ---")
     validation_tests = [
-        ("get_weather", {"city": "Tokyo"}, "Valid call"),
-        ("get_weather", {}, "Missing required arg"),
-        ("get_weather", {"city": "Tokyo", "units": "kelvin"}, "Invalid enum value"),
-        ("calculator", {"expression": 123}, "Wrong type (int for string)"),
-        ("unknown_tool", {"x": 1}, "Unknown tool"),
+        ("get_weather", {"city": "Tokyo"}, "有效调用"),
+        ("get_weather", {}, "缺少必需参数"),
+        ("get_weather", {"city": "Tokyo", "units": "kelvin"}, "无效的枚举值"),
+        ("calculator", {"expression": 123}, "类型错误（int 而非 string）"),
+        ("unknown_tool", {"x": 1}, "未知工具"),
     ]
     for tool_name, args, label in validation_tests:
         errors = validate_tool_arguments(tool_name, args)
-        status = "VALID" if not errors else f"ERRORS: {errors}"
+        status = "有效" if not errors else f"错误: {errors}"
         print(f"  {label}: {status}")
 
-    print(f"\n--- Tool Execution ---")
+    print(f"\n--- 工具执行 ---")
     direct_tests = [
         {"name": "calculator", "arguments": {"expression": "(10 + 5) * 3 / 2"}},
         {"name": "get_weather", "arguments": {"city": "Tokyo"}},
@@ -379,9 +379,9 @@ def run_demo():
         result = execute_tool_call(call)
         print(f"\n  {call['name']}({json.dumps(call['arguments'])})")
         print(f"    -> {json.dumps(result['result'], indent=None)[:100]}")
-        print(f"    time: {result['execution_time_ms']}ms")
+        print(f"    时间: {result['execution_time_ms']}ms")
 
-    print(f"\n--- Full Function Calling Loop ---")
+    print(f"\n--- 完整函数调用循环 ---")
     test_queries = [
         "What's the weather in Tokyo?",
         "Calculate (100 + 250) * 0.15",
@@ -391,36 +391,36 @@ def run_demo():
         "Tell me a joke",
     ]
     for query in test_queries:
-        print(f"\n  User: {query}")
+        print(f"\n  用户: {query}")
         result = run_function_calling_loop(query)
         if result["tool_results"]:
             for tr in result["tool_results"]:
-                print(f"    Tool: {tr['tool']} ({tr['execution_time_ms']}ms)")
-                print(f"    Result: {json.dumps(tr['result'], indent=None)[:90]}")
+                print(f"    工具: {tr['tool']} ({tr['execution_time_ms']}ms)")
+                print(f"    结果: {json.dumps(tr['result'], indent=None)[:90]}")
         else:
-            print(f"    [No tool called -- direct response]")
-        print(f"    Iterations: {result['iterations']}")
+            print(f"    [未调用工具 -- 直接回复]")
+        print(f"    迭代次数: {result['iterations']}")
 
-    print(f"\n--- Parallel Tool Calls ---")
+    print(f"\n--- 并行工具调用 ---")
     multi_city_query = "What's the weather in tokyo and london?"
-    print(f"  User: {multi_city_query}")
+    print(f"  用户: {multi_city_query}")
     result = run_function_calling_loop(multi_city_query)
-    print(f"  Tool calls made: {len(result['tool_results'])}")
+    print(f"  工具调用次数: {len(result['tool_results'])}")
     for tr in result["tool_results"]:
         city = tr["result"].get("city", "unknown")
         temp = tr["result"].get("temp_c", "N/A")
         print(f"    {city}: {temp}C, {tr['result'].get('condition', 'N/A')}")
 
-    print(f"\n--- Security Checks ---")
+    print(f"\n--- 安全检查 ---")
     security_tests = [
         ("read_file", {"path": "../../etc/passwd"}),
-        ("run_code", {"code": "import subprocess; subprocess.run(['ls'])"}),
+        ("run_code", {"code": "import subprocess; subprocess.run(['ls'])}"}),
         ("calculator", {"expression": "__import__('os').system('ls')"}),
     ]
     for tool_name, args in security_tests:
         result = execute_tool_call({"name": tool_name, "arguments": args})
         blocked = result["result"].get("error", False)
-        print(f"  {tool_name}({list(args.values())[0][:40]}): {'BLOCKED' if blocked else 'ALLOWED'}")
+        print(f"  {tool_name}({list(args.values())[0][:40]}): {'已阻止' if blocked else '已允许'}")
 
 
 if __name__ == "__main__":

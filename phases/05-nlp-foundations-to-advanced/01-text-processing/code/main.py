@@ -1,14 +1,17 @@
 import re
 
 
+# 匹配单词（含可选内部撇号）、数字或单个标点符号的正则表达式
 WORD_RE = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)?|[0-9]+|[^\sA-Za-z0-9]")
 
 
 def tokenize(text):
+    """使用正则表达式将文本拆分为 token。"""
     return WORD_RE.findall(text)
 
 
 def stem_step_1a(word):
+    """Porter 词干提取器的步骤 1a：处理复数后缀。"""
     if word.endswith("sses"):
         return word[:-2]
     if word.endswith("ies"):
@@ -20,6 +23,7 @@ def stem_step_1a(word):
     return word
 
 
+# 小型词形还原查找表：(单词, 词性) -> 词元
 LEMMA_TABLE = {
     ("running", "VERB"): "run",
     ("ran", "VERB"): "run",
@@ -35,6 +39,7 @@ LEMMA_TABLE = {
 
 
 def lemmatize(word, pos):
+    """基于小型查找表和回退规则的词形还原器。"""
     key = (word.lower(), pos)
     if key in LEMMA_TABLE:
         return LEMMA_TABLE[key]
@@ -46,6 +51,7 @@ def lemmatize(word, pos):
 
 
 def preprocess(text, pos_tagger=None):
+    """运行分词、词干提取和词形还原。"""
     tokens = tokenize(text)
     stems = [stem_step_1a(t.lower()) for t in tokens]
     tags = pos_tagger(tokens) if pos_tagger else [(t, "NOUN") for t in tokens]
@@ -54,6 +60,7 @@ def preprocess(text, pos_tagger=None):
 
 
 def demo_pos_tagger(tokens):
+    """一个硬编码的演示 POS 标注器，用于展示正确的词形还原。"""
     verbs = {"running", "ran", "runs", "were", "was", "is", "watched"}
     adjs = {"better", "best"}
     out = []

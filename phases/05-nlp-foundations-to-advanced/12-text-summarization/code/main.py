@@ -89,6 +89,7 @@ def main():
         score = rouge_n(joined, reference, n=n)
         print(f"  ROUGE-{n}: {score:.3f}")
     print()
+    # 生产环境中请使用 `rouge-score` 包并启用 stemming，以获得正确的 F-measure。
     print("For production, use the `rouge-score` package with stemming for a proper F-measure.")
 
 

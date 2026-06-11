@@ -63,7 +63,7 @@ class OpenVocabSeg(ABC):
 
 
 class StubOpenVocabSeg(OpenVocabSeg):
-    """Pipeline-testable stand-in for SAM 3 / Grounded SAM 2."""
+    """用于流水线测试的 SAM 3 / Grounded SAM 2 占位实现。"""
 
     def detect(self, image, concept):
         h, w = image.shape[:2]

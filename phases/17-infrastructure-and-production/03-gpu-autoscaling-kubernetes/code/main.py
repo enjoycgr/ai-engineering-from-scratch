@@ -1,12 +1,12 @@
-"""Three-layer GPU autoscaling simulator — stdlib Python.
+"""三层 GPU 自动扩缩容模拟器 —— 纯 Python 标准库。
 
-Compares three autoscaling strategies on the same bursty workload:
-  DUTY_CYCLE   : HPA on DCGM_FI_DEV_GPU_UTIL (the broken default)
-  QUEUE_DEPTH  : HPA on request queue depth (correct signal)
-  KAI_GANG     : Gang-scheduled with topology awareness (prevents partial alloc)
+在相同突发工作负载上比较三种自动扩缩容策略：
+  DUTY_CYCLE   : 基于 DCGM_FI_DEV_GPU_UTIL 的 HPA（错误的默认）
+  QUEUE_DEPTH  : 基于请求队列深度的 HPA（正确信号）
+  KAI_GANG     : 带拓扑感知的 Gang 调度（防止部分分配）
 
-Reports dropped requests, idle GPU-minutes, and composite score.
-Pedagogical: latencies and provisioning times are illustrative.
+报告丢弃请求数、GPU 空闲分钟数和综合得分。
+教学用途：延迟和供应时间为示意值。
 """
 
 from __future__ import annotations
@@ -16,15 +16,15 @@ import random
 
 
 NODE_PROVISION_SEC = 50       # Karpenter ~45-60s
-CLUSTER_AUTOSCALER_SEC = 110  # slower comparison
-MODEL_LOAD_SEC = 45           # load 70B weights + engine init
+CLUSTER_AUTOSCALER_SEC = 110  # 较慢的对比
+MODEL_LOAD_SEC = 45           # 加载 70B 权重 + 引擎初始化
 REQUEST_PREFILL_SEC = 0.6
 REQUEST_DECODE_SEC = 1.8
 MIN_WARM_REPLICAS = 1
 MAX_REPLICAS = 16
 GPU_PER_REPLICA = 1
 HPA_TICK_SEC = 15
-TARGET_GPU_UTIL = 70          # duty-cycle target
+TARGET_GPU_UTIL = 70          # 占空比目标
 
 
 @dataclass
@@ -38,7 +38,7 @@ class Request:
 def make_workload(duration_sec: int = 3600, seed: int = 7) -> list[Request]:
     rng = random.Random(seed)
     reqs = []
-    # simulate a morning burst: quiet 0-600, spike 600-1800, tail 1800-3600
+    # 模拟早高峰：0-600 安静，600-1800 高峰，1800-3600 尾部
     for _ in range(int(duration_sec)):
         t = _
         if t < 600:
@@ -125,7 +125,7 @@ def simulate(strategy: str, reqs: list[Request]) -> dict:
                 replicas_ready -= 1
 
         for r in queue[:]:
-            if now - r.arrived_at > 30:  # SLA timeout
+            if now - r.arrived_at > 30:  # SLA 超时
                 r.dropped = True
                 queue.remove(r)
 

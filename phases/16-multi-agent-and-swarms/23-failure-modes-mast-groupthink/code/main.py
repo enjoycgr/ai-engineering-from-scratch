@@ -1,7 +1,6 @@
-"""Failure modes: MAST categorizer, circuit breaker, retry-storm simulator.
+"""故障模式：MAST分类器、熔断器、重试风暴模拟器。
 
-Stdlib only. The simulator shows how a 10% downstream error rate amplifies
-through retries to 10x load without a breaker; the breaker caps it.
+仅使用标准库。模拟器展示10%的下游错误率如何在没有熔断器的情况下通过重试放大到10倍负载；熔断器将其封顶。
 """
 from __future__ import annotations
 
@@ -20,7 +19,7 @@ MAST_CATEGORIES = {
 }
 
 GROUPTHINK = {
-    "monoculture": "monoculture collapse (same base model → correlated errors)",
+    "monoculture": "monoculture collapse (same base model -> correlated errors)",
     "conformity": "conformity bias (agents align with loudest peer)",
     "tom": "deficient theory of mind (cannot model each other)",
     "mixed_motive": "mixed-motive drift (compromise-middle satisfies no one)",

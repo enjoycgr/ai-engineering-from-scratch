@@ -1,7 +1,7 @@
-"""Stdlib tool registry with JSON Schema subset validation and parallel dispatch.
+"""基于标准库的工具注册表，支持 JSON Schema 子集校验和并行分发。
 
-Subset: required fields, string/int/number/bool/array/object, enum, minimum/maximum.
-Returns structured observations for every validation failure so an agent can retry.
+子集：required fields、string/int/number/bool/array/object、enum、minimum/maximum。
+每次校验失败都返回结构化 observation，以便智能体重试。
 """
 
 from __future__ import annotations

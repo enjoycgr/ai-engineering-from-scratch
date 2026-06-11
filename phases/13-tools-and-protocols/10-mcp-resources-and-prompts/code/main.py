@@ -1,14 +1,14 @@
-"""Phase 13 Lesson 10 - MCP resources and prompts in the notes server.
+"""Phase 13 Lesson 10 - 笔记服务器中的 MCP 资源和提示。
 
-Extends the Lesson 07 server with:
-  - resources/list, resources/read for per-note URIs
+扩展第 07 课的服务器，添加：
+  - 每个笔记 URI 的 resources/list、resources/read
   - resources/subscribe + notifications/resources/updated
-  - prompts/list, prompts/get with argument rendering
-  - a dynamic notes://recent resource
+  - 带参数渲染的 prompts/list、prompts/get
+  - 一个动态 notes://recent 资源
 
-Stdlib; in-process dispatch (no transport), focuses on the new messages.
+标准库；进程内分发（无传输），专注于新消息。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

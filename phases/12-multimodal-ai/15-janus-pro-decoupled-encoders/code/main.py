@@ -1,8 +1,8 @@
-"""Janus-Pro decoupled-encoder routing — stdlib.
+"""Janus-Pro 解耦编码器路由 — stdlib。
 
-Two mock encoders (semantic SigLIP-like, reconstruction VQ-like), one shared
-transformer body, a router that picks based on task tag. Traces three example
-prompts through the pipeline.
+两个 mock 编码器（语义 SigLIP-like，重建 VQ-like），一个共享
+transformer body，基于任务标签挑选的路由器。追踪三个示例
+prompt 通过流水线。
 """
 
 from __future__ import annotations

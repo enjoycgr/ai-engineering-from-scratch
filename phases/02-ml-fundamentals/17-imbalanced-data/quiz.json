@@ -2,7 +2,7 @@
   {
     "id": "imbalanced-pre-1",
     "stage": "pre",
-    "question": "A fraud detection dataset has 99.9% legitimate transactions and 0.1% fraud. A model predicts 'legitimate' for every transaction. What is its accuracy?",
+    "question": "一个欺诈检测数据集包含 99.9% 的合法交易和 0.1% 的欺诈交易。一个模型对每笔交易都预测为'合法'。它的 accuracy (准确率) 是多少？",
     "options": [
       "50%",
       "0.1%",
@@ -10,58 +10,58 @@
       "100%"
     ],
     "correct": 2,
-    "explanation": "Accuracy = 999/1000 = 99.9%. The model catches zero fraud but looks great by accuracy. This is exactly why accuracy is dangerous for imbalanced datasets."
+    "explanation": "Accuracy (准确率) = 999/1000 = 99.9%。该模型没有抓住任何欺诈，但 accuracy 看起来很好。这正是 accuracy 对于 imbalanced data (不平衡数据) 危险的原因。"
   },
   {
     "id": "imbalanced-pre-2",
     "stage": "pre",
-    "question": "Which metric would correctly identify the always-predict-negative model as useless?",
+    "question": "哪个 metric (指标) 能正确识别出'总是预测负类'的模型是无用的？",
     "options": [
-      "Accuracy (99.9%)",
-      "Recall (0%) or F1 score (0%)",
-      "Specificity (100%)",
-      "True negative rate (100%)"
+      "Accuracy (准确率) (99.9%)",
+      "Recall (召回率) (0%) 或 F1 score (F1 分数) (0%)",
+      "Specificity (特异度) (100%)",
+      "True negative rate (真负率) (100%)"
     ],
     "correct": 1,
-    "explanation": "Recall = TP/(TP+FN) = 0/total_positives = 0%. F1 = 2*0*0/(0+0) = 0. Both correctly show the model catches nothing in the positive class. Accuracy hides this failure."
+    "explanation": "Recall (召回率) = TP/(TP+FN) = 0/total_positives = 0%。F1 = 2*0*0/(0+0) = 0。两者都正确显示该模型在 positive class (正类) 上一无所获。Accuracy (准确率) 掩盖了这一失败。"
   },
   {
     "id": "imbalanced-post-1",
     "stage": "post",
-    "question": "How does SMOTE generate synthetic minority samples?",
+    "question": "SMOTE 如何生成 synthetic minority samples (合成少数类样本)？",
     "options": [
-      "By duplicating existing minority samples exactly",
-      "By randomly generating points anywhere in the feature space",
-      "By interpolating between a minority sample and one of its K nearest minority neighbors",
-      "By flipping the labels of majority class samples"
+      "通过精确复制现有的少数类样本",
+      "通过在特征空间中随机生成点",
+      "通过在少数类样本及其 K 个最近的少数类邻居之间进行插值",
+      "通过翻转多数类样本的标签"
     ],
     "correct": 2,
-    "explanation": "SMOTE picks a minority point, selects one of its K nearest minority neighbors, and creates a new point on the line segment between them: new = x + rand(0,1) * (neighbor - x). This produces plausible, non-duplicate samples."
+    "explanation": "SMOTE 选择一个少数类点，从其 K 个最近的少数类邻居中选择一个，并在它们之间的线段上创建一个新点：new = x + rand(0,1) * (neighbor - x)。这产生了合理的、非重复的新样本。"
   },
   {
     "id": "imbalanced-post-2",
     "stage": "post",
-    "question": "You lower the classification threshold from 0.5 to 0.3 on an imbalanced dataset. What happens to precision and recall?",
+    "question": "在不平衡数据集上，你将 classification threshold (分类阈值) 从 0.5 降低到 0.3。precision (精确率) 和 recall (召回率) 会发生什么变化？",
     "options": [
-      "Both precision and recall increase",
-      "Recall increases (more positives caught) but precision decreases (more false positives)",
-      "Precision increases but recall decreases",
-      "Neither changes -- threshold only affects speed"
+      "precision (精确率) 和 recall (召回率) 都增加",
+      "recall (召回率) 增加（抓住更多正类），但 precision (精确率) 降低（产生更多假正例）",
+      "precision (精确率) 增加，但 recall (召回率) 降低",
+      "两者都不变——阈值只影响速度"
     ],
     "correct": 1,
-    "explanation": "Lowering the threshold means more samples are predicted positive. This catches more true positives (recall up) but also adds more false positives (precision down). Threshold tuning trades precision for recall."
+    "explanation": "降低 threshold (阈值) 意味着更多样本被预测为正类。这抓住了更多 true positives (真正例)（recall 上升），但也增加了更多 false positives (假正例)（precision 下降）。Threshold tuning (阈值调优) 是在 precision 和 recall 之间进行权衡。"
   },
   {
     "id": "imbalanced-post-3",
     "stage": "post",
-    "question": "Why is AUPRC (Area Under Precision-Recall Curve) more informative than AUC-ROC for highly imbalanced datasets?",
+    "question": "为什么 AUPRC (Area Under Precision-Recall Curve，Precision-Recall 曲线下面积) 对于高度不平衡的数据集比 AUC-ROC 更有信息量？",
     "options": [
-      "AUPRC is always higher than AUC-ROC",
-      "A random classifier has AUPRC equal to the positive class rate (e.g., 0.001), making improvements visible, while AUC-ROC starts at 0.5 regardless of imbalance",
-      "AUPRC does not require a threshold",
-      "AUC-ROC cannot be computed for imbalanced data"
+      "AUPRC 总是比 AUC-ROC 更高",
+      "随机分类器的 AUPRC 等于 positive class rate (正类比例)（例如 0.001），使得改进可见，而 AUC-ROC 无论不平衡程度如何都从 0.5 开始",
+      "AUPRC 不需要 threshold (阈值)",
+      "AUC-ROC 无法为不平衡数据计算"
     ],
     "correct": 1,
-    "explanation": "For imbalanced data, AUC-ROC can look deceptively good because the large number of true negatives inflates the true negative rate. AUPRC's baseline equals the positive rate, making real improvements in detecting the minority class much more apparent."
+    "explanation": "对于不平衡数据，AUC-ROC 可能看起来虚高，因为大量的 true negatives (真负例) 会 inflate (夸大) true negative rate (真负率)。AUPRC 的基线等于 positive rate (正类比例)，使得在检测 minority class (少数类) 方面的真实改进更加明显。"
   }
 ]

@@ -2,66 +2,66 @@
   {
     "id": "featsel-pre-1",
     "stage": "pre",
-    "question": "Why can adding more features actually make a model perform worse?",
+    "question": "为什么增加更多特征反而可能让模型表现更差？",
     "options": [
-      "More features always improve model accuracy",
-      "Irrelevant features add noise, increase overfitting risk, and dilute the signal from useful features",
-      "Models have a hard limit on the number of features they can accept",
-      "More features make the model run out of memory"
+      "更多特征总能提升模型准确率",
+      "不相关特征会引入噪声、增加过拟合风险，并稀释有用特征的信号",
+      "模型对可接受的特征数量有硬性上限",
+      "更多特征会导致模型内存不足"
     ],
     "correct": 1,
-    "explanation": "Irrelevant features give the model opportunities to overfit on noise in the training data. They increase dimensionality, making the data sparser and distances less meaningful (curse of dimensionality)."
+    "explanation": "不相关特征给模型提供了在训练数据噪声上过拟合的机会。它们增加了维度，使数据更稀疏、距离更无意义（curse of dimensionality (维度灾难)）。"
   },
   {
     "id": "featsel-pre-2",
     "stage": "pre",
-    "question": "What is the key difference between filter and wrapper feature selection methods?",
+    "question": "filter method (过滤法) 和 wrapper method (包装法) 特征选择的关键区别是什么？",
     "options": [
-      "Filter methods use a model to evaluate features; wrapper methods use statistics",
-      "Filter methods score features using statistics without a model; wrapper methods train a model to evaluate feature subsets",
-      "Filter methods are always more accurate than wrapper methods",
-      "Wrapper methods can only select one feature at a time"
+      "Filter methods (过滤法) 使用模型评估特征；wrapper methods (包装法) 使用统计方法",
+      "Filter methods (过滤法) 使用统计方法在不训练模型的情况下为特征打分；wrapper methods (包装法) 训练模型来评估特征子集",
+      "Filter methods (过滤法) 总是比 wrapper methods (包装法) 更准确",
+      "Wrapper methods (包装法) 一次只能选择一个特征"
     ],
     "correct": 1,
-    "explanation": "Filter methods (variance threshold, mutual information, correlation) score features with statistical measures. Wrapper methods (RFE, forward selection) train models repeatedly to evaluate different feature subsets."
+    "explanation": "Filter methods (过滤法)（variance threshold (方差阈值)、mutual information (互信息)、correlation (相关性)）使用统计度量来评估特征。Wrapper methods (包装法)（RFE (递归特征消除)、forward selection (前向选择)）反复训练模型来评估不同的特征子集。"
   },
   {
     "id": "featsel-post-1",
     "stage": "post",
-    "question": "Mutual information can detect relationships that Pearson correlation cannot. What kind?",
+    "question": "Mutual information (互信息) 能够检测 Pearson correlation (皮尔逊相关性) 无法捕捉的关系。是哪种关系？",
     "options": [
-      "Linear relationships between continuous features",
-      "Nonlinear relationships such as quadratic or periodic dependencies",
-      "Relationships between categorical features only",
-      "Relationships that require more than 1000 data points"
+      "连续特征之间的线性关系",
+      "非线性关系，例如二次或周期性依赖",
+      "仅分类特征之间的关系",
+      "需要超过 1000 个数据点的关系"
     ],
     "correct": 1,
-    "explanation": "Pearson correlation only measures linear association. A quadratic relationship (y = x^2) has zero correlation but high mutual information. MI captures any statistical dependency between variables."
+    "explanation": "Pearson correlation (皮尔逊相关性) 只衡量线性关联。二次关系（y = x^2）的 correlation (相关性) 为零，但 mutual information (互信息) 很高。MI 能捕获变量之间的任何统计依赖关系。"
   },
   {
     "id": "featsel-post-2",
     "stage": "post",
-    "question": "L1 (Lasso) regularization performs feature selection as part of training. How?",
+    "question": "L1 (Lasso) regularization (L1正则化) 在训练过程中执行特征选择。它是如何实现的？",
     "options": [
-      "It removes features with low variance before training starts",
-      "It drives the weights of irrelevant features to exactly zero, effectively eliminating them from the model",
-      "It ranks features by correlation with the target",
-      "It trains separate models for each feature"
+      "它在训练开始前移除低方差特征",
+      "它将不相关特征的权重精确推向零，从而有效地将它们从模型中消除",
+      "它通过与目标的相关性对特征进行排序",
+      "它为每个特征训练单独的模型"
     ],
     "correct": 1,
-    "explanation": "L1 regularization adds |w| penalty to the loss. The geometry of the L1 constraint (diamond shape) causes some weight solutions to land exactly at zero, producing sparse models that automatically select features."
+    "explanation": "L1 regularization (L1正则化) 在损失函数中添加 |w| 惩罚项。L1 约束的几何形状（菱形）导致某些权重解恰好落在零点上，产生自动选择特征的稀疏模型。"
   },
   {
     "id": "featsel-post-3",
     "stage": "post",
-    "question": "RFE removes the least important feature and retrains. Why is this better than just removing all low-importance features at once?",
+    "question": "RFE (递归特征消除) 移除最不重要的特征并重新训练。为什么这比一次性移除所有低重要性特征更好？",
     "options": [
-      "It is not better -- removing all at once is always preferred",
-      "Feature importances change as features are removed, so iterative removal accounts for interactions between features",
-      "RFE uses a different importance metric than single-step removal",
-      "Removing one at a time is only necessary for neural networks"
+      "它并不更好——一次性移除所有特征总是更受青睐",
+      "特征重要性会随着特征被移除而改变，因此迭代移除能够考虑特征之间的交互",
+      "RFE 使用与单步移除不同的重要性度量",
+      "一次只移除一个特征仅对神经网络有必要"
     ],
     "correct": 1,
-    "explanation": "Feature importances are relative. When a correlated feature is removed, the importance of its counterpart may increase. Iterative removal lets the model reassess importances at each step, capturing these interactions."
+    "explanation": "特征重要性是相对的。当一个相关特征被移除后，其对应特征的重要性可能会增加。迭代移除让模型在每一步重新评估重要性，从而捕获这些交互作用。"
   }
 ]

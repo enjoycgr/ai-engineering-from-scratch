@@ -1,12 +1,12 @@
-"""Cache-aware multi-region router simulator — stdlib Python.
+"""缓存感知多区域路由器模拟器 —— 标准库 Python。
 
-Three strategies on the same workload:
-  ROUND_ROBIN : blind, ignores KV cache state
-  REGIONAL    : cache-aware within region; round-robin across regions
-  GLOBAL      : cache-aware globally; considers network RTT
+同一工作负载上的三种策略：
+  ROUND_ROBIN : 盲目，忽略 KV cache 状态
+  REGIONAL    : 区域内缓存感知；跨区域轮询
+  GLOBAL      : 全局缓存感知；考虑网络 RTT
 
-Reports cache hit rate, TTFT P50/P99, and cross-region bill.
-Pedagogical: timings are illustrative.
+报告缓存命中率、TTFT P50/P99 和跨区域费用。
+教学用途：时间为示意值。
 """
 
 from __future__ import annotations

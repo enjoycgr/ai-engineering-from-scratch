@@ -1,6 +1,9 @@
 // Multi-head attention + grouped-query attention, stdlib only.
+// 仅使用标准库实现的多头注意力 + 分组查询注意力。
 // Topic: head split, per-head scaled dot-product attention, concat, output projection.
+// 主题：头拆分、逐头缩放点积注意力、拼接、输出投影。
 // References (cited in spirit, not as deps):
+// 参考文献（精神上引用，不作为依赖）：
 //   - Vaswani 2017:                  https://arxiv.org/abs/1706.03762
 //   - GQA paper (Ainslie 2023):      https://arxiv.org/abs/2305.13245
 //   - candle multi-head impl:        https://github.com/huggingface/candle/blob/main/candle-transformers/src/models/llama.rs
@@ -108,6 +111,7 @@ fn scaled_dot_product_attention(q: &Mat, k: &Mat, v: &Mat) -> (Mat, Mat) {
 }
 
 // Split [n, d_model] into n_heads chunks of [n, d_head] along the last axis.
+// 沿最后一个轴将 [n, d_model] 拆分为 n_heads 个 [n, d_head] 块。
 fn split_heads(x: &Mat, n_heads: usize) -> Vec<Mat> {
     assert_eq!(x.cols % n_heads, 0, "d_model {} not divisible by n_heads {}", x.cols, n_heads);
     let d_head = x.cols / n_heads;
@@ -125,6 +129,7 @@ fn split_heads(x: &Mat, n_heads: usize) -> Vec<Mat> {
 }
 
 // Concat n_heads chunks of [n, d_head] back to [n, n_heads * d_head].
+// 将 n_heads 个 [n, d_head] 块拼接回 [n, n_heads * d_head]。
 fn combine_heads(heads: &[Mat]) -> Mat {
     let n = heads[0].rows;
     let d_head = heads[0].cols;
@@ -164,6 +169,7 @@ fn multi_head_attention(
 }
 
 // GQA: Q has n_heads, K and V have n_kv_heads. Replicate each KV head across its group.
+// GQA：Q 有 n_heads 个，K 和 V 有 n_kv_heads 个。将每个 KV 头在其组内复制。
 fn grouped_query_attention(
     x: &Mat,
     wq: &Mat, wk: &Mat, wv: &Mat, wo: &Mat,
@@ -226,6 +232,7 @@ fn main() {
     }
 
     // GQA demo: 4 Q heads, 2 KV heads.
+    // GQA 演示：4 个 Q 头，2 个 KV 头。
     let d_model = 8usize;
     let n_heads = 4usize;
     let n_kv = 2usize;

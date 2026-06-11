@@ -1,15 +1,15 @@
-// Self-attention kernel from scratch, stdlib only.
-// Topic: scaled dot-product attention with explicit row-major memory.
-// References (cited in spirit, not as deps):
+// 从零实现 Self-attention 内核，仅使用标准库。
+// 主题：显式行主序内存布局下的缩放点积注意力。
+// 参考资料（精神上引用，非依赖）：
 //   - Vaswani 2017, "Attention Is All You Need": https://arxiv.org/abs/1706.03762
-//   - candle reference attention kernel:        https://github.com/huggingface/candle/blob/main/candle-nn/src/ops.rs
-//   - Karpathy llm.c attention forward pass:    https://github.com/karpathy/llm.c/blob/master/train_gpt2.c
+//   - candle 参考注意力内核:        https://github.com/huggingface/candle/blob/main/candle-nn/src/ops.rs
+//   - Karpathy llm.c attention 前向传播:    https://github.com/karpathy/llm.c/blob/master/train_gpt2.c
 //
-// Compile + run:  rustc --edition 2021 main.rs -o /tmp/sa && /tmp/sa
+// 编译 + 运行:  rustc --edition 2021 main.rs -o /tmp/sa && /tmp/sa
 
 use std::f32::consts::E;
 
-// Row-major matrix backed by a flat Vec<f32>. Helpers index by (row, col).
+// 行主序矩阵，底层为扁平的 Vec<f32>。辅助方法按 (row, col) 索引。
 struct Mat {
     rows: usize,
     cols: usize,
@@ -56,7 +56,7 @@ impl Mat {
     }
 }
 
-// Softmax along the last axis (per row), numerically stable.
+// 沿最后一个轴（逐行）计算 softmax，数值稳定。
 fn softmax_rows(m: &Mat) -> Mat {
     let mut out = Mat::zeros(m.rows, m.cols);
     for i in 0..m.rows {
@@ -77,7 +77,7 @@ fn softmax_rows(m: &Mat) -> Mat {
     out
 }
 
-// Q @ K^T / sqrt(d_k), softmax, then @ V.
+// Q @ K^T / sqrt(d_k)，softmax，然后 @ V。
 fn scaled_dot_product_attention(q: &Mat, k: &Mat, v: &Mat) -> (Mat, Mat) {
     let dk = q.cols as f32;
     let k_t = k.transpose();
@@ -88,7 +88,7 @@ fn scaled_dot_product_attention(q: &Mat, k: &Mat, v: &Mat) -> (Mat, Mat) {
     (out, weights)
 }
 
-// Deterministic, dependency-free Gaussian via Box-Muller from a Lehmer LCG.
+// 基于 Lehmer LCG 的 Box-Muller 变换，生成确定性高斯分布随机数，无外部依赖。
 struct Rng { state: u64 }
 impl Rng {
     fn new(seed: u64) -> Self { Rng { state: seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) | 1 } }

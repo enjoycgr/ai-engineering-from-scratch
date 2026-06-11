@@ -1,7 +1,8 @@
 """Multi-agent debate: full mesh vs sparse (star) topology.
 
-Scripted debaters with different opinion drifts. Measures convergent answer,
-rounds to consensus, and total critique ops (as a cost proxy).
+多智能体辩论：full mesh（全连接）vs sparse（稀疏）（star 星型）拓扑。
+带有不同意见漂移的脚本化 debaters（辩论者）。测量 convergent answer（收敛答案）、
+收敛轮次和 total critique ops（总批评操作数）（作为 cost proxy 成本代理）。
 """
 
 from __future__ import annotations
@@ -123,8 +124,8 @@ def main() -> None:
                   f"converged_round={converged}  ops={ops}  {correct}")
 
     print()
-    print("sparse star matches full mesh on accuracy with fewer critique ops.")
-    print("debate helps factual and rule-based tasks; adds latency and cost.")
+    print("sparse star（稀疏星型）在 accuracy（准确率）上匹配 full mesh，critique ops（批评操作数）更少。")
+    print("debate（辩论）有助于 factual and rule-based tasks（事实性和基于规则的任务）；增加 latency and cost（延迟和成本）。")
 
 
 if __name__ == "__main__":

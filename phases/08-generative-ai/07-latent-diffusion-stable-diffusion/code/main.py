@@ -3,6 +3,7 @@ import random
 
 
 def sin_embed(t, T, dim=8):
+    """正弦时间步嵌入（Sinusoidal timestep embedding）。"""
     out = []
     half = dim // 2
     for i in range(half):
@@ -38,7 +39,7 @@ def randn_matrix(rows, cols, rng, scale=0.3):
     return [[rng.gauss(0, scale) for _ in range(cols)] for _ in range(rows)]
 
 
-NULL_CLASS = 2
+NULL_CLASS = 2  # 用于 classifier-free guidance 训练时的空类别 token
 
 
 def init_net(x_dim, t_dim, c_dim, hidden, rng):
@@ -103,6 +104,7 @@ def apply(net, grads, lr):
 
 
 def make_schedule(T):
+    # 前向噪声调度（noise schedule）：beta 从 1e-4 线性增长到 0.02
     betas = [1e-4 + (0.02 - 1e-4) * t / (T - 1) for t in range(T)]
     alphas = [1 - b for b in betas]
     bars, cum = [], 1.0
@@ -113,14 +115,17 @@ def make_schedule(T):
 
 
 def encode(x):
+    # 玩具 VAE 编码器：将数据压缩到更小的尺度
     return x * 0.5
 
 
 def decode(z):
+    # 玩具 VAE 解码器：将隐变量放大回原始尺度
     return z * 2.0
 
 
 def sample_data(rng):
+    # 双峰高斯混合分布，每个模式对应一个类别标签
     c = rng.randrange(2)
     x = rng.gauss(-2.0 if c == 0 else 2.0, 0.4)
     return x, c
@@ -133,13 +138,15 @@ def main():
     alphas, alpha_bars = make_schedule(T)
     net = init_net(1, t_dim, num_classes_inc_null, hidden, rng)
 
-    print("=== training class-conditional latent diffusion with CFG dropout ===")
+    print("=== 训练带有 CFG dropout 的类别条件隐空间扩散 ===")
     for step in range(4000):
         x0, c = sample_data(rng)
         z0 = encode(x0)
         t = rng.randrange(T)
         eps = rng.gauss(0, 1)
+        # 闭式一步加噪，在隐空间（latent space）上进行
         z_t = math.sqrt(alpha_bars[t]) * z0 + math.sqrt(1 - alpha_bars[t]) * eps
+        # 10% 的概率丢弃类别标签（classifier-free guidance 训练）
         use_c = NULL_CLASS if rng.random() < 0.1 else c
         c_emb = one_hot(use_c, num_classes_inc_null)
         t_emb = sin_embed(t, T, t_dim)
@@ -150,22 +157,27 @@ def main():
             print(f"  step {step+1:5d}")
 
     def sample(c_target, w):
+        # 在隐空间（latent space）中从标准高斯噪声开始反向去噪
         z = rng.gauss(0, 1)
         for t in range(T - 1, -1, -1):
             t_emb = sin_embed(t, T, t_dim)
+            # 条件与非条件噪声预测（classifier-free guidance）
             eps_c, _ = forward([z], t_emb, one_hot(c_target, num_classes_inc_null), net)
             eps_u, _ = forward([z], t_emb, one_hot(NULL_CLASS, num_classes_inc_null), net)
+            # CFG 公式：eps_cfg = (1 + w) * eps_cond - w * eps_uncond
             eps_cfg = (1 + w) * eps_c[0] - w * eps_u[0]
             beta_t = 1 - alphas[t]
+            # 反向过程（reverse process）均值重参数化
             mean = (z - beta_t / math.sqrt(1 - alpha_bars[t]) * eps_cfg) / math.sqrt(alphas[t])
             if t > 0:
                 z = mean + math.sqrt(beta_t) * rng.gauss(0, 1)
             else:
                 z = mean
+        # 解码回数据空间
         return decode(z)
 
     print()
-    print("=== CFG sweep: per-class mean over 200 samples ===")
+    print("=== CFG 扫描：每类 200 个样本的均值 ===")
     for w in [0.0, 1.0, 3.0, 7.0]:
         samples = {0: [], 1: []}
         for _ in range(200):
@@ -173,11 +185,11 @@ def main():
             samples[c].append(sample(c, w))
         m0 = sum(samples[0]) / len(samples[0])
         m1 = sum(samples[1]) / len(samples[1])
-        print(f"  w={w:.1f}: class 0 mean {m0:+.2f}  class 1 mean {m1:+.2f}")
+        print(f"  w={w:.1f}: 类别 0 均值 {m0:+.2f}  类别 1 均值 {m1:+.2f}")
 
     print()
-    print("takeaway: same DDPM loss, just running on encoded z.")
-    print("          CFG scales conditioning strength without retraining.")
+    print("要点：同样的 DDPM 损失，只是在编码后的 z 上运行。")
+    print("      CFG 无需重新训练即可调节条件强度。")
 
 
 if __name__ == "__main__":

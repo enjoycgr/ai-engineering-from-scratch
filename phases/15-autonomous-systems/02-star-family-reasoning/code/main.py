@@ -1,18 +1,17 @@
-"""STaR-loop simulator — stdlib Python.
+"""STaR-loop 模拟器 —— stdlib Python。
 
-Toy arithmetic task. A "model" produces rationales via three strategies:
-  1. sound reasoning (always correct)
-  2. lazy shortcut (right answer 40% of the time on in-distribution problems,
-     near zero on out-of-distribution)
-  3. random guess
+玩具算术任务。"模型" 通过三种策略生成推理过程 (rationales)：
+  1. sound reasoning (正确推理，始终正确)
+  2. lazy shortcut (惰性捷径，在分布内问题上 40% 正确率，
+     在分布外 (out-of-distribution, OOD) 接近零)
+  3. random guess (随机猜测)
 
-STaR bootstrap rounds filter to correct-answer rationales. Without shielding,
-shortcut rationales get reinforced because they look correct in-distribution.
+STaR 自举轮次过滤出正确答案的推理过程。没有屏蔽时，
+捷径推理会被强化，因为它们在分布内看起来正确。
 
-The simulator also runs a V-STaR-style inference selector: sample N rationales,
-pick the verifier's top choice. The verifier is itself trained on the same
-data, so it can rank confidently wrong rationales above honestly uncertain
-ones on OOD.
+模拟器还运行 V-STaR 风格的推理选择器：采样 N 个推理过程，
+选择验证器 (verifier) 的最高分。验证器本身在同一数据上训练，
+因此它可能在 OOD 上将自信错误的推理排在诚实不确定的推理之上。
 """
 
 from __future__ import annotations
@@ -47,7 +46,7 @@ class Model:
 
 
 def evaluate(model: Model, n: int, on_ood: bool) -> tuple[float, float]:
-    """Return (answer accuracy, rationale soundness fraction)."""
+    """返回 (答案准确率, 推理过程合理性比例)。"""
     correct = 0
     sound = 0
     for _ in range(n):
@@ -60,7 +59,7 @@ def evaluate(model: Model, n: int, on_ood: bool) -> tuple[float, float]:
 
 
 def star_round(model: Model, n_samples: int = 1000) -> Model:
-    """One round of STaR: keep correct-answer traces, retrain."""
+    """一轮 STaR：保留正确答案的轨迹，重新训练。"""
     kept = []
     for _ in range(n_samples):
         t = model.sample(on_ood=False)
@@ -75,13 +74,12 @@ def star_round(model: Model, n_samples: int = 1000) -> Model:
     random_kept = sum(1 for k in kept if k.strategy == "random")
     total = len(kept)
 
-    # Update proportions by what gets reinforced, mixed with the old
-    # prior to avoid collapsing.
+    # 根据被强化的内容更新比例，与旧先验混合以避免坍缩。
     alpha = 0.6
     new_sound = alpha * (sound_kept / total) + (1 - alpha) * model.prob_sound
     new_short = alpha * (shortcut_kept / total) + (1 - alpha) * model.prob_shortcut
 
-    # Renormalize
+    # 重新归一化
     s = new_sound + new_short
     if s > 1.0:
         new_sound /= s
@@ -100,19 +98,19 @@ def run_star(rounds: int, initial: Model) -> list[Model]:
 
 def vstar_infer(model: Model, samples_per_problem: int, n_problems: int,
                 on_ood: bool) -> float:
-    """V-STaR-style best-of-N: pick the trace we'd believe. We model the
-    verifier as a confidence score that is itself biased by sound vs
-    shortcut (sound = 0.9 ranker reliability, shortcut = 0.55).
+    """V-STaR 风格的 best-of-N：选择我们会相信的轨迹。我们将
+    验证器建模为一个置信度分数，它本身受 sound vs shortcut 的偏差影响
+    (sound = 0.9 排名器可靠性, shortcut = 0.55)。
 
-    Note: this is an idealized verifier — it reads the ground-truth
-    ``rationale_sound`` flag, so it represents an upper bound on what a
-    well-trained verifier could achieve. A real verifier must infer
-    soundness from the trace itself, so real-world gains will be smaller.
+    注意：这是一个理想化验证器 —— 它读取 ground-truth
+    ``rationale_sound`` 标记，因此它代表了一个训练良好的验证器
+    可能达到的上界。真实验证器必须从轨迹本身推断合理性，
+    因此实际收益会更小。
     """
     correct = 0
     for _ in range(n_problems):
         traces = [model.sample(on_ood) for _ in range(samples_per_problem)]
-        # Verifier tries to pick correct ones; it is imperfect.
+        # 验证器试图挑选正确的；它并不完美。
         best = None
         best_score = -1.0
         for t in traces:
@@ -139,7 +137,7 @@ def report_round(label: str, models: list[Model]) -> None:
 
 
 def vstar_report(model: Model) -> None:
-    print("\nV-STaR best-of-N inference")
+    print("\nV-STaR best-of-N 推理")
     print("-" * 70)
     for n in (1, 4, 16):
         for ood in (False, True):
@@ -154,11 +152,11 @@ def main() -> None:
     print("STaR, V-STaR, QUIET-STaR (Phase 15, Lesson 2)")
     print("=" * 70)
 
-    print("\nScenario A: base model with no shortcuts (clean reasoning prior)")
+    print("\n场景 A：无捷径的基础模型 (clean reasoning prior)")
     models = run_star(5, Model(prob_sound=0.20, prob_shortcut=0.0))
     report_round("STaR bootstrap rounds (clean)", models)
 
-    print("\nScenario B: base model with shortcut tendency (0.4 in-dist hit)")
+    print("\n场景 B：有捷径倾向的基础模型 (0.4 in-dist hit)")
     models = run_star(5, Model(prob_sound=0.20, prob_shortcut=0.40))
     report_round("STaR bootstrap rounds (with shortcuts)", models)
 
@@ -166,13 +164,13 @@ def main() -> None:
 
     print()
     print("=" * 70)
-    print("HEADLINE: STaR reinforces whatever reaches the answer")
+    print("HEADLINE: STaR 强化任何能到达答案的路径")
     print("-" * 70)
-    print("  Scenario A climbs on both ID and OOD.")
-    print("  Scenario B climbs on ID while OOD collapses — the shortcut")
-    print("  gets reinforced because it looks correct in training data.")
-    print("  V-STaR's verifier helps at inference, but cannot undo training")
-    print("  bias it was trained on.")
+    print("  场景 A 在 ID 和 OOD 上双双提升。")
+    print("  场景 B 在 ID 上提升而 OOD 崩溃 —— 捷径")
+    print("  被强化，因为它在训练数据中看起来正确。")
+    print("  V-STaR 的验证器在推理时有所帮助，但无法消除训练")
+    print("  中它被训练过的偏差。")
 
 
 if __name__ == "__main__":

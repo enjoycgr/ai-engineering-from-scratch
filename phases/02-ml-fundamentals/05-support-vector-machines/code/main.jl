@@ -1,6 +1,7 @@
-# Support vector machines in Julia. Linear SVM trained by stochastic
-# sub-gradient descent on hinge loss with L2 regularization (soft margin),
-# plus polynomial and RBF kernel functions. Stdlib only. Sources:
+# Julia 中的 Support Vector Machine (支持向量机)。
+# 使用 hinge loss + L2 regularization (软间隔) 的随机次梯度下降训练线性 SVM，
+# 以及 polynomial kernel 和 RBF kernel 函数。仅使用标准库。
+# 参考来源:
 #   https://docs.julialang.org/en/v1/manual/control-flow/
 #   https://docs.julialang.org/en/v1/stdlib/Random/
 #   https://docs.julialang.org/en/v1/manual/arrays/
@@ -87,10 +88,12 @@ function fit_svm!(model::LinearSVM, X::Vector{Vector{Float64}}, ys::Vector{Int};
         for i in indices
             margin = ys[i] * (dotprod(model.w, X[i]) + model.b)
             if margin >= 1
+                # 点在 margin 外：仅应用 regularization 梯度
                 for j in 1:n_features
                     model.w[j] -= model.lr * model.lambda * model.w[j]
                 end
             else
+                # 点在 margin 内或被误分类：应用 hinge loss + regularization 梯度
                 for j in 1:n_features
                     model.w[j] -= model.lr * (model.lambda * model.w[j] - ys[i] * X[i][j])
                 end
@@ -215,8 +218,8 @@ function demo_hinge_loss()
         @printf("  %10.1f  %12.3f  %14.3f\n", m, h, l)
     end
     println()
-    println("  Hinge loss is exactly zero when y*f(x) >= 1.")
-    println("  Logistic loss is never exactly zero. Hinge gives sparse models.")
+    println("  Hinge loss 在 y*f(x) >= 1 时恰好为零。")
+    println("  Logistic loss 永远不会恰好为零。Hinge 产生稀疏模型。")
     println()
 end
 
@@ -229,19 +232,19 @@ function demo_linear_svm()
     X, ys = generate_linear_data(n_samples=200, margin=1.0, seed=42)
     X_train, ys_train, X_test, ys_test = svm_train_test_split(X, ys)
 
-    @printf("  Dataset: %d samples, linearly separable\n", length(X))
-    @printf("  Train: %d   Test: %d\n", length(X_train), length(X_test))
+    @printf("  数据集: %d 个样本，线性可分\n", length(X))
+    @printf("  训练集: %d   测试集: %d\n", length(X_train), length(X_test))
 
     svm = LinearSVM(lr=0.001, lambda=0.01, n_epochs=500)
     fit_svm!(svm, X_train, ys_train; seed=1)
 
     train_acc = svm_accuracy(ys_train, predict_svm(svm, X_train))
     test_acc = svm_accuracy(ys_test, predict_svm(svm, X_test))
-    @printf("\n  Weights: [%.4f, %.4f]\n", svm.w[1], svm.w[2])
-    @printf("  Bias: %.4f\n", svm.b)
+    @printf("\n  权重: [%.4f, %.4f]\n", svm.w[1], svm.w[2])
+    @printf("  偏置: %.4f\n", svm.b)
     @printf("  Margin width: %.4f\n", margin_width(svm))
-    @printf("  Train accuracy: %.4f\n", train_acc)
-    @printf("  Test  accuracy: %.4f\n", test_acc)
+    @printf("  训练准确率: %.4f\n", train_acc)
+    @printf("  测试准确率: %.4f\n", test_acc)
 
     svs = find_support_vectors(svm, X_train, ys_train; tol=0.3)
     @printf("  Support vectors: %d / %d\n", length(svs), length(X_train))
@@ -273,8 +276,8 @@ function demo_c_parameter()
                 c, lam, train_acc, test_acc, mw, n_sv)
     end
     println()
-    println("  Small C (large lambda): wide margin, more slack, better generalization.")
-    println("  Large C (small lambda): narrow margin, fewer slack, risk of overfit.")
+    println("  小 C（大 lambda）: 宽 margin，更多 slack，更好的 generalization。")
+    println("  大 C（小 lambda）: 窄 margin，更少 slack，overfit 风险。")
     println()
 end
 
@@ -292,7 +295,7 @@ function demo_kernels()
         ("far same dir",   Float64[5.0, 0.0]),
         ("opposite",       Float64[-1.0, 0.0]),
     ]
-    @printf("  Reference: %s\n", x)
+    @printf("  参考点: %s\n", x)
     println()
     @printf("  %-20s  %8s  %10s  %10s  %10s\n",
             "Point", "Linear", "Poly(d=2)", "Poly(d=3)", "RBF(g=0.5)")
@@ -307,7 +310,7 @@ function demo_kernels()
                 name, k_l, k_p2, k_p3, k_rbf)
     end
     println()
-    println("  Linear kernel: raw dot product. RBF: locality-based.")
+    println("  Linear kernel: 原始 dot product。RBF: 基于局部性。")
     println()
 end
 
@@ -324,7 +327,7 @@ function demo_linear_vs_nonlinear()
     fit_svm!(svm, X_train, ys_train; seed=3)
     train_acc = svm_accuracy(ys_train, predict_svm(svm, X_train))
     test_acc = svm_accuracy(ys_test, predict_svm(svm, X_test))
-    @printf("  Plain linear SVM on circular data: train=%.4f  test=%.4f\n",
+    @printf("  普通 Linear SVM 在圆形数据上: 训练=%.4f  测试=%.4f\n",
             train_acc, test_acc)
     println()
 
@@ -337,11 +340,11 @@ function demo_linear_vs_nonlinear()
     fit_svm!(svm_aug, X_train_aug, ys_train; seed=4)
     train_aug = svm_accuracy(ys_train, predict_svm(svm_aug, X_train_aug))
     test_aug = svm_accuracy(ys_test, predict_svm(svm_aug, X_test_aug))
-    println("  After polynomial feature map (x1, x2, x1^2, x2^2, x1*x2):")
-    @printf("  Linear SVM on augmented features: train=%.4f  test=%.4f\n",
+    println("  经过多项式特征映射 (x1, x2, x1^2, x2^2, x1*x2) 后:")
+    @printf("  在增强特征上的 Linear SVM: 训练=%.4f  测试=%.4f\n",
             train_aug, test_aug)
     println()
-    println("  The kernel trick performs this feature map implicitly.")
+    println("  Kernel trick 隐式地完成了这种特征映射。")
     println()
 end
 
@@ -360,10 +363,10 @@ function demo_support_vectors()
               for i in 1:length(X_train)]
     sort!(margins; by=t -> t[2])
 
-    @printf("  Trained on %d points.\n", length(X_train))
-    @printf("  Weights: [%.4f, %.4f]  bias: %.4f\n", svm.w[1], svm.w[2], svm.b)
+    @printf("  在 %d 个点上训练。\n", length(X_train))
+    @printf("  权重: [%.4f, %.4f]  偏置: %.4f\n", svm.w[1], svm.w[2], svm.b)
     println()
-    println("  Points sorted by margin (y * f(x)):")
+    println("  按 margin (y * f(x)) 排序的点:")
     @printf("  %6s  %4s  %8s  %s\n", "Index", "y", "Margin", "Role")
     println("  " * "-" ^ 6 * "  " * "-" ^ 4 * "  " * "-" ^ 8 * "  " * "-" ^ 20)
     for (idx, m) in margins[1:8]

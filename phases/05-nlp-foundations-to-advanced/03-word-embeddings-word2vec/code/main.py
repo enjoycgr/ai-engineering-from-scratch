@@ -7,10 +7,12 @@ TOKEN_RE = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)?")
 
 
 def tokenize(text):
+    """将文本拆分为小写 token 列表。"""
     return [t.lower() for t in TOKEN_RE.findall(text)]
 
 
 def build_vocab(docs):
+    """为语料库构建 word -> index 映射。"""
     vocab = {}
     for doc in docs:
         for token in doc:
@@ -20,6 +22,7 @@ def build_vocab(docs):
 
 
 def skipgram_pairs(docs, window=2):
+    """为 skip-gram 生成所有 (center, context) 对。"""
     pairs = []
     for doc in docs:
         for i, center in enumerate(doc):
@@ -30,10 +33,12 @@ def skipgram_pairs(docs, window=2):
 
 
 def sigmoid(x):
+    """数值稳定的 sigmoid，带裁剪防止溢出。"""
     return 1.0 / (1.0 + np.exp(-np.clip(x, -20, 20)))
 
 
 def init_embeddings(vocab_size, dim, seed):
+    """随机初始化中心矩阵 W 和上下文矩阵 W'。"""
     rng = np.random.default_rng(seed)
     W = rng.normal(0, 0.1, size=(vocab_size, dim))
     W_prime = rng.normal(0, 0.1, size=(vocab_size, dim))
@@ -41,6 +46,7 @@ def init_embeddings(vocab_size, dim, seed):
 
 
 def train_pair(W, W_prime, c_idx, ctx_idx, neg_indices, lr):
+    """使用 negative sampling (负采样) 更新单个 (center, context) 对。"""
     v_c = W[c_idx]
     u_pos = W_prime[ctx_idx]
     u_negs = W_prime[neg_indices]
@@ -56,6 +62,7 @@ def train_pair(W, W_prime, c_idx, ctx_idx, neg_indices, lr):
 
 
 def train(docs, dim=16, window=2, k_neg=5, epochs=200, lr=0.05, seed=0):
+    """在 tokenized 文档上训练 skip-gram embedding。"""
     vocab = build_vocab(docs)
     vocab_size = len(vocab)
     W, W_prime = init_embeddings(vocab_size, dim, seed)
@@ -74,6 +81,7 @@ def train(docs, dim=16, window=2, k_neg=5, epochs=200, lr=0.05, seed=0):
 
 
 def nearest(vocab, W, target_vec, topk=5, exclude=None):
+    """通过余弦相似度返回与 target_vec 最接近的词。"""
     exclude = exclude or set()
     inv_vocab = {i: w for w, i in vocab.items()}
     norms = np.linalg.norm(W, axis=1, keepdims=True) + 1e-9
@@ -92,6 +100,7 @@ def nearest(vocab, W, target_vec, topk=5, exclude=None):
 
 
 def main():
+    # 小型玩具语料库，重复 20 次以放大信号。
     corpus = [
         "the cat sat on the mat",
         "the dog sat on the rug",
@@ -108,6 +117,7 @@ def main():
     docs = [tokenize(s) for s in corpus]
     vocab, W = train(docs, dim=16, window=2, k_neg=5, epochs=120, lr=0.05, seed=42)
 
+    # 打印几个词的最近邻以验证几何结构。
     for word in ["cat", "dog", "sat", "chased"]:
         idx = vocab[word]
         top = nearest(vocab, W, W[idx], topk=4, exclude={idx})

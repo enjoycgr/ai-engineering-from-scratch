@@ -11,6 +11,7 @@ sys.path.insert(
 from main import MiniGPT, LayerNorm, Embedding, TransformerBlock
 
 
+# 合成偏好数据：preferred 响应更简洁、更准确
 PREFERENCE_DATA = [
     {
         "prompt": "What is the capital of France?",
@@ -46,6 +47,11 @@ PREFERENCE_DATA = [
 
 
 class RewardModel:
+    """一个 transformer，将最后的隐藏状态投影为标量 reward 分数。
+
+    重用 MiniGPT 的 backbone，但将词汇输出头替换为单个线性投影。
+    """
+
     def __init__(
         self,
         vocab_size=256,
@@ -71,6 +77,7 @@ class RewardModel:
             x = block.forward(x, mask)
         x = self.ln_f.forward(x)
 
+        # 使用最后一个 token 的隐藏状态——它对完整序列有最完整的视图
         last_hidden = x[:, -1, :]
         reward = last_hidden @ self.reward_head
 
@@ -78,18 +85,24 @@ class RewardModel:
 
 
 def tokenize_for_reward(prompt, response, vocab_size=256):
+    """将 prompt 和 response 编码为单个 token 序列。"""
     prompt_tokens = [min(t, vocab_size - 1) for t in list(prompt.encode("utf-8"))]
     response_tokens = [min(t, vocab_size - 1) for t in list(response.encode("utf-8"))]
     return prompt_tokens + [0] + response_tokens
 
 
 def sigmoid(x):
+    """数值稳定的 sigmoid 实现。"""
     return np.where(
         x >= 0, 1.0 / (1.0 + np.exp(-x)), np.exp(x) / (1.0 + np.exp(x))
     )
 
 
 def bradley_terry_loss(reward_preferred, reward_rejected):
+    """Reward model 的成对偏好 loss。
+
+    当 reward(preferred) > reward(rejected) 时，loss 推动 sigmoid 趋近于 1。
+    """
     diff = reward_preferred - reward_rejected
     loss = -np.log(sigmoid(diff) + 1e-8)
     return loss
@@ -132,6 +145,7 @@ def train_reward_model(rm, preference_data, num_epochs=10, lr=1e-4, max_seq_len=
             if r_preferred > r_rejected:
                 epoch_correct += 1
 
+            # 对 reward head 进行简化的梯度下降（演示用）
             diff = r_preferred - r_rejected
             grad = sigmoid(diff) - 1.0
 
@@ -161,6 +175,10 @@ def train_reward_model(rm, preference_data, num_epochs=10, lr=1e-4, max_seq_len=
 
 
 def compute_kl_divergence(policy_logits, reference_logits):
+    """计算 policy 与 reference model 之间的逐 token KL divergence。
+
+    用于 PPO 目标以防止 reward hacking。
+    """
     policy_probs = np.exp(policy_logits - policy_logits.max(axis=-1, keepdims=True))
     policy_probs = policy_probs / policy_probs.sum(axis=-1, keepdims=True)
     policy_probs = np.clip(policy_probs, 1e-10, 1.0)
@@ -178,6 +196,7 @@ def compute_kl_divergence(policy_logits, reference_logits):
 def generate_response(
     model, prompt_tokens, max_new_tokens=30, temperature=0.8, max_seq_len=128
 ):
+    """自回归生成响应 token。"""
     tokens = list(prompt_tokens)
 
     for _ in range(max_new_tokens):
@@ -198,6 +217,10 @@ def generate_response(
 
 
 def copy_model_weights(source, target):
+    """将权重从 source model 深拷贝到 target model。
+
+    用于将 SFT checkpoint 复制到 policy 和 reference model。
+    """
     target.embedding.token_embed = source.embedding.token_embed.copy()
     target.embedding.pos_embed = source.embedding.pos_embed.copy()
     target.ln_f.gamma = source.ln_f.gamma.copy()
@@ -227,6 +250,11 @@ def ppo_training(
     kl_coeff=0.02,
     max_seq_len=128,
 ):
+    """简化的 PPO 训练循环。
+
+    核心思想：生成响应，用 reward model 评分，计算 KL divergence
+    与参考模型，更新 policy 以最大化 (reward - beta * KL)。
+    """
     print(f"PPO Training: {num_episodes} episodes, lr={lr}, KL coeff={kl_coeff}")
     print()
 
@@ -252,11 +280,13 @@ def ppo_training(
         ref_logits = reference_model.forward(response_ids)
         kl = compute_kl_divergence(policy_logits, ref_logits)
 
+        # 总目标：reward - KL 惩罚
         total_reward = reward - kl_coeff * kl
 
         rewards_history.append(float(reward))
         kl_history.append(float(kl))
 
+        # 简化的策略更新（演示用——非生产级 PPO）
         for block in policy_model.blocks:
             update_scale = lr * total_reward
             block.ffn.W1 += (
@@ -278,6 +308,7 @@ def ppo_training(
 
 
 def compare_models(sft_model, rlhf_model, reward_model, prompts, max_seq_len=128):
+    """并排比较 SFT 和 RLHF 模型的 reward 分数。"""
     print("Model Comparison (reward scores)")
     print("-" * 60)
     print(f"  {'Prompt':<35} {'SFT':>10} {'RLHF':>10}")

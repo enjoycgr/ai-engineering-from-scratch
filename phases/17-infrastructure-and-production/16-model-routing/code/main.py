@@ -1,11 +1,11 @@
 """Model routing simulator — stdlib Python.
 
-Three patterns on the same workload:
-  NO_ROUTE   : all requests to frontier
-  PRE_ROUTE  : classifier up front routes to cheap or frontier
-  CASCADE    : cheap first, escalate on low confidence
+同一工作负载上的三种模式：
+  NO_ROUTE   : 所有请求发往 frontier
+  PRE_ROUTE  : 前置分类器路由到 cheap 或 frontier
+  CASCADE    : 先走 cheap，低置信度时升级
 
-Reports blended cost, quality loss, escalation rate.
+报告 blended cost、quality loss、escalation rate。
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ def cost_of(route: str, q: Query) -> float:
 
 
 def quality(route: str, q: Query) -> float:
-    """Toy quality score per difficulty on route."""
+    """按难度和路由给出的玩具质量分数。"""
     if route == "frontier":
         return 1.0
     return {"simple": 0.99, "medium": 0.92, "hard": 0.75}[q.difficulty]

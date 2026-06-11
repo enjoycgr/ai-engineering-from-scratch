@@ -1,10 +1,10 @@
-"""Residual Vector Quantization (RVQ) from scratch.
+"""残差向量量化 (RVQ) 从零构建。
 
-Builds a toy 1-D signal, quantizes it with a cascade of tiny codebooks,
-measures reconstruction error as codebooks are added. Illustrates why
-modern audio codecs use RVQ rather than a single huge codebook.
+构建一个玩具 1-D 信号，用级联微型码本量化，
+测量添加码本后的重建误差。说明为什么现代音频编解码器
+使用 RVQ 而非单一巨型码本。
 
-Stdlib only. Run: python3 code/main.py
+仅标准库。运行：python3 code/main.py
 """
 
 import math
@@ -68,14 +68,14 @@ def mse(a, b):
 
 
 def main():
-    print("=== Step 1: generate signal ===")
+    print("=== 步骤 1：生成信号 ===")
     sig = generate_signal(n=1000)
-    print(f"  length: {len(sig)}   range: [{min(sig):.2f}, {max(sig):.2f}]   mean: {sum(sig)/len(sig):.3f}")
+    print(f"  长度: {len(sig)}   范围: [{min(sig):.2f}, {max(sig):.2f}]   均值: {sum(sig)/len(sig):.3f}")
 
     print()
-    print("=== Step 2: RVQ reconstruction error vs codebook count ===")
-    print("  codebook_size = 8   values per codebook")
-    print("  | # codebooks | bits/frame | MSE        | bitrate @ 50 fps |")
+    print("=== 步骤 2：RVQ 重建误差 vs 码本数量 ===")
+    print("  codebook_size = 8   每个码本的值")
+    print("  | # 码本 | 每帧比特 | MSE        | 码率 @ 50 fps |")
 
     for n_cb in [1, 2, 4, 8, 12]:
         indices, codebooks = rvq_encode(sig, codebook_size=8, n_codebooks=n_cb)
@@ -83,35 +83,35 @@ def main():
         err = mse(sig, recon)
         bits_per_frame = n_cb * 3
         bitrate = bits_per_frame * 50
-        print(f"  | {n_cb:>11} | {bits_per_frame:>10} | {err:.6f}   | {bitrate:>5} bps       |")
+        print(f"  | {n_cb:>6} | {bits_per_frame:>8} | {err:.6f}   | {bitrate:>5} bps       |")
 
     print()
-    print("=== Step 3: 2026 codec comparison (speech @ 6 kbps) ===")
+    print("=== 步骤 3：2026 编解码器对比 (语音 @ 6 kbps) ===")
     rows = [
-        ("EnCodec-24k", "75 Hz",   "3.2 PESQ", "general audio, MusicGen"),
-        ("DAC-44.1k",   "86 Hz",   "3.5 PESQ", "highest fidelity"),
-        ("SNAC-24k",    "~12 Hz",  "3.3 PESQ", "multi-scale, AR-LM"),
-        ("Mimi",        "12.5 Hz", "3.1 PESQ", "semantic+acoustic, Moshi"),
+        ("EnCodec-24k", "75 Hz",   "3.2 PESQ", "通用音频, MusicGen"),
+        ("DAC-44.1k",   "86 Hz",   "3.5 PESQ", "最高保真"),
+        ("SNAC-24k",    "~12 Hz",  "3.3 PESQ", "多尺度, AR-LM"),
+        ("Mimi",        "12.5 Hz", "3.1 PESQ", "语义+声学, Moshi"),
     ]
-    print("  | codec        | frame rate | quality    | use case                 |")
+    print("  | 编解码器      | 帧率      | 质量      | 用例                 |")
     for name, fr, q, u in rows:
         print(f"  | {name:<12} | {fr:<10} | {q:<10} | {u:<24} |")
 
     print()
-    print("=== Step 4: semantic vs acoustic tokens (Mimi, conceptually) ===")
-    print("  codebook 0  →  distilled from WavLM  →  content (what was said)")
-    print("  codebook 1-7 → acoustic residuals    →  timbre, speaker, noise")
+    print("=== 步骤 4：语义 vs 声学 token (Mimi, 概念性) ===")
+    print("  码本 0  →  从 WavLM 蒸馏  →  内容 (说了什么)")
+    print("  码本 1-7 → 声学残差    →  音色, 说话人, 噪声")
     print()
-    print("  LM generates codebook 0 first (text → semantic), then")
-    print("  generates codebook 1-7 conditioned on semantic + speaker ref")
-    print("  = factorized generation that cleanly supports voice cloning")
+    print("  LM 先生成码本 0 (文本 → 语义), 然后")
+    print("  在语义 + 说话人参考条件下生成码本 1-7")
+    print("  = 因子化生成，干净支持语音克隆")
 
     print()
-    print("takeaways:")
-    print("  - RVQ: cascade of small codebooks > one giant codebook")
-    print("  - semantic/acoustic split (Mimi, AudioLM) is the 2024-2026 shift")
-    print("  - 12.5 Hz Mimi × 8 codebooks = 1000 tokens per 10 s clip")
-    print("  - that's why transformer LM over audio finally works at 2026 scale")
+    print("要点:")
+    print("  - RVQ：小码本级联 > 单一巨型码本")
+    print("  - 语义/声学分离 (Mimi, AudioLM) 是 2024-2026 的转变")
+    print("  - 12.5 Hz Mimi × 8 码本 = 每 10 s 片段 1000 个 token")
+    print("  - 这就是为什么 transformer LM 最终在 2026 规模下对音频有效")
 
 
 if __name__ == "__main__":

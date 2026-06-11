@@ -1,15 +1,15 @@
-"""Phase 13 Lesson 11 - MCP sampling harness (server -> client LLM calls).
+"""Phase 13 Lesson 11 - MCP 采样 harness（服务器 -> 客户端 LLM 调用）。
 
-Simulated server-to-client sampling:
-  - Server's summarize_repo tool runs two sampling rounds (pick files, then
-    synthesize) by calling a 'fake_client_sample' stand-in for the client.
-  - Rate-limited at max_samples_per_tool to prevent loop bombs.
-  - ModelPreferences are printed so you can see the cost/speed/intelligence
-    trade-off shape.
+模拟的服务器到客户端采样：
+  - 服务器的 summarize_repo 工具运行两轮采样（挑选文件，然后
+    合成），通过调用客户端的 'fake_client_sample' 替身。
+  - 在 max_samples_per_tool 处限速以防止循环炸弹。
+  - 打印 ModelPreferences 以便你可以看到成本/速度/智能
+    权衡形状。
 
-Stdlib only.
+仅标准库。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

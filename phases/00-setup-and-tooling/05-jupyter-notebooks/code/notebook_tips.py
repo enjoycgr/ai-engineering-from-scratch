@@ -1,3 +1,7 @@
+# Phase 0 · Lesson 05 — Jupyter Notebook 关键模式。
+# 演示在 notebook 中常用的计时、绘图、DataFrame 显示和内存管理技巧。
+# 在 Jupyter notebook 中运行以查看富输出。
+
 import time
 import sys
 
@@ -9,24 +13,26 @@ import pandas as pd
 
 
 def timing_comparison():
-    print("=== Timing: List vs NumPy ===\n")
+    """对比列表推导式与 NumPy 的执行速度。"""
+    print("=== 计时：列表 vs NumPy ===\n")
 
     size = 1_000_000
 
     start = time.perf_counter()
     python_list = [x ** 2 for x in range(size)]
     list_time = time.perf_counter() - start
-    print(f"List comprehension: {list_time:.4f}s")
+    print(f"列表推导式: {list_time:.4f}s")
 
     start = time.perf_counter()
     numpy_array = np.arange(size) ** 2
     numpy_time = time.perf_counter() - start
-    print(f"NumPy:              {numpy_time:.4f}s")
-    print(f"Speedup:            {list_time / numpy_time:.1f}x")
+    print(f"NumPy:       {numpy_time:.4f}s")
+    print(f"加速比:      {list_time / numpy_time:.1f}x")
 
 
 def inline_plotting():
-    print("\n=== Inline Plotting ===\n")
+    """演示信号与噪声的内联绘图。"""
+    print("\n=== 内联绘图 ===\n")
 
     np.random.seed(42)
     x = np.linspace(0, 10, 200)
@@ -45,12 +51,13 @@ def inline_plotting():
 
     plt.tight_layout()
     plt.savefig("notebook_plot.png", dpi=100)
-    print("Saved plot to notebook_plot.png")
-    print("In a notebook, plt.show() displays this inline.")
+    print("图表已保存到 notebook_plot.png")
+    print("在 notebook 中，plt.show() 会直接内联显示。")
 
 
 def dataframe_display():
-    print("\n=== DataFrame Display ===\n")
+    """演示 DataFrame 的富表格显示。"""
+    print("\n=== DataFrame 显示 ===\n")
 
     df = pd.DataFrame({
         "model": ["Linear Regression", "Random Forest", "Neural Network", "XGBoost"],
@@ -59,15 +66,16 @@ def dataframe_display():
         "parameters": [102, 50_000, 1_200_000, 25_000],
     })
 
-    print("In a notebook, just typing 'df' renders a rich HTML table:\n")
+    print("在 notebook 中，只需输入 'df' 即可渲染富 HTML 表格：\n")
     print(df.to_string(index=False))
 
-    print(f"\nBest model: {df.loc[df['accuracy'].idxmax(), 'model']}")
-    print(f"Fastest model: {df.loc[df['train_time_sec'].idxmin(), 'model']}")
+    print(f"\n最佳模型: {df.loc[df['accuracy'].idxmax(), 'model']}")
+    print(f"最快模型: {df.loc[df['train_time_sec'].idxmin(), 'model']}")
 
 
 def memory_check():
-    print("\n=== Memory Usage ===\n")
+    """检查不同大小数组的内存占用。"""
+    print("\n=== 内存占用 ===\n")
 
     small = np.random.randn(1000)
     medium = np.random.randn(100_000)
@@ -75,20 +83,21 @@ def memory_check():
 
     for name, arr in [("1K", small), ("100K", medium), ("10M", large)]:
         size_mb = arr.nbytes / 1e6
-        print(f"Array {name:>4s} elements: {size_mb:>8.2f} MB")
+        print(f"数组 {name:>4s} 元素: {size_mb:>8.2f} MB")
 
-    print(f"\nPython process memory: ~{sys.getsizeof(large) / 1e6:.1f} MB for the large array")
-    print("In notebooks, memory accumulates across cells. Restart the kernel to free it.")
+    print(f"\nPython 进程内存: 大数组约占 {sys.getsizeof(large) / 1e6:.1f} MB")
+    print("在 notebook 中，内存在 cell 之间累积。重启 kernel 可以释放。")
 
 
 def magic_command_equivalents():
-    print("\n=== Magic Command Equivalents ===\n")
-    print("In a notebook, you would use magic commands:")
-    print("  %timeit np.random.randn(10000)    -> micro-benchmark")
-    print("  %%time long_operation()            -> wall clock time")
-    print("  %matplotlib inline                 -> show plots in cells")
-    print("  !pip install package               -> install from notebook")
-    print("  %env VAR                           -> check env variable")
+    """演示 magic command 的等效手动实现。"""
+    print("\n=== Magic Command 等效操作 ===\n")
+    print("在 notebook 中，你会使用 magic command：")
+    print("  %timeit np.random.randn(10000)    -> 微基准测试")
+    print("  %%time long_operation()            -> 墙钟时间")
+    print("  %matplotlib inline                 -> 在 cell 中显示图表")
+    print("  !pip install package               -> 从 notebook 安装包")
+    print("  %env VAR                           -> 检查环境变量")
     print()
 
     iterations = 1000
@@ -98,13 +107,13 @@ def magic_command_equivalents():
     elapsed = time.perf_counter() - start
     per_call = elapsed / iterations * 1e6
 
-    print(f"Manual timing (like %%timeit): np.random.randn(10000)")
-    print(f"  {per_call:.1f} us per call ({iterations} iterations)")
+    print(f"手动计时（类似 %%timeit）：np.random.randn(10000)")
+    print(f"  {per_call:.1f} us 每次调用（{iterations} 次迭代）")
 
 
 if __name__ == "__main__":
-    print("Notebook Tips - Key Patterns\n")
-    print("Run these in a Jupyter notebook to see rich output.\n")
+    print("Notebook 技巧 - 关键模式\n")
+    print("在 Jupyter notebook 中运行以查看富输出。\n")
 
     timing_comparison()
     inline_plotting()

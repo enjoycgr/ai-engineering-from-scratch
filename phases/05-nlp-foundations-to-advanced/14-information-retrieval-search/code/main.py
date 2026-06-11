@@ -108,6 +108,8 @@ def main():
         print(f"  {score:.4f}  {corpus[idx]}")
 
     print()
+    # 注意：此代码使用玩具级 'fake-dense' 排序器用于教学演示。
+    # 真正的 dense retrieval 需要 sentence-transformer 编码器；详见 docs/en.md。
     print("note: this code uses a toy 'fake-dense' ranker for teaching.")
     print("real dense retrieval needs a sentence-transformer encoder; see docs/en.md.")
 

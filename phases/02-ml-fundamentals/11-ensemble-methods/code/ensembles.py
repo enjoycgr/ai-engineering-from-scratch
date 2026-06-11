@@ -3,6 +3,7 @@ from collections import Counter
 
 
 def make_classification_data(n_samples=300, n_features=5, noise=0.1, seed=42):
+    """生成一个二分类合成数据集，带有一个非线性决策边界。"""
     rng = np.random.RandomState(seed)
     X = rng.randn(n_samples, n_features)
     boundary = 0.5 * X[:, 0] + 0.3 * X[:, 1] ** 2 - 0.2 * X[:, 2]
@@ -11,6 +12,7 @@ def make_classification_data(n_samples=300, n_features=5, noise=0.1, seed=42):
 
 
 def make_regression_data(n_samples=300, n_features=5, noise=0.3, seed=42):
+    """生成一个回归合成数据集，带有非线性关系。"""
     rng = np.random.RandomState(seed)
     X = rng.randn(n_samples, n_features)
     y = 2.0 * X[:, 0] + np.sin(3 * X[:, 1]) - 0.5 * X[:, 2] ** 2 + rng.normal(0, noise, n_samples)
@@ -18,6 +20,7 @@ def make_regression_data(n_samples=300, n_features=5, noise=0.3, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据随机打乱并划分为训练集和测试集。"""
     rng = np.random.RandomState(seed)
     idx = rng.permutation(len(y))
     split = int(len(y) * (1 - test_ratio))
@@ -25,6 +28,12 @@ def train_test_split(X, y, test_ratio=0.2, seed=42):
 
 
 class DecisionStump:
+    """Decision stump (决策桩)：只有一个分裂的深度为 1 的树。
+
+    这是 AdaBoost 的 weak learner (弱学习器)。它在加权数据上
+    寻找最优的特征和阈值来最小化加权错误率。
+    """
+
     def __init__(self):
         self.feature_idx = None
         self.threshold = None
@@ -32,6 +41,7 @@ class DecisionStump:
         self.alpha = None
 
     def fit(self, X, y, weights):
+        """在所有特征和阈值上暴力搜索，找到最优的分裂。"""
         n_samples, n_features = X.shape
         best_error = float("inf")
 
@@ -49,6 +59,7 @@ class DecisionStump:
                         self.polarity = polarity
 
     def predict(self, X):
+        """使用学到的特征、阈值和极性进行预测。"""
         n = X.shape[0]
         pred = np.ones(n)
         idx = self.polarity * X[:, self.feature_idx] < self.polarity * self.threshold
@@ -57,12 +68,26 @@ class DecisionStump:
 
 
 class AdaBoostScratch:
+    """从零实现的 AdaBoost (Adaptive Boosting, 自适应提升)。
+
+    顺序训练 decision stumps (决策桩)，每个都关注之前模型
+    预测错误的样本。最终预测是所有 stumps 的加权和。
+    """
+
     def __init__(self, n_estimators=50):
         self.n_estimators = n_estimators
         self.stumps = []
         self.alphas = []
 
     def fit(self, X, y):
+        """训练 AdaBoost ensemble (集成)。
+
+        每轮中：
+        1. 在当前的样本权重上训练一个 decision stump
+        2. 计算该 stump 的加权错误率
+        3. 计算该 stump 在最终集成中的权重 (alpha)
+        4. 增加被错误分类样本的权重
+        """
         n = X.shape[0]
         weights = np.full(n, 1 / n)
 
@@ -83,6 +108,7 @@ class AdaBoostScratch:
             self.alphas.append(alpha)
 
     def predict(self, X):
+        """返回所有 stumps 的加权和的符号。"""
         total = sum(a * s.predict(X) for a, s in zip(self.alphas, self.stumps))
         return np.sign(total)
 
@@ -91,6 +117,8 @@ class AdaBoostScratch:
 
 
 class TreeNode:
+    """Simple regression tree (简单回归树) 中的一个节点。"""
+
     def __init__(self, value=None):
         self.feature_idx = None
         self.threshold = None
@@ -100,15 +128,29 @@ class TreeNode:
 
 
 class SimpleRegressionTree:
+    """用于 gradient boosting (梯度提升) 的简单回归树。
+
+    通过最小化 variance reduction (方差缩减) 来递归分裂。
+    用于拟合 residuals (残差)，而不是直接拟合目标值。
+    """
+
     def __init__(self, max_depth=3, min_samples_split=2):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.root = None
 
     def fit(self, X, y):
+        """通过递归地寻找最优分裂来构建树。"""
         self.root = self._build(X, y, depth=0)
 
     def _build(self, X, y, depth):
+        """递归构建树节点。
+
+        在以下情况停止并创建叶节点：
+        - 达到 max_depth (最大深度)
+        - 样本数少于 min_samples_split (最小分裂样本数)
+        - 找不到能减小 variance (方差) 的分裂
+        """
         n_samples, n_features = X.shape
 
         if depth >= self.max_depth or n_samples < self.min_samples_split:
@@ -122,6 +164,7 @@ class SimpleRegressionTree:
 
         for f in range(n_features):
             thresholds = np.unique(X[:, f])
+            # 如果唯一阈值太多，使用分位数以提高速度
             if len(thresholds) > 20:
                 thresholds = np.percentile(X[:, f], np.linspace(0, 100, 20))
 
@@ -153,9 +196,11 @@ class SimpleRegressionTree:
         return node
 
     def predict(self, X):
+        """通过遍历树来预测每个样本。"""
         return np.array([self._predict_one(x, self.root) for x in X])
 
     def _predict_one(self, x, node):
+        """递归遍历单个样本。"""
         if node.value is not None:
             return node.value
         if x[node.feature_idx] <= node.threshold:
@@ -164,6 +209,12 @@ class SimpleRegressionTree:
 
 
 class GradientBoostingScratch:
+    """从零实现的 Gradient Boosting (梯度提升) 用于回归。
+
+    每棵新树都拟合当前 ensemble (集成) 的 residuals (残差)。
+    Learning rate (学习率) 控制每棵树的贡献，以防止 overfitting (过拟合)。
+    """
+
     def __init__(self, n_estimators=100, learning_rate=0.1, max_depth=3):
         self.n_estimators = n_estimators
         self.lr = learning_rate
@@ -172,6 +223,12 @@ class GradientBoostingScratch:
         self.initial_pred = None
 
     def fit(self, X, y):
+        """训练 gradient boosting ensemble。
+
+        1. 从目标均值开始（最小化平方误差的最优常数预测）
+        2. 每轮中，拟合一棵回归树到 residuals
+        3. 用 learning rate 缩放该树的预测并加到集成中
+        """
         self.initial_pred = np.mean(y)
         current_pred = np.full(len(y), self.initial_pred)
 
@@ -184,6 +241,7 @@ class GradientBoostingScratch:
             self.trees.append(tree)
 
     def predict(self, X):
+        """从初始预测开始，累加所有树的贡献。"""
         pred = np.full(X.shape[0], self.initial_pred)
         for tree in self.trees:
             pred += self.lr * tree.predict(X)
@@ -194,12 +252,19 @@ class GradientBoostingScratch:
 
 
 class BaggingClassifier:
+    """Bagging (Bootstrap Aggregating, 自助聚合) 分类器。
+
+    在 bootstrap samples (自助样本) 上训练多棵树并平均它们的预测。
+    在不增加 bias (偏差) 的情况下降低 variance (方差)。
+    """
+
     def __init__(self, n_estimators=20, max_depth=5):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
         self.trees = []
 
     def fit(self, X, y):
+        """在 bootstrap samples 上训练 n_estimators 棵树。"""
         rng = np.random.RandomState(42)
         n = len(y)
 
@@ -210,6 +275,7 @@ class BaggingClassifier:
             self.trees.append(tree)
 
     def predict(self, X):
+        """平均所有树的预测并返回符号（分类）。"""
         predictions = np.array([tree.predict(X) for tree in self.trees])
         return np.sign(np.mean(predictions, axis=0))
 
@@ -218,6 +284,13 @@ class BaggingClassifier:
 
 
 class StackingClassifier:
+    """Stacking (堆叠 / 元学习) 分类器。
+
+    使用 cross-validation (交叉验证) 生成 meta-features (元特征)，
+    以避免 data leakage (数据泄漏)。在 meta-features 上训练一个
+    简单的 logistic regression meta-learner (元学习器)。
+    """
+
     def __init__(self, base_models, meta_lr=0.1, n_folds=5):
         self.base_models = base_models
         self.meta_lr = meta_lr
@@ -227,6 +300,14 @@ class StackingClassifier:
         self.fitted_models = []
 
     def fit(self, X, y):
+        """使用 cross-validation 训练 stacking ensemble。
+
+        步骤：
+        1. 对每个 fold，在训练折上训练 base models，在验证折上预测
+        2. 使用这些 out-of-fold predictions (折外预测) 作为 meta-features
+        3. 用梯度下降训练 meta-learner
+        4. 在整个数据集上重新训练 base models 以供后续预测使用
+        """
         n = len(y)
         meta_features = np.zeros((n, len(self.base_models)))
 
@@ -247,6 +328,7 @@ class StackingClassifier:
         self.meta_weights = np.zeros(len(self.base_models))
         self.meta_bias = 0.0
 
+        # 用梯度下降训练 meta-learner（tanh 激活用于输出 [-1, 1]）
         for _ in range(200):
             logits = meta_features @ self.meta_weights + self.meta_bias
             preds = np.tanh(logits)
@@ -263,6 +345,7 @@ class StackingClassifier:
             self.fitted_models.append(model)
 
     def predict(self, X):
+        """使用训练好的 base models 生成 meta-features，然后应用 meta-learner。"""
         meta_features = np.column_stack([m.predict(X) for m in self.fitted_models])
         logits = meta_features @ self.meta_weights + self.meta_bias
         return np.sign(logits)
@@ -272,6 +355,7 @@ class StackingClassifier:
 
 
 def demo_adaboost():
+    """演示 AdaBoost 如何逐步提升单个 decision stump 的准确率。"""
     print("=" * 60)
     print("ADABOOST FROM SCRATCH")
     print("=" * 60)
@@ -298,6 +382,7 @@ def demo_adaboost():
 
 
 def demo_gradient_boosting():
+    """演示 gradient boosting 如何逐步降低回归的 MSE。"""
     print("=" * 60)
     print("GRADIENT BOOSTING FROM SCRATCH")
     print("=" * 60)
@@ -323,6 +408,7 @@ def demo_gradient_boosting():
 
 
 def demo_learning_rate_effect():
+    """展示 learning rate (学习率) 和树的数量之间的权衡。"""
     print("=" * 60)
     print("LEARNING RATE vs NUMBER OF TREES")
     print("=" * 60)
@@ -349,6 +435,7 @@ def demo_learning_rate_effect():
 
 
 def demo_bagging():
+    """将 bagging 与单棵决策树进行比较，展示 variance reduction (方差缩减)。"""
     print("=" * 60)
     print("BAGGING CLASSIFIER")
     print("=" * 60)
@@ -371,6 +458,7 @@ def demo_bagging():
 
 
 def demo_stacking():
+    """演示 stacking：使用不同深度的树作为 base models (基模型)。"""
     print("=" * 60)
     print("STACKING ENSEMBLE")
     print("=" * 60)
@@ -392,6 +480,8 @@ def demo_stacking():
     make_tree_d7.fit = None
 
     class TreeWrapper:
+        """包装器，用于为 stacking 创建可复用的模型工厂。"""
+
         def __init__(self, max_depth):
             self.max_depth = max_depth
             self.tree = None
@@ -425,6 +515,7 @@ def demo_stacking():
 
 
 def demo_comparison():
+    """并排比较 bagging、boosting 和单棵树。"""
     print("=" * 60)
     print("FULL COMPARISON")
     print("=" * 60)
@@ -451,6 +542,7 @@ def demo_comparison():
 
 
 def demo_sklearn_comparison():
+    """将我们的从零实现与 sklearn 的 ensemble 方法进行比较。"""
     print("=" * 60)
     print("SKLEARN COMPARISON")
     print("=" * 60)

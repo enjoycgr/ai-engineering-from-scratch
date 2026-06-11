@@ -225,33 +225,33 @@ async function multiAgentFanOut(task: string): Promise<AgentResult> {
 async function main() {
   const task = "Build a rate limiter middleware for an Express.js API";
 
-  console.log("=== SINGLE AGENT APPROACH ===\n");
+  console.log("=== 单智能体方法 ===\n");
   const singleResult = await singleAgentApproach(task);
-  console.log(`Tokens used: ${singleResult.tokensUsed}`);
-  console.log(`Tool calls: ${singleResult.toolCalls}`);
-  console.log(`Context: everything in one window\n`);
+  console.log(`Token 用量: ${singleResult.tokensUsed}`);
+  console.log(`工具调用: ${singleResult.toolCalls}`);
+  console.log(`上下文: 所有内容在一个窗口中\n`);
 
-  console.log("=== MULTI-AGENT PIPELINE ===\n");
+  console.log("=== 多智能体流水线 ===\n");
   const pipelineResult = await multiAgentPipeline(task);
-  console.log(`Tokens used: ${pipelineResult.tokensUsed}`);
-  console.log(`Tool calls: ${pipelineResult.toolCalls}`);
-  console.log(`Context: each agent gets only what it needs\n`);
+  console.log(`Token 用量: ${pipelineResult.tokensUsed}`);
+  console.log(`工具调用: ${pipelineResult.toolCalls}`);
+  console.log(`上下文: 每个智能体只获取它需要的内容\n`);
 
-  console.log("=== MULTI-AGENT FAN-OUT ===\n");
+  console.log("=== 多智能体扇出 ===\n");
   const fanOutResult = await multiAgentFanOut(task);
-  console.log(`Tokens used: ${fanOutResult.tokensUsed}`);
-  console.log(`Tool calls: ${fanOutResult.toolCalls}`);
-  console.log(`Context: researcher + requirements run in parallel\n`);
+  console.log(`Token 用量: ${fanOutResult.tokensUsed}`);
+  console.log(`工具调用: ${fanOutResult.toolCalls}`);
+  console.log(`上下文: 研究者 + 需求分析并行运行\n`);
 
-  console.log("=== COMPARISON ===\n");
+  console.log("=== 对比 ===\n");
   console.log(
-    `Single agent context pollution: all ${singleResult.tokensUsed} tokens in one window`
+    `单智能体上下文污染: 所有 ${singleResult.tokensUsed} 个 token 在一个窗口中`
   );
   console.log(
-    `Multi-agent isolation: ${pipelineResult.tokensUsed} total tokens across 3 isolated windows`
+    `多智能体隔离: ${pipelineResult.tokensUsed} 个总 token 分布在 3 个隔离窗口中`
   );
   console.log(
-    `Fan-out parallelism: research + requirements ran simultaneously`
+    `扇出并行: 研究与需求分析同时运行`
   );
 }
 

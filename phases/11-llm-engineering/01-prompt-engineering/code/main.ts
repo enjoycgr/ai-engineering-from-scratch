@@ -27,6 +27,7 @@ type Pattern = {
   readonly description: string;
 };
 
+// 10 种可复用的提示词模式库
 const PROMPT_PATTERNS: Readonly<Record<PatternName, Pattern>> = {
   persona: {
     name: "Persona Pattern",
@@ -110,6 +111,7 @@ type ModelConfig = {
   readonly contextWindow: number;
 };
 
+// 支持的模型配置
 const MODEL_CONFIGS: Readonly<Record<string, ModelConfig>> = {
   "gpt-4o": { provider: "openai", model: "gpt-4o", maxTokens: 2048, contextWindow: 128_000 },
   "claude-3.5-sonnet": { provider: "anthropic", model: "claude-3-5-sonnet-20241022", maxTokens: 2048, contextWindow: 200_000 },
@@ -124,6 +126,7 @@ type BuiltPrompt = {
   readonly metadata: { description: string; variablesUsed: readonly string[] };
 };
 
+// 将模板字符串中的占位符替换为实际变量值
 function renderTemplate(template: string, vars: Readonly<Record<string, string>>): string {
   return template.replace(/\{(\w+)\}/g, (_, name: string) => {
     const value = vars[name];
@@ -132,6 +135,7 @@ function renderTemplate(template: string, vars: Readonly<Record<string, string>>
   });
 }
 
+// 根据模式名称和变量构建完整提示词
 function buildPrompt(
   patternName: PatternName,
   variables: Readonly<Record<string, string>>,
@@ -176,6 +180,7 @@ type GoogleRequest = {
 
 type ProviderRequest = OpenAIRequest | AnthropicRequest | GoogleRequest;
 
+// 格式化为 OpenAI API 请求体
 function formatOpenAI(p: BuiltPrompt, cfg: ModelConfig): OpenAIRequest {
   return {
     model: cfg.model,
@@ -188,6 +193,7 @@ function formatOpenAI(p: BuiltPrompt, cfg: ModelConfig): OpenAIRequest {
   };
 }
 
+// 格式化为 Anthropic API 请求体
 function formatAnthropic(p: BuiltPrompt, cfg: ModelConfig): AnthropicRequest {
   return {
     model: cfg.model,
@@ -198,6 +204,7 @@ function formatAnthropic(p: BuiltPrompt, cfg: ModelConfig): AnthropicRequest {
   };
 }
 
+// 格式化为 Google Gemini API 请求体
 function formatGoogle(p: BuiltPrompt, cfg: ModelConfig): GoogleRequest {
   return {
     model: cfg.model,
@@ -219,6 +226,7 @@ type SimulatedResponse = {
   finishReason: string;
 };
 
+// 模拟 LLM 调用，返回带有延迟和 token 用量的假响应
 function simulateLlmCall(modelName: string, request: ProviderRequest): SimulatedResponse {
   const promptHash = createHash("md5").update(JSON.stringify(request)).digest("hex").slice(0, 8);
   const responses: Record<string, SimulatedResponse> = {
@@ -267,6 +275,7 @@ type Score = {
   compositeScore: number;
 };
 
+// 根据评分标准给响应打分
 function scoreResponse(text: string, criteria: Criteria): Score {
   const lower = text.toLowerCase();
   const score: Mutable<Score> = { compositeScore: 0 };
@@ -323,6 +332,7 @@ type ModelResult = {
   requestPayload: ProviderRequest;
 };
 
+// 在多个模型上运行同一提示词测试
 function runPromptTest(prompt: BuiltPrompt, models: readonly string[] = Object.keys(MODEL_CONFIGS)): Record<string, ModelResult> {
   const out: Record<string, ModelResult> = {};
   for (const name of models) {
@@ -345,6 +355,7 @@ function runPromptTest(prompt: BuiltPrompt, models: readonly string[] = Object.k
   return out;
 }
 
+// 对比多个模型的测试结果并按综合得分排序
 function compareModels(results: Record<string, ModelResult>, criteria: Criteria): Array<{ model: string; score: number; tokens: number; latency: number }> {
   const ranked = Object.entries(results).map(([model, r]) => ({
     model,

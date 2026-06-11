@@ -3,40 +3,52 @@ import random
 
 
 def zero_init(fan_in, fan_out):
+    # 零初始化：所有权重设为 0.0
     return [[0.0 for _ in range(fan_in)] for _ in range(fan_out)]
 
 
 def random_init(fan_in, fan_out, scale=1.0):
+    # 随机初始化：从正态分布 N(0, scale) 中采样
     return [[random.gauss(0, scale) for _ in range(fan_in)] for _ in range(fan_out)]
 
 
 def xavier_init(fan_in, fan_out):
+    # Xavier/Glorot 初始化：标准差为 sqrt(2 / (fan_in + fan_out))
     std = math.sqrt(2.0 / (fan_in + fan_out))
     return [[random.gauss(0, std) for _ in range(fan_in)] for _ in range(fan_out)]
 
 
 def kaiming_init(fan_in, fan_out):
+    # Kaiming/He 初始化：标准差为 sqrt(2 / fan_in)，适用于 ReLU
     std = math.sqrt(2.0 / fan_in)
     return [[random.gauss(0, std) for _ in range(fan_in)] for _ in range(fan_out)]
 
 
 def sigmoid(x):
+    # sigmoid (S型函数)：将输入裁剪到 [-500, 500] 防止溢出
     x = max(-500, min(500, x))
     return 1.0 / (1.0 + math.exp(-x))
 
 
 def tanh_act(x):
+    # tanh (双曲正切) 激活函数
     return math.tanh(x)
 
 
 def relu(x):
+    # ReLU (修正线性单元)：负数截断为 0
     return max(0.0, x)
 
 
 def forward_deep(init_fn, activation_fn, n_layers=50, width=64, n_samples=100):
+    """
+    深度前向传播实验：将随机输入通过 n_layers 层网络，
+    测量每层输出的平均激活幅度。
+    """
     random.seed(42)
     layer_magnitudes = []
 
+    # 生成标准正态分布的输入样本
     inputs = [[random.gauss(0, 1) for _ in range(width)] for _ in range(n_samples)]
 
     for layer_idx in range(n_layers):
@@ -47,11 +59,13 @@ def forward_deep(init_fn, activation_fn, n_layers=50, width=64, n_samples=100):
         for sample in inputs:
             output = []
             for neuron_idx in range(width):
+                # 计算该神经元的加权输入 z
                 z = sum(weights[neuron_idx][j] * sample[j] for j in range(width)) + biases[neuron_idx]
                 output.append(activation_fn(z))
             new_inputs.append(output)
         inputs = new_inputs
 
+        # 计算该层所有样本的平均绝对激活幅度
         magnitudes = []
         for sample in inputs:
             magnitudes.append(sum(abs(v) for v in sample) / width)
@@ -62,6 +76,7 @@ def forward_deep(init_fn, activation_fn, n_layers=50, width=64, n_samples=100):
 
 
 def magnitude_report(name, magnitudes):
+    """打印逐层激活幅度的可视化报告。"""
     print(f"\n{name}:")
     for i, mag in enumerate(magnitudes):
         if i % 5 == 0 or i == len(magnitudes) - 1:
@@ -76,6 +91,9 @@ def magnitude_report(name, magnitudes):
 
 
 def symmetry_demo():
+    """
+    对称性演示：展示零初始化导致所有神经元输出相同。
+    """
     weights = zero_init(2, 4)
     biases = [0.0] * 4
 
@@ -94,6 +112,9 @@ def symmetry_demo():
 
 
 def variance_analysis():
+    """
+    方差分析：比较不同初始化策略下单层的输出方差。
+    """
     fan_in = 64
     n_trials = 10000
 
@@ -112,6 +133,7 @@ def variance_analysis():
         random.seed(42)
         output_vars = []
         for _ in range(n_trials):
+            # 随机输入与权重
             inputs = [random.gauss(0, 1) for _ in range(fan_in)]
             weights = [random.gauss(0, std) for _ in range(fan_in)]
             z = sum(w * x for w, x in zip(weights, inputs))
@@ -124,6 +146,9 @@ def variance_analysis():
 
 
 def run_experiment():
+    """
+    运行 50 层前向传播实验，比较多种初始化 + 激活函数组合。
+    """
     configs = [
         ("Zero + Sigmoid", lambda fi, fo: zero_init(fi, fo), sigmoid),
         ("Random N(0,1) + ReLU", lambda fi, fo: random_init(fi, fo, 1.0), relu),
@@ -155,6 +180,10 @@ def run_experiment():
 
 
 def training_comparison():
+    """
+    训练对比：在不同初始化策略下训练一个简单二分类网络，
+    观察损失下降情况。
+    """
     random.seed(42)
     data = []
     for _ in range(200):
@@ -168,6 +197,7 @@ def training_comparison():
         hidden_size = 8
         lr = 0.1
 
+        # 根据初始化策略计算各层标准差
         if init_name == "xavier":
             std_w1 = math.sqrt(2.0 / (2 + hidden_size))
             std_w2 = math.sqrt(2.0 / (hidden_size + 1))
@@ -188,6 +218,7 @@ def training_comparison():
             total_loss = 0
             correct = 0
             for x, target in data:
+                # 前向传播
                 z1 = []
                 h = []
                 for i in range(hidden_size):
@@ -198,6 +229,7 @@ def training_comparison():
                 z2 = sum(w2[i] * h[i] for i in range(hidden_size)) + b2
                 out = sigmoid(z2)
 
+                # 反向传播
                 error = out - target
                 d_out = error * out * (1 - out)
 
@@ -218,10 +250,12 @@ def training_comparison():
         return losses
 
     def sigmoid_d(x):
+        # sigmoid 的导数
         s = sigmoid(x)
         return s * (1 - s)
 
     def relu_d(x):
+        # ReLU 的导数
         return 1.0 if x > 0 else 0.0
 
     configs = [

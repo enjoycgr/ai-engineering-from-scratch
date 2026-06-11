@@ -3,6 +3,7 @@ from collections import Counter
 
 
 def chunk_text(text, chunk_size=200, overlap=50):
+    """将文本按固定大小分块，并设置重叠以避免在边界处分割句子。"""
     words = text.split()
     chunks = []
     start = 0
@@ -15,6 +16,7 @@ def chunk_text(text, chunk_size=200, overlap=50):
 
 
 def build_vocabulary(documents):
+    """从所有文档中构建唯一词的有序词汇表。"""
     vocab = set()
     for doc in documents:
         vocab.update(doc.lower().split())
@@ -22,6 +24,7 @@ def build_vocabulary(documents):
 
 
 def compute_tf(text, vocab):
+    """计算文本中每个词汇表词的词频（TF）。"""
     words = text.lower().split()
     count = Counter(words)
     total = len(words)
@@ -31,6 +34,7 @@ def compute_tf(text, vocab):
 
 
 def compute_idf(documents, vocab):
+    """计算每个词汇表词的逆文档频率（IDF）。"""
     n = len(documents)
     idf = []
     for word in vocab:
@@ -40,11 +44,13 @@ def compute_idf(documents, vocab):
 
 
 def tfidf_embed(text, vocab, idf):
+    """通过 TF-IDF 将文本转换为向量。"""
     tf = compute_tf(text, vocab)
     return [t * i for t, i in zip(tf, idf)]
 
 
 def cosine_similarity(a, b):
+    """计算两个向量之间的余弦相似度。"""
     dot_product = sum(x * y for x, y in zip(a, b))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(x * x for x in b))
@@ -54,6 +60,7 @@ def cosine_similarity(a, b):
 
 
 def vector_search(query_embedding, stored_embeddings, top_k=5):
+    """通过余弦相似度找到与查询最相似的 top-k 个嵌入。"""
     scores = []
     for i, emb in enumerate(stored_embeddings):
         sim = cosine_similarity(query_embedding, emb)
@@ -63,6 +70,8 @@ def vector_search(query_embedding, stored_embeddings, top_k=5):
 
 
 class BM25:
+    """BM25 关键词搜索算法的实现。"""
+
     def __init__(self, k1=1.2, b=0.75):
         self.k1 = k1
         self.b = b
@@ -113,6 +122,7 @@ class BM25:
 
 
 def reciprocal_rank_fusion(ranked_lists, k=60):
+    """使用倒数排名融合合并多个排名列表。"""
     scores = {}
     for ranked_list in ranked_lists:
         for rank, (doc_id, _) in enumerate(ranked_list):
@@ -124,6 +134,7 @@ def reciprocal_rank_fusion(ranked_lists, k=60):
 
 
 def hybrid_search(query, chunks, vector_embeddings, vocab, idf, bm25_index, top_k=5, retrieval_pool=15):
+    """结合向量搜索和 BM25，通过 RRF 融合结果。"""
     query_emb = tfidf_embed(query, vocab, idf)
     vec_results = vector_search(query_emb, vector_embeddings, top_k=retrieval_pool)
     bm25_results = bm25_index.search(query, top_k=retrieval_pool)
@@ -132,6 +143,10 @@ def hybrid_search(query, chunks, vector_embeddings, vocab, idf, bm25_index, top_
 
 
 def rerank(query, candidates, chunks):
+    """基于词重叠、双词组和位置提升对候选进行简单重排序。
+
+    在生产环境中，这里应使用 cross-encoder 模型。
+    """
     query_words = set(query.lower().split())
     stop_words = {"the", "a", "an", "is", "are", "was", "were", "what", "how",
                   "why", "when", "where", "do", "does", "for", "of", "in", "to",
@@ -171,6 +186,7 @@ def rerank(query, candidates, chunks):
 
 
 def hyde_generate_hypothesis(query):
+    """为 HyDE 生成假设答案。在生产环境中，这里应使用真实 LLM。"""
     templates = {
         "what": "The answer to '{query}' is as follows: Based on our documentation, {topic} involves specific policies and procedures that define the process and requirements.",
         "how": "To address '{query}': The process involves several steps. First, you need to initiate the request for {topic}. Then, the system processes it according to the defined rules and policies.",
@@ -193,6 +209,7 @@ def hyde_generate_hypothesis(query):
 
 
 def hyde_search(query, vector_embeddings, vocab, idf, top_k=5):
+    """使用假设文档嵌入进行搜索。"""
     hypothesis = hyde_generate_hypothesis(query)
     hypothesis_emb = tfidf_embed(hypothesis, vocab, idf)
     results = vector_search(hypothesis_emb, vector_embeddings, top_k)
@@ -200,6 +217,7 @@ def hyde_search(query, vector_embeddings, vocab, idf, top_k=5):
 
 
 def create_parent_child_chunks(text, parent_size=200, child_size=50):
+    """创建父子分块：小 child chunk 用于检索，大 parent chunk 用于上下文。"""
     words = text.split()
     parents = []
     children = []
@@ -228,6 +246,7 @@ def create_parent_child_chunks(text, parent_size=200, child_size=50):
 
 
 def evaluate_faithfulness(answer, retrieved_chunks):
+    """检查回答中的每个声明是否 grounding 在检索到的上下文中。"""
     answer_sentences = [s.strip() for s in answer.split(".") if len(s.strip()) > 10]
     if not answer_sentences:
         return 1.0, []
@@ -258,6 +277,7 @@ def evaluate_faithfulness(answer, retrieved_chunks):
 
 
 def evaluate_retrieval_recall(queries_with_relevant, retrieval_fn, k=5):
+    """测量检索系统对已知相关文档的召回率。"""
     total_recall = 0.0
     results = []
 
@@ -280,6 +300,7 @@ def evaluate_retrieval_recall(queries_with_relevant, retrieval_fn, k=5):
 
 
 def build_rag_prompt(query, retrieved_chunks):
+    """将检索到的 chunk 格式化为 RAG 提示。"""
     context = "\n\n---\n\n".join(
         f"[Source {i+1}]\n{chunk}"
         for i, chunk in enumerate(retrieved_chunks)
@@ -287,7 +308,7 @@ def build_rag_prompt(query, retrieved_chunks):
     return (
         "Answer the question based ONLY on the following context.\n"
         "If the context doesn't contain enough information, "
-        "say \"I don't have enough information to answer that.\"\n\n"
+        'say "I don\'t have enough information to answer that."\n\n'
         f"Context:\n{context}\n\n"
         f"Question: {query}\n\n"
         "Answer:"

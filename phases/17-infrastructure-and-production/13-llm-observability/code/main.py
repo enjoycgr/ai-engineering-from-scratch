@@ -1,7 +1,7 @@
-"""Observability sampling and cost simulator — stdlib Python.
+"""可观测性采样和成本模拟器 —— 标准库 Python。
 
-Simulates a 1M-trace day across retention strategies. Reports storage cost
-and what's lost under each. Pedagogical: costs are 2026 approximations.
+模拟 1M 追踪天跨保留策略。报告存储成本
+和每种策略下丢失的内容。教学用途：成本为 2026 年近似值。
 """
 
 from __future__ import annotations

@@ -1,8 +1,8 @@
-"""Toy SWE-bench-style harness plus a GAIA-style difficulty classifier.
+"""Toy SWE-bench-style harness (玩具级类 SWE-bench 工具链) plus a GAIA-style difficulty classifier (类 GAIA 难度分类器).
 
-SWE-bench: bug-fix tasks with FAIL_TO_PASS and PASS_TO_PASS gates.
-GAIA: simple-for-humans, hard-for-AI questions scored by decomposition depth.
-Both are synthetic; the point is to make the evaluator rules concrete.
+SWE-bench: bug-fix tasks (缺陷修复任务) with FAIL_TO_PASS and PASS_TO_PASS gates (门禁).
+GAIA: simple-for-humans (人类简单), hard-for-AI (AI 困难) questions scored by decomposition depth (分解深度).
+Both are synthetic (合成的); the point is to make the evaluator rules concrete (使评估器规则具体化).
 """
 
 from __future__ import annotations

@@ -1,10 +1,9 @@
 """CLIP / SigLIP contrastive loss toy — stdlib Python.
 
-Implements InfoNCE (softmax) and sigmoid pairwise loss on a hand-constructed
-similarity matrix. Also runs a tiny zero-shot-classification walkthrough using
-synthetic image and text embeddings.
+在手工构建的相似度矩阵上实现 InfoNCE (softmax) 和 sigmoid 成对 loss。
+还用合成图像和文本 embedding 运行微型 zero-shot 分类演练。
 
-No numpy. No torch. The point is to see the loss math and the argmax pattern.
+无 numpy。无 torch。重点是看到 loss 数学和 argmax 模式。
 """
 
 from __future__ import annotations

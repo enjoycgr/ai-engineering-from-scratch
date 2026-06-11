@@ -1,12 +1,12 @@
 """Pipeline schedule simulator — 1F1B vs Zero Bubble vs DualPipe vs DualPipeV.
 
-Teaching tool. Counts pipeline bubbles per schedule for given (P, micro_batches).
-Outputs:
-  - bubble fraction per schedule at fixed (P, micro_batches)
-  - scaling of bubbles as micro_batches grows
+教学工具。针对给定 (P, micro_batches) 计算每种调度的流水线气泡。
+输出：
+  - 固定 (P, micro_batches) 下每种调度的气泡比例
+  - micro_batches 增长时气泡的缩放
 
-Not a production simulator. Forward/backward chunk costs are unit-normalized.
-Comm costs are modeled as overlap windows, not full kernel models.
+非生产模拟器。前向/后向块成本已单位归一化。
+通信成本建模为重叠窗口，非完整 kernel 模型。
 """
 
 from __future__ import annotations
@@ -25,10 +25,10 @@ class ScheduleStats:
 
 
 def bubble_1f1b(P: int, M: int) -> float:
-    """1F1B: warmup phase has (P-1) forward slots without backward overlap.
-    Cooldown mirrors. Stable phase has zero bubble per rank per micro-batch,
-    but warmup/cooldown bubble is (P-1) forward + (P-1) backward chunks per
-    rank, out of 2 * M + 2 * (P - 1) chunks total.
+    """1F1B：warmup 阶段有 (P-1) 个无后向重叠的前向槽。
+    Cooldown 镜像。稳定阶段每个 rank 每个 micro-batch 零气泡，
+    但 warmup/cooldown 气泡是每个 rank (P-1) 前向 + (P-1) 后向块，
+    总计 2 * M + 2 * (P - 1) 块。
     """
     total = 2 * M + 2 * (P - 1)
     bubble = 2 * (P - 1)
@@ -36,9 +36,9 @@ def bubble_1f1b(P: int, M: int) -> float:
 
 
 def bubble_zero_bubble(P: int, M: int) -> float:
-    """Zero Bubble (Qi 2023) splits backward into B + W. The W part can fill
-    the 1F1B bubble. Approximate residual bubble is (P - 1) / 2 chunks of
-    warmup plus the same cooldown, out of 3 * M + 2 * (P - 1) sub-chunks.
+    """Zero Bubble (Qi 2023) 将后向分成 B + W。W 部分可以填充
+    1F1B 气泡。近似残余气泡是 warmup (P - 1) / 2 块加上
+    相同的 cooldown，总计 3 * M + 2 * (P - 1) 子块。
     """
     total = 3 * M + 2 * (P - 1)
     bubble = (P - 1)
@@ -46,8 +46,8 @@ def bubble_zero_bubble(P: int, M: int) -> float:
 
 
 def bubble_dualpipe(P: int, M: int) -> float:
-    """DualPipe injects micro-batches from both ends of the pipeline. Stable
-    phase bubble is zero. Warmup/cooldown has fixed bubble independent of M.
+    """DualPipe 从流水线两端注入 micro-batch。稳定阶段
+    气泡为零。Warmup/cooldown 有固定气泡，独立于 M。
     """
     total = 3 * M + (P - 1)
     bubble = (P - 1) // 2
@@ -55,9 +55,9 @@ def bubble_dualpipe(P: int, M: int) -> float:
 
 
 def bubble_dualpipev(P: int, M: int) -> float:
-    """DualPipeV uses a V-shape schedule on a single parameter copy. Its
-    bubble is slightly larger than DualPipe's at the benefit of halving
-    memory. Approximate as 1.2x DualPipe bubble."""
+    """DualPipeV 在单份参数拷贝上使用 V 形调度。
+    其气泡略大于 DualPipe 的，好处是内存减半。
+    近似为 1.2 倍 DualPipe 气泡。"""
     return bubble_dualpipe(P, M) * 1.2
 
 
@@ -135,10 +135,10 @@ def main() -> None:
     print(f"  (that is roughly the cost of a full 70B dense pre-training run)")
     print()
 
-    print("takeaway: bubbles do not grow with M for DualPipe. the 2x parameter")
-    print("          replication pays for itself at MoE scale because Expert")
-    print("          Parallelism already spreads the dominant weights thin.")
-    print("          DualPipeV drops the 2x at a small bubble cost.")
+    print("takeaway: DualPipe 的气泡不随 M 增长。在 MoE 规模下，")
+    print("          2 倍参数复制的成本可以收回，因为 Expert")
+    print("          Parallelism 已经将主导权重分散得很薄。")
+    print("          DualPipeV 以略小的气泡代价去掉了 2 倍复制。")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-# Linear regression in Julia. Closed-form normal equation and batch
-# gradient descent, plus multiple linear regression and a ridge penalty.
-# Stdlib only. Sources:
+# Julia 中的 linear regression (线性回归)。闭式 normal equation (正规方程) 和批量
+# gradient descent (梯度下降)，加上 multiple linear regression (多元线性回归) 和 ridge penalty。
+# 仅使用标准库。来源：
 #   https://docs.julialang.org/en/v1/manual/types/
 #   https://docs.julialang.org/en/v1/stdlib/Statistics/
 #   https://docs.julialang.org/en/v1/stdlib/Random/

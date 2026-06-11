@@ -1,18 +1,18 @@
 """Hogwild! Inference toy simulator — stdlib Python.
 
-Two workers run concurrently against a shared token cache. Each worker reads
-the cache and decides whether to add a work-token to category A or B, using
-a simple coordination heuristic: if the other worker already produced enough
-tokens in a category, switch.
+两个 worker 并发运行，共享一个 token 缓存。每个 worker 读取
+缓存并决定向类别 A 或 B 添加 work-token，使用
+简单协调启发式：如果另一个 worker 已在某类别中产生足够
+token，则切换。
 
-Outputs:
-  - total work-tokens produced in fixed step budget
-  - wall-time speedup vs a single-worker baseline
-  - a trace of which worker wrote which token and what category
-  - a coordination-weight sweep showing the effect of poor coordination
+输出：
+  - 固定步骤预算内产生的总 work-token
+  - 相对于单 worker 基线的 wall-time 加速
+  - 哪个 worker 写了哪个 token 及其类别的追踪
+  - 协调权重扫描，展示差协调的影响
 
-Not a faithful LLM simulation. The point is to demonstrate emergent work
-division driven by shared-cache reads.
+非忠实 LLM 模拟。重点是演示由共享缓存读取驱动的
+涌现工作分工。
 """
 
 from __future__ import annotations
@@ -46,11 +46,11 @@ class Worker:
 
 def decide_next_category(worker: Worker, cache: SharedCache,
                          target_per_category: int) -> Category:
-    """Read the shared cache. With probability coordination_weight, switch
-    to the least-filled work category (noticing redundancy). Otherwise stay
-    on the worker's intended category. coordination_weight = 0 models
-    workers that cannot coordinate (full redundancy). weight = 1 models
-    ideal reasoning-model coordination.
+    """读取共享缓存。以 coordination_weight 概率切换到
+    填充最少的工作类别（注意到冗余）。否则保持
+    在 worker 的意图类别上。coordination_weight = 0 建模
+    无法协调的 worker（完全冗余）。weight = 1 建模
+    理想推理模型协调。
     """
     if worker.rng.random() < 0.05:
         return "noise"
@@ -70,10 +70,10 @@ def decide_next_category(worker: Worker, cache: SharedCache,
 
 def run_hogwild(n_workers: int, step_budget: int, target_per_category: int,
                 coordination_weight: float, seed: int = 42) -> dict:
-    """All workers default to category A. Coordination makes them diverge.
-    Without coordination, redundant tokens (same category from multiple
-    workers) are counted once. With coordination, workers pick different
-    categories so each token is unique and contributes to total progress."""
+    """所有 worker 默认类别 A。协调使它们发散。
+    无协调时，冗余 token（多个 worker 的相同类别）
+    只计一次。有协调时，worker 选择不同类别，
+    因此每个 token 都是唯一的并贡献于总进度。"""
     cache = SharedCache()
     workers = []
     for i in range(n_workers):
@@ -202,10 +202,10 @@ def main() -> None:
     print("  values below 1.0 mean parallel inference is SLOWER than serial")
     print()
 
-    print("takeaway: Hogwild! speedup depends on parallelizable fraction p and")
-    print("          coordination overhead c. Reasoning tasks with p > 0.5 and")
-    print("          low per-step overhead are the sweet spot. Short chat with")
-    print("          c comparable to T_serial is the wrong place to use it.")
+    print("takeaway: Hogwild! 加速取决于可并行分数 p 和")
+    print("          协调开销 c。p > 0.5 且每步开销低的推理任务")
+    print("          是甜点。短聊天且 c 与 T_serial 相当的地方")
+    print("          不适合使用它。")
 
 
 if __name__ == "__main__":

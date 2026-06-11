@@ -1,4 +1,4 @@
-"""Speculative decoding (Leviathan 2023) with N-token drafts and KV rollback.
+"""Speculative decoding (Leviathan 2023) with N-token drafts and KV rollback (带 KV 回滚的 N-token 投机解码).
 
 Implements the full production speculative-decoding loop:
   - draft N tokens from p (cheap)

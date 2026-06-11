@@ -1,7 +1,7 @@
 """Claude Agent SDK harness shape in stdlib.
 
-Built-in tools, subagents with isolated context, lifecycle hooks, session store.
-Demonstrates how spawning subagents keeps the orchestrator's context bounded.
+Built-in tools (内置工具), subagent (子智能体) with isolated context (隔离上下文), lifecycle hooks (生命周期钩子), session store (会话存储)。
+演示生成 subagent (子智能体) 如何保持 orchestrator (编排器) 上下文有界。
 """
 
 from __future__ import annotations

@@ -1,75 +1,75 @@
 {
   "lesson": "03-gpu-autoscaling-kubernetes",
-  "title": "GPU Autoscaling on Kubernetes — Karpenter, KAI Scheduler, Gang Scheduling",
+  "title": "Kubernetes 上的 GPU 自动扩缩容 —— Karpenter、KAI Scheduler、Gang Scheduling",
   "questions": [
     {
       "stage": "pre",
-      "question": "Which signal does HPA typically scale on by default that the lesson calls broken for vLLM-style serving?",
+      "question": "HPA 默认使用哪个信号来扩缩容，本课认为该信号对 vLLM 式推理服务不适用？",
       "options": [
-        "Queue depth",
+        "队列深度",
         "P99 TTFT",
-        "KV cache utilization",
-        "DCGM_FI_DEV_GPU_UTIL duty cycle"
+        "KV cache 利用率",
+        "DCGM_FI_DEV_GPU_UTIL 占空比"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which problem does gang scheduling in KAI Scheduler primarily prevent?",
+      "question": "KAI Scheduler 中的 gang scheduling 主要防止什么问题？",
       "options": [
-        "GPU memory fragmentation",
-        "Tokenizer GIL contention",
-        "The partial-allocation trap where 7 of 8 GPUs sit idle waiting on the eighth",
-        "Cold-start latency"
+        "GPU 内存碎片",
+        "Tokenizer GIL 竞争",
+        "部分分配陷阱：8 个 GPU 中有 7 个空闲等待第 8 个",
+        "冷启动延迟"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Why is Karpenter's default consolidationPolicy WhenEmptyOrUnderutilized dangerous for inference GPU pools?",
+      "question": "为什么 Karpenter 的默认 consolidationPolicy WhenEmptyOrUnderutilized 对推理 GPU 池很危险？",
       "options": [
-        "It refuses to scale up under burst",
-        "It only consolidates spot instances",
-        "It terminates running GPU nodes to migrate pods, which evicts running requests and reloads weights",
-        "It prevents Karpenter from provisioning new nodes"
+        "它在突发时拒绝扩容",
+        "它只整合 spot 实例",
+        "它会终止运行中的 GPU 节点以迁移 pod，从而驱逐正在处理的请求并重新加载权重",
+        "它阻止 Karpenter 供应新节点"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Roughly how much faster is Karpenter at provisioning a GPU node compared to Cluster Autoscaler?",
+      "question": "Karpenter 供应 GPU 节点比 Cluster Autoscaler 大约快多少？",
       "options": [
-        "Roughly 40% faster (~45-60s vs ~90-120s)",
-        "About 10x slower",
-        "The same",
-        "About 5% faster"
+        "大约快 40%（~45-60s vs ~90-120s）",
+        "大约慢 10 倍",
+        "一样快",
+        "大约快 5%"
       ],
       "correct": 0,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "For disaggregated prefill / decode pods (Phase 17 · 17), which scaling signals does the lesson recommend?",
+      "question": "对于分离式 prefill / decode pod（第 17 阶段 · 17），本课推荐哪些扩缩容信号？",
       "options": [
-        "Manual scaling only",
-        "A single HPA on duty cycle covering both pod classes",
-        "Queue depth for prefill pods and KV cache pressure for decode pods, as separate per-role HPAs",
-        "Cluster Autoscaler for both"
+        "仅手动扩缩容",
+        "单个 HPA 基于占空比覆盖两类 pod",
+        "prefill pod 使用队列深度，decode pod 使用 KV cache 压力，作为按角色分离的 HPA",
+        "两者都使用 Cluster Autoscaler"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Which Karpenter disruption setting does the lesson recommend for an inference GPU pool to avoid evicting running jobs?",
+      "question": "本课为推理 GPU 池推荐哪个 Karpenter 中断设置以避免驱逐运行中的作业？",
       "options": [
         "consolidationPolicy: WhenEmptyOrUnderutilized with consolidateAfter: 0s",
         "consolidationPolicy: WhenEmpty with consolidateAfter: 1h",
-        "Always run with spot instances and no consolidation",
-        "Disable Karpenter entirely"
+        "始终使用 spot 实例且不整合",
+        "完全禁用 Karpenter"
       ],
       "correct": 1,
       "explanation": ""

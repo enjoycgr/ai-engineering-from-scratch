@@ -1,5 +1,5 @@
-"""Side-by-side toys: Agno-shaped (stateless FastAPI) vs Mastra-shaped
-(primitive-rich). Stdlib only; meant to show the structural difference.
+"""Side-by-side toys: Agno-shaped (Agno 形态，stateless FastAPI，无状态 FastAPI) vs Mastra-shaped
+(Mastra 形态，primitive-rich，原语丰富)。仅使用 stdlib (标准库)；用于展示结构差异。
 """
 
 from __future__ import annotations

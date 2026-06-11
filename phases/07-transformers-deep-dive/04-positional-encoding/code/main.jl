@@ -1,6 +1,6 @@
-# Positional encoding in Julia. Sinusoidal absolute positions, rotary
-# positional embedding (RoPE), and ALiBi bias matrix. Verifies that
-# RoPE dot products depend only on relative distance. Stdlib only. Sources:
+# Julia 中的位置编码 (Positional encoding)。包括正弦绝对位置编码 (sinusoidal absolute positions)、
+# 旋转位置编码 (RoPE, Rotary Positional Embedding) 和 ALiBi 偏置矩阵。
+# 验证 RoPE 点积仅依赖于相对距离。仅使用标准库。来源：
 #   https://arxiv.org/abs/2104.09864
 #   https://arxiv.org/abs/2108.12409
 #   https://docs.julialang.org/en/v1/manual/mathematical-operations/

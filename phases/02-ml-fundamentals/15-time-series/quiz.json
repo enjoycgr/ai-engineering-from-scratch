@@ -2,66 +2,66 @@
   {
     "id": "timeseries-pre-1",
     "stage": "pre",
-    "question": "Why is a random train/test split invalid for time series data?",
+    "question": "为什么随机训练/测试划分对时间序列 (time series) 数据无效？",
     "options": [
-      "Random splits make the dataset too small",
-      "Random splits leak future information into the training set, allowing the model to cheat",
-      "Time series data cannot be split at all",
-      "Random splits only work for classification problems"
+      "随机划分会使数据集太小",
+      "随机划分会将未来信息泄露到训练集中，让模型作弊",
+      "时间序列数据根本不能划分",
+      "随机划分只对分类问题有效"
     ],
     "correct": 1,
-    "explanation": "In a random split, future data points can end up in the training set while past points are in the test set. The model then uses future information to predict the past, giving falsely optimistic results."
+    "explanation": "在随机划分中，未来的数据点可能进入训练集，而过去的点在测试集中。模型随后使用未来信息预测过去，给出虚假乐观的结果。"
   },
   {
     "id": "timeseries-pre-2",
     "stage": "pre",
-    "question": "What does it mean for a time series to be stationary?",
+    "question": "时间序列平稳 (stationary) 意味着什么？",
     "options": [
-      "The values never change over time",
-      "Its statistical properties (mean, variance, autocorrelation) do not change over time",
-      "It has no seasonal patterns",
-      "It always trends upward"
+      "值随时间从不变化",
+      "其统计特性（均值、方差、自相关 autocorrelation）不随时间变化",
+      "它没有季节性模式",
+      "它总是呈上升趋势"
     ],
     "correct": 1,
-    "explanation": "A stationary series has constant mean, variance, and autocorrelation structure over time. Most forecasting methods assume stationarity. Non-stationary series need differencing or detrending first."
+    "explanation": "平稳序列具有恒定的均值、方差和自相关结构。大多数预测方法假设平稳性。非平稳序列需要先进行差分 (differencing) 或去趋势。"
   },
   {
     "id": "timeseries-post-1",
     "stage": "post",
-    "question": "What is the purpose of differencing a time series?",
+    "question": "对时间序列进行差分 (differencing) 的目的是什么？",
     "options": [
-      "To increase the number of data points",
-      "To remove trend and make the series stationary by modeling changes between consecutive values",
-      "To convert regression into classification",
-      "To normalize the values between 0 and 1"
+      "增加数据点数量",
+      "去除趋势并使序列平稳，通过建模连续值之间的变化",
+      "将回归转换为分类",
+      "将值归一化到 0 和 1 之间"
     ],
     "correct": 1,
-    "explanation": "Differencing replaces each value with the change from the previous value: diff[t] = value[t] - value[t-1]. This removes trend, making the series closer to stationary."
+    "explanation": "差分将每个值替换为与前一个值的变化量：diff[t] = value[t] - value[t-1]。这去除了趋势，使序列更接近平稳。"
   },
   {
     "id": "timeseries-post-2",
     "stage": "post",
-    "question": "Lag features convert a time series into a supervised learning problem. What is a lag-3 feature for predicting y[t]?",
+    "question": "滞后特征 (Lag features) 将时间序列转化为监督学习问题。预测 y[t] 的滞后-3 特征是什么？",
     "options": [
-      "The average of the next 3 values: (y[t+1] + y[t+2] + y[t+3]) / 3",
-      "The value 3 time steps ago: y[t-3]",
-      "The 3rd derivative of the series",
-      "The difference between the current value and 3 steps ahead"
+      "接下来 3 个值的平均值：(y[t+1] + y[t+2] + y[t+3]) / 3",
+      "3 个时间步前的值：y[t-3]",
+      "序列的 3 阶导数",
+      "当前值与 3 步后的差值"
     ],
     "correct": 1,
-    "explanation": "A lag-3 feature is y[t-3]: the value 3 time steps in the past. Using past values as input features lets standard ML models (regression, trees) make time series predictions without specialized algorithms."
+    "explanation": "滞后-3 特征是 y[t-3]：3 个时间步前的值。使用过去值作为输入特征，让标准 ML 模型（回归、树）无需专门算法即可进行时间序列预测。"
   },
   {
     "id": "timeseries-post-3",
     "stage": "post",
-    "question": "Walk-forward validation splits time data into expanding or sliding windows. Why is this better than K-fold CV for time series?",
+    "question": "Walk-forward validation 将时间数据划分为扩展或滑动窗口。为什么这比时间序列的 K 折交叉验证更好？",
     "options": [
-      "Walk-forward is faster to compute",
-      "Walk-forward respects temporal order, training only on past data and testing on future data, preventing lookahead bias",
-      "K-fold CV cannot be used on numeric data",
-      "Walk-forward uses more data for training"
+      "Walk-forward 计算更快",
+      "Walk-forward 尊重时间顺序，只在过去数据上训练、在未来数据上测试，防止前瞻偏差",
+      "K 折 CV 不能用于数值数据",
+      "Walk-forward 使用更多数据训练"
     ],
     "correct": 1,
-    "explanation": "Walk-forward validation always trains on past data and tests on future data, mimicking real-world deployment. K-fold CV shuffles data, potentially training on future to predict past (temporal leakage)."
+    "explanation": "Walk-forward validation 始终在过往数据上训练、在未来数据上测试，模拟真实部署。K 折 CV 打乱数据，可能用未来预测过去（时间泄露）。"
   }
 ]

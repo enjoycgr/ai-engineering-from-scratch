@@ -2,38 +2,38 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What architectural difference distinguishes an action-conditioned world model (Genie 3) from a pure video generation model (Sora 2)?",
-      "options": ["Action-conditioned models are smaller", "Pure video generators condition on a prompt at t=0 and roll out; action-conditioned world models take a latent or explicit action per frame so the user can steer the rollout mid-generation", "Only the training datasets differ", "World models only work on 3D scenes"],
+      "question": "动作条件化世界模型（Genie 3）与纯视频生成模型（Sora 2）之间的架构差异是什么？",
+      "options": ["动作条件化模型更小", "纯视频生成器在t=0时基于提示展开；动作条件化世界模型每帧接收一个潜在或显式动作，因此用户可以在生成过程中中途引导展开", "仅训练数据集不同", "世界模型只在3D场景上工作"],
       "correct": 1,
-      "explanation": "Sora 2 is autoregressive on spacetime tokens; its prompt sets the scene but you cannot change direction mid-rollout. Genie 3 infers or takes a latent action at each step and conditions the next-frame prediction on it, letting the user interact with the simulated world. This interactivity is what makes a model a 'world simulator' rather than a video generator."
+      "explanation": "Sora 2在时空token上自回归；其提示设定场景，但你不能在展开中途改变方向。Genie 3在每一步推断或接收一个潜在动作，并将其条件化到下一帧预测上，让用户与模拟世界交互。这种交互性使模型成为'世界模拟器'而非视频生成器。"
     },
     {
       "stage": "pre",
-      "question": "Divided attention in a video transformer means what?",
-      "options": ["Half the tokens are masked", "Each block does a temporal attention (same spatial position, across frames) followed by a spatial attention (same frame, across positions); this factorises cost from O((T*H*W)^2) into O((H*W)*T^2) + O(T*(H*W)^2) — dramatically cheaper than the joint product", "Only half the layers run attention", "Attention is split across GPUs"],
+      "question": "视频Transformer中的分割注意力（Divided attention）是什么意思？",
+      "options": ["一半token被掩码", "每个块先做时间注意力（同一空间位置，跨帧）再做空间注意力（同一帧，跨位置）；将成本从O((T*H*W)^2)分解为O((H*W)*T^2) + O(T*(H*W)^2)——比联合乘积便宜多个数量级", "只有一半层运行注意力", "注意力跨GPU分割"],
       "correct": 1,
-      "explanation": "Full joint attention over spacetime tokens is prohibitive: for T=150 temporal tokens and a 60x45 spatial grid (2700 spatial tokens), the joint (T*H*W)^2 ≈ 1.6e11 pairs. Divided attention runs temporal attention at each spatial position (H*W * T^2 ≈ 6.1e7) and spatial attention at each timestep (T * (H*W)^2 ≈ 1.1e9) — multiple orders of magnitude less. TimeSformer introduced this pattern; almost every 2026 video DiT (Sora, Wan, HunyuanVideo) uses a divided or window variant."
+      "explanation": "完整的联合时空token注意力是禁止性的：T=150时间token和60x45空间网格（2700空间token），联合(T*H*W)^2 ≈ 1.6e11对。分割注意力在每个空间位置运行时间注意力（H*W * T^2 ≈ 6.1e7）和每个时间步运行空间注意力（T * (H*W)^2 ≈ 1.1e9）——少多个数量级。TimeSformer引入了这种模式；几乎每个2026视频DiT（Sora、Wan、HunyuanVideo）都使用分割或窗口变体。"
     },
     {
       "stage": "post",
-      "question": "Sora 2's 2026 release advertised better physical plausibility. Which specific failure modes did this target?",
-      "options": ["Colour balance and contrast", "Weight, balance, object permanence, cause-and-effect — the model now handles dropped objects, characters colliding, and 'failures on purpose' (a missed jump) more believably than Sora 1", "Text rendering inside images", "Video length"],
+      "question": "Sora 2的2026发布宣传了更好的物理合理性。具体针对哪些失败模式？",
+      "options": ["色彩平衡和对比度", "重量、平衡、物体持久性、因果关系——模型现在更可信地处理掉落物体、角色碰撞和'故意失败'（一次没跳过去），比Sora 1更好", "图像内文本渲染", "视频长度"],
       "correct": 1,
-      "explanation": "Prior-generation video models famously failed on spaghetti-eating, drinking from glasses, and persistent-object scenes — hands would pass through objects, items would disappear mid-action. Sora 2 explicitly advertises improvements on weight, balance, object permanence, and cause-and-effect, measured against internal and public plausibility benchmarks. These are the dominant quality failures the field is still working on."
+      "explanation": "上一代视频模型在吃面条、从玻璃杯喝水和持久物体场景上 famously 失败——手会穿过物体，物品会在动作中途消失。Sora 2明确宣传在重量、平衡、物体持久性和因果关系上的改进，针对内部和公共合理性基准测量。这些是该领域仍在努力解决的主要质量失败。"
     },
     {
       "stage": "post",
-      "question": "In the emerging robotics stack (VLM + video generation + inverse dynamics), what does the inverse dynamics model do?",
-      "options": ["It generates the next frame", "It takes a pair (current observation, desired next observation from the video model) and outputs the low-level motor action that would connect them; this closes the loop between imagined rollouts and actual actuation", "It trains the VLM", "It labels training data"],
+      "question": "在新兴的机器人栈（VLM + 视频生成 + 逆动力学）中，逆动力学模型做什么？",
+      "options": ["生成下一帧", "接收一对（当前观察，来自视频模型的期望下一观察）并输出连接它们的低级电机动作；这在想象展开和实际执行之间闭合了回路", "训练VLM", "标注训练数据"],
       "correct": 1,
-      "explanation": "The VLM plans, the video model imagines, and the inverse dynamics model turns imagination into motor commands. Given two consecutive observations, inverse dynamics asks: what action produced this transition? This three-component stack lets a robot train largely in a learned simulator, using the video model to generate data and the inverse dynamics model to execute."
+      "explanation": "VLM规划，视频模型想象，逆动力学模型将想象转化为电机命令。给定两个连续观察，逆动力学问：什么动作产生了这个转换？这个三组件栈让机器人主要在学习到的模拟器中训练，使用视频模型生成数据，逆动力学模型执行。"
     },
     {
       "stage": "post",
-      "question": "Autonomous-driving teams use world models (Cosmos-Drive, Gaia-2, DrivingWorld) to replace what cost?",
-      "options": ["Actual fleet insurance", "Expensive real-world data collection for rare or dangerous corner cases (pedestrian jaywalks, icy roads, unusual vehicles); synthesised driving video provides on-demand training and evaluation data for those scenarios", "Road tolls", "Vehicle depreciation"],
+      "question": "自动驾驶团队使用世界模型（Cosmos-Drive、Gaia-2、DrivingWorld）替代什么成本？",
+      "options": ["实际车队保险", "昂贵真实世界数据收集，针对罕见或危险的边角案例（行人乱穿马路、结冰路面、不寻常车辆）；合成驾驶视频为这些场景提供按需训练和评估数据", "道路通行费", "车辆折旧"],
       "correct": 1,
-      "explanation": "Collecting corner-case driving data takes millions of real-world miles. Cosmos-Drive, Gaia-2, and DrivingWorld generate it conditioned on trajectories and maps. Teams use this data to expand training sets, evaluate planners in reproducible conditions, and de-risk scenarios they cannot ethically drive in reality. Replacing a fraction of real-world collection with synthesis is one of the clearest production wins for video world models in 2026."
+      "explanation": "收集边角案例驾驶数据需要数百万真实世界里程。Cosmos-Drive、Gaia-2和DrivingWorld根据轨迹和地图生成条件化视频。团队使用这些数据扩展训练集，在可复现条件下评估规划器，并降低无法在现实中伦理驾驶的场景的风险。用合成替代部分真实世界收集是视频世界模型在2026年最清晰的生产胜利之一。"
     }
   ]
 }

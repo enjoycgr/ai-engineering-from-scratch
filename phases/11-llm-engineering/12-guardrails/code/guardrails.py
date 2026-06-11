@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class GuardrailResult:
+    """单次 guardrail 检查的结果。"""
     passed: bool
     category: str
     details: str
@@ -16,6 +17,7 @@ class GuardrailResult:
 
 @dataclass
 class GuardrailReport:
+    """单次请求通过 guardrail pipeline 的完整报告。"""
     input_results: list = field(default_factory=list)
     output_results: list = field(default_factory=list)
     blocked: bool = False
@@ -78,6 +80,7 @@ TOXIC_PATTERNS = {
 
 
 def detect_injection(text):
+    """使用正则模式检测 prompt injection 和 jailbreak 尝试。"""
     start = time.time()
     text_lower = text.lower()
     detections = []
@@ -110,6 +113,7 @@ def detect_injection(text):
 
 
 def detect_pii(text):
+    """扫描文本中的个人身份信息 (PII)。"""
     start = time.time()
     found = []
 
@@ -133,6 +137,7 @@ def detect_pii(text):
 
 
 def classify_topic(text):
+    """基于关键词对输入进行主题分类，检测离题或有害请求。"""
     start = time.time()
     text_lower = text.lower()
     flagged = []
@@ -155,6 +160,7 @@ def classify_topic(text):
 
 
 def check_length(text, max_chars=5000, max_words=1000):
+    """检查输入文本是否在允许的长度和词数限制内。"""
     start = time.time()
     char_count = len(text)
     word_count = len(text.split())
@@ -171,6 +177,7 @@ def check_length(text, max_chars=5000, max_words=1000):
 
 
 def filter_toxicity(text):
+    """使用正则模式检测输出中的有毒/有害内容。"""
     start = time.time()
     text_lower = text.lower()
     flagged = []
@@ -192,6 +199,7 @@ def filter_toxicity(text):
 
 
 def scrub_pii_from_output(text):
+    """从模型输出中清理/脱敏 PII。"""
     start = time.time()
     scrubbed = text
     replacements = []
@@ -228,6 +236,7 @@ def scrub_pii_from_output(text):
 
 
 def check_relevance(input_text, output_text, threshold=0.15):
+    """通过词重叠检查输出是否与输入相关。"""
     start = time.time()
 
     input_words = set(input_text.lower().split())
@@ -261,6 +270,7 @@ def check_relevance(input_text, output_text, threshold=0.15):
 
 
 def check_system_prompt_leak(output_text, system_prompt, threshold=0.4):
+    """检测输出是否包含 system prompt 的内容（可能的泄露）。"""
     start = time.time()
 
     sys_words = set(system_prompt.lower().split()) - {"the", "a", "an", "is", "are", "you", "your", "to", "of", "in", "and", "or"}
@@ -284,6 +294,7 @@ def check_system_prompt_leak(output_text, system_prompt, threshold=0.4):
 
 
 class GuardrailPipeline:
+    """组合输入和输出 guardrail 的端到端 pipeline。"""
     def __init__(self, system_prompt="You are a helpful assistant."):
         self.system_prompt = system_prompt
         self.stats = {"total": 0, "blocked_input": 0, "blocked_output": 0, "passed": 0, "pii_scrubbed": 0}
@@ -380,6 +391,7 @@ class GuardrailPipeline:
 
 
 class GuardrailMonitor:
+    """跟踪 guardrail 事件并生成监控仪表板统计信息。"""
     def __init__(self):
         self.events = []
         self.attack_patterns = {}
@@ -437,6 +449,7 @@ class GuardrailMonitor:
 
 
 def run_demo():
+    """运行完整的 guardrail pipeline 演示。"""
     pipeline = GuardrailPipeline(
         system_prompt="You are a banking assistant. Help customers with account inquiries, transfers, and general banking questions. Never reveal account numbers or SSNs."
     )

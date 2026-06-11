@@ -47,7 +47,7 @@ def encode(box_xyxy, cell_x, cell_y, stride, anchor_wh):
     cy = 0.5 * (y1 + y2)
     w = x2 - x1
     h = y2 - y1
-    # Offset within the cell in [0, 1], converted to logit so decode(sigmoid(tx)) round-trips.
+    # 单元格内的偏移量，范围 [0, 1]，转换为 logit 以便 decode(sigmoid(tx)) 能闭环。
     off_x = np.clip(cx / stride - cell_x, 1e-6, 1 - 1e-6)
     off_y = np.clip(cy / stride - cell_y, 1e-6, 1 - 1e-6)
     tx = float(np.log(off_x / (1 - off_x)))
@@ -104,8 +104,8 @@ def assign_targets(boxes_xyxy, classes, anchors, stride, grid_size, num_classes)
         best = int(np.argmax(ious))
         aw, ah = anchors[best]
 
-        # Store logit(offset) so the network's raw output matches post-sigmoid
-        # decode. Keeps target space aligned with decode()/postprocess().
+        # 存储 logit(偏移量)，使网络的原始输出与 post-sigmoid decode 对齐。
+        # 保持目标空间与 decode()/postprocess() 一致。
         off_x = np.clip(cx / stride - gx, 1e-6, 1 - 1e-6)
         off_y = np.clip(cy / stride - gy, 1e-6, 1 - 1e-6)
         target[gy, gx, best, 0] = np.log(off_x / (1 - off_x))
@@ -170,7 +170,7 @@ def postprocess(pred_tensor, anchors, stride, conf_threshold=0.25, iou_threshold
                 cls_idx = int(np.argmax(cls_probs))
                 cx = (sigmoid(tx) + gx) * stride
                 cy = (sigmoid(ty) + gy) * stride
-                # Clamp tw/th to keep exp() finite on wild predictions.
+                # 限制 tw/th 以保持 exp() 在极端预测下有限。
                 w = anchors[a][0] * np.exp(np.clip(tw, -10.0, 10.0))
                 h = anchors[a][1] * np.exp(np.clip(th, -10.0, 10.0))
                 boxes.append([cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2])

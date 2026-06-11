@@ -1,14 +1,14 @@
-"""Phase 13 Lesson 20 - OTel GenAI span emitter, stdlib only.
+"""Phase 13 Lesson 20 - OTel GenAI span 发出器，仅标准库。
 
-Emits spans in an OTLP-JSON-like format to stdout for an agent that:
-  - invokes an LLM chat (gen_ai.operation.name = "chat")
-  - dispatches two tools (gen_ai.operation.name = "execute_tool")
-  - makes one MCP client call (CLIENT span with traceparent propagation)
+为以下智能体以 OTLP-JSON 类似格式发出 span 到 stdout：
+  - 调用 LLM chat（gen_ai.operation.name = "chat"）
+  - 分发两个工具（gen_ai.operation.name = "execute_tool"）
+  - 执行一次 MCP 客户端调用（带 traceparent 传播的 CLIENT span）
 
-Content capture (gen_ai.content.prompt / completion) is off by default;
-enable by setting OTEL_CAPTURE_CONTENT=1 before running.
+内容捕获（gen_ai.content.prompt / completion）默认关闭；
+运行前设置 OTEL_CAPTURE_CONTENT=1 以启用。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

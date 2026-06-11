@@ -1,102 +1,102 @@
 {
   "lesson": "27-llm-evaluation-frameworks",
-  "title": "LLM Evaluation — RAGAS, DeepEval, G-Eval",
+  "title": "LLM Evaluation —— RAGAS、DeepEval、G-Eval",
   "questions": [
     {
       "stage": "pre",
-      "question": "Why are Exact Match and token-F1 insufficient for evaluating modern LLM outputs?",
+      "question": "为什么 Exact Match 和 token-F1 不足以评估现代 LLM 的输出？",
       "options": [
-        "They are too slow",
-        "They are not differentiable",
-        "They require GPUs",
-        "They miss semantic equivalence; 'June 29th, 2007' vs 'June 29, 2007' scores 0 EM despite being correct"
+        "它们太慢了",
+        "它们不可微",
+        "它们需要 GPU",
+        "它们遗漏语义等价性；'June 29th, 2007' 与 'June 29, 2007' 的 EM 得分为 0，尽管答案是正确的"
       ],
       "correct": 3,
-      "explanation": "Exact-match/F1 cannot recognize paraphrases or formatting differences that humans would mark correct."
+      "explanation": "Exact-match/F1 无法识别人类会判定为正确的改写或格式差异。"
     },
     {
       "stage": "pre",
-      "question": "What does the RAGAS faithfulness metric measure?",
+      "question": "RAGAS 的 faithfulness（忠实度）指标衡量什么？",
       "options": [
-        "Retrieval recall",
-        "Whether each claim in the answer is entailed by the retrieved context, via NLI",
-        "Latency",
-        "Tokens per second"
+        "检索召回率",
+        "答案中的每个 claim（断言）是否被检索到的上下文所 entail（蕴含），通过 NLI 判断",
+        "延迟",
+        "每秒 token 数"
       ],
       "correct": 1,
-      "explanation": "Faithfulness checks each answer claim against retrieved context using NLI entailment."
+      "explanation": "Faithfulness 使用 NLI entailment 检查答案中的每个 claim 是否与检索到的上下文一致。"
     },
     {
       "stage": "check",
-      "question": "Why is judge-model calibration against human labels required before trusting scores?",
+      "question": "为什么在信任分数之前，必须将 judge model（评判模型）与人工标签进行校准？",
       "options": [
-        "Required by the GDPR",
-        "If Spearman correlation between judge and human labels is too low (e.g. below 0.7), the score is noise rather than signal",
-        "Calibration speeds up the judge",
-        "Calibration is a tokenization issue"
+        "GDPR 要求",
+        "如果 judge 与人工标签之间的 Spearman 相关性太低（例如低于 0.7），该分数就是噪声而非信号",
+        "校准能加速 judge",
+        "校准是一个 tokenization 问题"
       ],
       "correct": 1,
-      "explanation": "Without calibration, you cannot tell whether judge scores reflect quality or model bias."
+      "explanation": "未经校准，你无法判断 judge 分数反映的是质量还是模型偏见。"
     },
     {
       "stage": "check",
-      "question": "What is self-evaluation bias in LLM-as-judge setups?",
+      "question": "在 LLM-as-judge 设置中，什么是 self-evaluation bias（自评估偏见）？",
       "options": [
-        "Using the same LLM family to generate and judge inflates scores by 10-20% versus an independent judge",
-        "Lower latency",
-        "Judges run faster on cached outputs",
-        "Judges ignore system prompts"
+        "使用同一个 LLM 家族来生成和评判会使分数比独立评判者高出 10-20%",
+        "延迟更低",
+        "评判者对缓存输出运行更快",
+        "评判者忽略 system prompt"
       ],
       "correct": 0,
-      "explanation": "Same-family generator+judge biases scores upward; use a different model family for judging."
+      "explanation": "同一家族的生成器+judge 会向上偏置分数；评判时应使用不同的模型家族。"
     },
     {
       "stage": "check",
-      "question": "What does G-Eval specifically add over a naive 'score 0-1' prompt?",
+      "question": "相比朴素的 'score 0-1' 提示，G-Eval 具体增加了什么？",
       "options": [
-        "Bigger context",
-        "Lower cost",
-        "Multilingual scoring",
-        "An explicit chain-of-thought rubric with named evaluation steps, which yields more stable scores"
+        "更大的上下文",
+        "更低的成本",
+        "多语言评分",
+        "显式的 chain-of-thought（思维链）评分标准与具名的评估步骤，从而产生更稳定的分数"
       ],
       "correct": 3,
-      "explanation": "G-Eval's structured eval-steps produce more reliable scores than freeform 'rate it' prompts."
+      "explanation": "G-Eval 的结构化评估步骤比自由形式的 'rate it' 提示产生更可靠的分数。"
     },
     {
       "stage": "post",
-      "question": "Why is reporting only the aggregate mean score dangerous?",
+      "question": "为什么只报告 aggregate mean score（聚合平均分）是危险的？",
       "options": [
-        "Aggregates are too large",
-        "Aggregates ignore the judge",
-        "Aggregates need GPU",
-        "An 0.85 mean can hide 5% catastrophic failures; always inspect the bottom quantile"
+        "聚合值太大",
+        "聚合值忽略 judge",
+        "聚合值需要 GPU",
+        "0.85 的平均分可能掩盖 5% 的灾难性失败；始终检查底部 quantile（分位数）"
       ],
       "correct": 3,
-      "explanation": "Means hide tail failures; surface bottom-10% to catch high-severity issues."
+      "explanation": "平均值隐藏尾部失败；暴露底部 10% 以捕获高严重度问题。"
     },
     {
       "stage": "post",
-      "question": "Why pin the judge model + version in CI?",
+      "question": "为什么要在 CI 中固定 judge model + version？",
       "options": [
-        "Required by Anthropic",
-        "Lower cost",
+        "Anthropic 要求",
+        "更低成本",
         "Tokenizer drift",
-        "Upgrading the judge changes every metric; longitudinal comparison breaks without a frozen judge"
+        "升级 judge 会改变每个指标；没有冻结的 judge，纵向比较就会失效"
       ],
       "correct": 3,
-      "explanation": "A judge upgrade silently shifts the metric baseline; pinning preserves cross-run comparability."
+      "explanation": "Judge 升级会静默移动指标基线；固定版本可保持跨运行的可比性。"
     },
     {
       "stage": "post",
-      "question": "Where does DeepEval fit relative to RAGAS?",
+      "question": "DeepEval 相对于 RAGAS 的定位是什么？",
       "options": [
-        "DeepEval is pytest-for-LLMs (CI gates, G-Eval, hallucination metrics); RAGAS specializes in reference-free RAG monitoring",
-        "DeepEval is hosted only",
-        "DeepEval is a tokenizer",
-        "Replaces RAGAS entirely"
+        "DeepEval 是面向 LLM 的 pytest（CI 门禁、G-Eval、幻觉指标）；RAGAS 专注于 reference-free（无参考）RAG 监控",
+        "DeepEval 仅托管",
+        "DeepEval 是一个 tokenizer",
+        "完全替代 RAGAS"
       ],
       "correct": 0,
-      "explanation": "DeepEval anchors CI/CD regression testing; RAGAS handles reference-free RAG monitoring."
+      "explanation": "DeepEval 锚定 CI/CD 回归测试；RAGAS 处理 reference-free RAG 监控。"
     }
   ]
 }

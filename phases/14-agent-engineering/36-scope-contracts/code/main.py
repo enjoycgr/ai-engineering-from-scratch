@@ -1,9 +1,9 @@
 """Scope contract checker with violation budgets, severity, and multi-contract merge.
 
-Loads a per-task scope_contract.json and a RunSummary (touched files, commands,
-elapsed minutes), produces a typed Finding list with severity tags, applies a
-violation budget the runtime can survive without halting, and supports merging
-multiple contracts (project-wide + task-specific) into a single effective one.
+加载每个任务的 scope_contract.json 和 RunSummary（触碰的文件、命令、
+已耗分钟数），生成带严重性标签的类型化 Finding 列表，应用运行时可在不停止的情况下
+承受的违规预算（violation budget），并支持将多个契约（项目范围 + 任务特定）
+合并为单个有效契约。
 
 Run: python3 code/main.py
 """
@@ -69,14 +69,14 @@ def matches_any(path: str, patterns: list[str]) -> bool:
 
 
 def merge_contracts(parent: ScopeContract, child: ScopeContract) -> ScopeContract:
-    """Least-privilege merge: intersect allowed, union forbidden, narrowest budgets.
+    """最小权限（least-privilege）合并：允许的文件取交集，禁止的文件取并集，预算取最窄。
 
-    allowed_files intersect (both contracts must permit a path),
-    forbidden_files union (either contract can prohibit a path),
-    time_budget_minutes min (most restrictive wins),
-    approvals_required accumulate,
-    network_egress: None means no enforcement, otherwise intersect; an empty
-    list means deny-all and stays deny-all under merge.
+    allowed_files 取交集（两个契约都必须允许某条路径），
+    forbidden_files 取并集（任一契约都可以禁止某条路径），
+    time_budget_minutes 取最小值（最严格的获胜），
+    approvals_required 累积，
+    network_egress: None 表示不执行限制，否则取交集；空列表
+    表示拒绝所有，在合并下保持拒绝所有。
     """
     return ScopeContract(
         task_id=child.task_id,

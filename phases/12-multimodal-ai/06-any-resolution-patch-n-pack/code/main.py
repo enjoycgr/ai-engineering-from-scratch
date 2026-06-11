@@ -1,14 +1,14 @@
-"""Patch-n'-pack for variable-resolution vision transformer batches — stdlib.
+"""可变分辨率 vision transformer batch 的 Patch-n'-pack — stdlib。
 
-Given a batch of (H, W) image sizes at patch P, computes:
-  - per-image patch grid (H/P, W/P) and sequence length n_i = (H/P)(W/P)
-  - packed total length N = sum(n_i)
-  - block-diagonal attention mask (dense, N x N)
-  - AnyRes tiling cost (tile + thumbnail) for comparison
-  - square-resize cost (fixed sequence length) for comparison
+给定 patch P 下一批 (H, W) 图像尺寸，计算：
+  - 每图像 patch 网格 (H/P, W/P) 和序列长度 n_i = (H/P)(W/P)
+  - 打包总长度 N = sum(n_i)
+  - 块对角 attention mask（密集，N x N）
+  - AnyRes tiling 成本（瓦片 + 缩略图）用于对比
+  - 正方形 resize 成本（固定序列长度）用于对比
 
-Prints a budget table for a realistic workload: receipt, chart, screenshot, photo.
-No numpy, no torch — bytes-per-cell math stays transparent.
+为现实工作负载打印预算表：收据、图表、截屏、照片。
+无 numpy，无 torch——每单元格字节数学保持透明。
 """
 
 from __future__ import annotations

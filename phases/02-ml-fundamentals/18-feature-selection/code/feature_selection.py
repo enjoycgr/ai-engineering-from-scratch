@@ -2,6 +2,7 @@ import numpy as np
 
 
 def make_feature_selection_data(n_samples=500, seed=42):
+    """生成用于特征选择实验的合成数据集。"""
     rng = np.random.RandomState(seed)
 
     x1 = rng.randn(n_samples)
@@ -35,12 +36,14 @@ def make_feature_selection_data(n_samples=500, seed=42):
 
 
 def variance_threshold(X, threshold=0.01):
+    """Variance threshold (方差阈值) filter method (过滤法)：移除方差低于阈值的特征。"""
     variances = np.var(X, axis=0)
     mask = variances > threshold
     return mask, variances
 
 
 def discretize(x, n_bins=10):
+    """将连续特征离散化为 n_bins 个区间，用于 mutual information (互信息) 计算。"""
     min_val, max_val = x.min(), x.max()
     if max_val == min_val:
         return np.zeros_like(x, dtype=int)
@@ -50,6 +53,7 @@ def discretize(x, n_bins=10):
 
 
 def mutual_information(X, y, n_bins=10):
+    """Mutual information (互信息) filter method (过滤法)：基于直方图估计计算每个特征与目标的 MI。"""
     n_samples, n_features = X.shape
     mi_scores = np.zeros(n_features)
 
@@ -74,6 +78,7 @@ def mutual_information(X, y, n_bins=10):
 
 
 def simple_logistic_importance(X, y, lr=0.1, epochs=100):
+    """简单的逻辑回归，用于计算特征系数作为 importance (重要性) 分数。"""
     n_samples, n_features = X.shape
     w = np.zeros(n_features)
     b = 0.0
@@ -89,6 +94,8 @@ def simple_logistic_importance(X, y, lr=0.1, epochs=100):
 
 
 def rfe(X, y, n_features_to_select=5, lr=0.1, epochs=100):
+    """RFE (Recursive Feature Elimination, 递归特征消除) wrapper method (包装法)：
+    迭代训练模型并移除最不重要的特征，直到保留目标数量。"""
     n_total = X.shape[1]
     remaining = list(range(n_total))
     rankings = np.ones(n_total, dtype=int)
@@ -113,10 +120,13 @@ def rfe(X, y, n_features_to_select=5, lr=0.1, epochs=100):
 
 
 def soft_threshold(w, alpha):
+    """Soft-thresholding (软阈值) 操作符，用于 L1 regularization (L1正则化)。"""
     return np.sign(w) * np.maximum(np.abs(w) - alpha, 0)
 
 
 def l1_feature_selection(X, y, alpha=0.1, lr=0.01, epochs=500):
+    """L1 (Lasso) regularization (L1正则化) embedded method (嵌入法)：
+    通过 soft-thresholding (软阈值) 将不重要特征的权重推向零。"""
     n_samples, n_features = X.shape
     w = np.zeros(n_features)
     b = 0.0
@@ -138,6 +148,7 @@ def l1_feature_selection(X, y, alpha=0.1, lr=0.01, epochs=500):
 
 
 def gini_impurity(y):
+    """计算 Gini impurity (基尼不纯度)，用于决策树的 split (分裂) 评估。"""
     if len(y) == 0:
         return 0.0
     classes, counts = np.unique(y, return_counts=True)
@@ -146,6 +157,7 @@ def gini_impurity(y):
 
 
 def best_split(X, y, feature_idx):
+    """为指定特征寻找最优 split threshold (分裂阈值) 和 Gini gain (基尼增益)。"""
     values = np.unique(X[:, feature_idx])
     if len(values) <= 1:
         return None, -1.0
@@ -166,6 +178,7 @@ def best_split(X, y, feature_idx):
 
 
 def _build_tree_importance(X, y, feature_subset, max_depth, depth=0):
+    """递归构建单棵决策树并累积 feature importance (特征重要性) 分数。"""
     n_features = X.shape[1]
     importances = np.zeros(n_features)
 
@@ -198,6 +211,8 @@ def _build_tree_importance(X, y, feature_subset, max_depth, depth=0):
 
 
 def tree_importance(X, y, n_trees=50, max_depth=5, seed=42):
+    """Tree-based feature importance (基于树的特征重要性) embedded method (嵌入法)：
+    使用随机森林风格的 bootstrap 聚合计算特征重要性。"""
     rng = np.random.RandomState(seed)
     n_samples, n_features = X.shape
     importances = np.zeros(n_features)
@@ -221,6 +236,7 @@ def tree_importance(X, y, n_trees=50, max_depth=5, seed=42):
 
 
 def evaluate_accuracy(X, y, selected_mask, lr=0.1, epochs=200):
+    """使用选中的特征训练逻辑回归并返回 test accuracy (测试准确率)。"""
     X_selected = X[:, selected_mask]
     n = len(y)
     split = int(0.8 * n)
@@ -235,6 +251,7 @@ def evaluate_accuracy(X, y, selected_mask, lr=0.1, epochs=200):
 
 
 def feature_group(name):
+    """根据特征名称前缀返回其所属组别（INFO / CORR / NOISE）。"""
     if "noise" in name:
         return "NOISE"
     if "corr" in name:
@@ -243,6 +260,7 @@ def feature_group(name):
 
 
 def print_feature_scores(names, scores, label, top_k=None):
+    """打印特征分数排名表，标注特征组别。"""
     ranked = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)
     print(f"\n  {label}:")
     for i, (idx, s) in enumerate(ranked[:top_k or len(ranked)]):
@@ -271,6 +289,7 @@ if __name__ == "__main__":
     X_scaled_test = (X_test - mean) / std
     X_scaled = np.vstack([X_scaled_train, X_scaled_test])
 
+    # 1. Variance threshold (方差阈值)
     print("\n" + "-" * 60)
     print("1. VARIANCE THRESHOLD")
     print("-" * 60)
@@ -278,6 +297,7 @@ if __name__ == "__main__":
     print(f"  Threshold: 0.01, surviving: {np.sum(var_mask)} / {len(var_mask)}")
     print_feature_scores(feature_names, variances, "Variances", top_k=10)
 
+    # 2. Mutual information (互信息)
     print("\n" + "-" * 60)
     print("2. MUTUAL INFORMATION")
     print("-" * 60)
@@ -286,6 +306,7 @@ if __name__ == "__main__":
     mi_selected = np.zeros(len(feature_names), dtype=bool)
     mi_selected[np.argsort(mi_scores)[-5:]] = True
 
+    # 3. RFE (递归特征消除)
     print("\n" + "-" * 60)
     print("3. RECURSIVE FEATURE ELIMINATION (RFE)")
     print("-" * 60)
@@ -294,6 +315,7 @@ if __name__ == "__main__":
     for idx, rank in sorted(enumerate(rfe_rankings), key=lambda x: x[1]):
         print(f"    Rank {rank:>2}: {feature_names[idx]:<12} [{feature_group(feature_names[idx])}]")
 
+    # 4. L1 (Lasso) feature selection (L1特征选择)
     print("\n" + "-" * 60)
     print("4. L1 (LASSO) FEATURE SELECTION")
     print("-" * 60)
@@ -302,6 +324,7 @@ if __name__ == "__main__":
     print(f"  Selected: {[feature_names[i] for i in range(len(feature_names)) if l1_mask[i]]}")
     print_feature_scores(feature_names, np.abs(l1_weights), "|Weights| (top 10)", top_k=10)
 
+    # 5. Tree-based importance (基于树的特征重要性)
     print("\n" + "-" * 60)
     print("5. TREE-BASED IMPORTANCE")
     print("-" * 60)
@@ -310,6 +333,7 @@ if __name__ == "__main__":
     tree_selected = np.zeros(len(feature_names), dtype=bool)
     tree_selected[np.argsort(tree_imp)[-5:]] = True
 
+    # 方法一致性对比
     print("\n" + "=" * 60)
     print("METHOD AGREEMENT")
     print("=" * 60)
@@ -324,6 +348,7 @@ if __name__ == "__main__":
             row += f" {'YES':>6}" if mask[i] else f" {'---':>6}"
         print(f"{row} {count:>6}")
 
+    # 准确率对比
     print("\n" + "=" * 60)
     print("ACCURACY COMPARISON")
     print("=" * 60)

@@ -1,11 +1,11 @@
-"""Toy ReWOO — Planner, Workers, Solver. Stdlib only.
+"""Toy ReWOO（玩具 ReWOO）—— Planner、Workers、Solver。纯 stdlib。
 
-Demonstrates the decoupled pattern from Xu et al. (arXiv:2305.18323):
-  1. Planner emits a DAG of (tool, args) steps with references (#E1, #E2, ...).
-  2. Workers run each step in topological order.
-  3. Solver composes the final answer from question + plan + evidence.
+演示 Xu 等人（arXiv:2305.18323）的解耦模式：
+  1. Planner 发出带有引用（#E1、#E2...）的 (tool, args) 步骤 DAG。
+  2. Workers 按拓扑序运行每个步骤。
+  3. Solver 从 question + plan + evidence 组合最终答案。
 
-Compare run_rewoo() vs run_react() at the bottom for token-use intuition.
+在底部比较 run_rewoo() 与 run_react() 以获得 token 使用直觉。
 """
 
 from __future__ import annotations

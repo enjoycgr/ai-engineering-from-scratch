@@ -3,15 +3,18 @@ from collections import Counter
 
 
 def word_counts(text):
+    # 将文本拆分为小写单词并统计频率
     words = re.findall(r"[a-zA-Z]+", text.lower())
     return Counter(words)
 
 
 def init_vocab(counts):
+    # 将每个单词拆分为字符元组，并附加词尾标记 </w>
     return {tuple(word) + ("</w>",): freq for word, freq in counts.items()}
 
 
 def pair_counts(vocab):
+    # 统计词汇表中所有相邻字符对的频率
     pairs = Counter()
     for symbols, freq in vocab.items():
         for a, b in zip(symbols, symbols[1:]):
@@ -20,6 +23,7 @@ def pair_counts(vocab):
 
 
 def merge_pair(vocab, pair):
+    # 在词汇表中将指定的字符对 (a, b) 合并为单个符号 a+b
     a, b = pair
     merged_symbol = a + b
     new_vocab = {}
@@ -38,6 +42,7 @@ def merge_pair(vocab, pair):
 
 
 def train_bpe(text, num_merges):
+    # 在语料上训练 BPE：执行 num_merges 次最频繁字符对的合并
     counts = word_counts(text)
     if not counts:
         raise ValueError("word_counts: corpus produced no words")
@@ -57,6 +62,7 @@ def train_bpe(text, num_merges):
 
 
 def encode_bpe(word, merges):
+    # 使用学到的合并列表对单词进行 BPE 编码
     symbols = list(word) + ["</w>"]
     for a, b in merges:
         merged = a + b

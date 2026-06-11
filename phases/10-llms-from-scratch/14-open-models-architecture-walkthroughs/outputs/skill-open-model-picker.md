@@ -1,6 +1,6 @@
 ---
 name: open-model-picker
-description: Pick an open LLM family, quantization, and inference stack for a given deployment target.
+description: 为给定的部署目标选择开放的 LLM 系列、量化方案和推理栈。
 version: 1.0.0
 phase: 10
 lesson: 14

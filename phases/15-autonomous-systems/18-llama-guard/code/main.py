@@ -1,8 +1,8 @@
-"""Toy input/output classifier with taxonomy — stdlib Python.
+"""带分类体系 (taxonomy) 的玩具输入/输出分类器 —— stdlib Python。
 
-Demonstrates where a keyword-based guard wins (raw misuse) and loses
-(emoji-smuggled, homoglyph-substituted variants). Output rail shows
-how a second guard on the model's output catches a different class.
+演示基于关键词的守卫在何处获胜（原始滥用）以及在何处失败
+（emoji 走私、homoglyph 替换变体）。Output rail 展示
+模型输出上的第二道守卫如何捕获不同类别。
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ def classify_raw(text: str) -> list[str]:
 
 
 def normalize(text: str) -> str:
-    # NFKC first precomposes combining characters and unifies
+    # NFKC 首先预组合组合字符并统一
     # compatibility forms, then homoglyph-map Cyrillic lookalikes,
     # then remove only truly-invisible characters (zero-width joiners,
     # variation selectors, BOMs). This order preserves legitimate
@@ -168,15 +168,15 @@ def main() -> None:
     demo_outputs()
     print()
     print("=" * 80)
-    print("HEADLINE: classifiers are a layer, not a solution")
+    print("HEADLINE: 分类器是一个层，而非解决方案")
     print("-" * 80)
-    print("  Emoji smuggling and homoglyph substitutions bypass keyword-only")
-    print("  classifiers. Normalization (NFKC, homoglyph map) helps but does")
-    print("  not close the surface. Huang et al. (2025) measured 100% ASR on")
-    print("  Emoji Smuggling and 72.54% on NeMo Guard Detect under adversarial")
-    print("  craft. Pair with constitutional layer (Lesson 17) and runtime")
-    print("  controls (Lessons 10, 13, 14). Output rails catch what input")
-    print("  rails missed when the model's response leaks the target content.")
+    print("  Emoji smuggling 和 homoglyph 替换绕过仅关键词")
+    print("  分类器。归一化 (NFKC, homoglyph map) 有帮助但")
+    print("  无法封闭攻击面。Huang et al. (2025) 测量到 Emoji Smuggling 上 100% ASR，")
+    print("  以及对抗性 craft 下 NeMo Guard Detect 上 72.54% ASR。")
+    print("  与宪法层（第 17 课）和运行时")
+    print("  控制（第 10、13、14 课）配对使用。Output rails 捕获 input")
+    print("  rails 遗漏的内容，当模型响应泄露目标内容时。")
 
 
 if __name__ == "__main__":

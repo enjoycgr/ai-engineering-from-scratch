@@ -1,7 +1,7 @@
 """Canary rollout simulator — stdlib Python.
 
-Progressively increases candidate traffic share and checks five gates at each
-step. Halts when any gate breaches. Supports injected regressions.
+逐步增加候选流量占比，每步检查五个 gates。
+任一 gate 违规时停止。支持注入回退。
 """
 
 from __future__ import annotations

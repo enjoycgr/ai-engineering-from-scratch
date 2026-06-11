@@ -1,6 +1,7 @@
-# Model evaluation in Julia. Train/val/test split, k-fold + stratified k-fold
-# cross validation, classification metrics (accuracy, precision, recall, F1,
-# ROC, AUC), and regression metrics (MSE, RMSE, MAE, R^2). Stdlib only. Sources:
+# Julia 中的模型评估。训练/验证/测试划分、K折交叉验证 + 分层K折交叉验证、
+# 分类指标（accuracy (准确率)、precision (精确率)、recall (召回率)、F1 score (F1分数)、
+# ROC、AUC）以及回归指标（MSE (均方误差)、RMSE (均方根误差)、MAE (平均绝对误差)、R^2）。
+# 仅使用标准库。参考来源：
 #   https://docs.julialang.org/en/v1/stdlib/Random/
 #   https://docs.julialang.org/en/v1/stdlib/Statistics/
 #   https://docs.julialang.org/en/v1/manual/functions/
@@ -10,6 +11,7 @@ using Statistics
 using Printf
 
 
+# 将数据划分为训练集、验证集和测试集
 function train_val_test_split(X::Vector{Vector{Float64}}, ys::Vector{Int};
                              train_ratio::Float64=0.6, val_ratio::Float64=0.2,
                              seed::Int=42)
@@ -27,6 +29,7 @@ function train_val_test_split(X::Vector{Vector{Float64}}, ys::Vector{Int};
 end
 
 
+# K-fold (K折交叉验证) 划分：将数据分成 k 个折
 function kfold_split(n::Int; k::Int=5, seed::Int=42)
     rng = MersenneTwister(seed)
     indices = randperm(rng, n)
@@ -43,6 +46,7 @@ function kfold_split(n::Int; k::Int=5, seed::Int=42)
 end
 
 
+# Stratified K-fold (分层K折交叉验证) 划分：在每个折中保持类别分布
 function stratified_kfold_split(ys::Vector{Int}; k::Int=5, seed::Int=42)
     rng = MersenneTwister(seed)
     class_indices = Dict{Int, Vector{Int}}()
@@ -69,6 +73,7 @@ function stratified_kfold_split(ys::Vector{Int}; k::Int=5, seed::Int=42)
 end
 
 
+# Confusion matrix (混淆矩阵)：统计 TP, TN, FP, FN
 function confusion_matrix(y_true::Vector{Int}, y_pred::Vector{Int})
     tp = sum(1 for i in 1:length(y_true) if y_true[i] == 1 && y_pred[i] == 1)
     tn = sum(1 for i in 1:length(y_true) if y_true[i] == 0 && y_pred[i] == 0)
@@ -78,6 +83,7 @@ function confusion_matrix(y_true::Vector{Int}, y_pred::Vector{Int})
 end
 
 
+# Accuracy (准确率)：正确预测的比例
 function accuracy(y_true::Vector{Int}, y_pred::Vector{Int})
     tp, tn, fp, fn = confusion_matrix(y_true, y_pred)
     total = tp + tn + fp + fn
@@ -85,18 +91,21 @@ function accuracy(y_true::Vector{Int}, y_pred::Vector{Int})
 end
 
 
+# Precision (精确率)：预测为正类中实际为正类的比例
 function precision_score(y_true::Vector{Int}, y_pred::Vector{Int})
     tp, _, fp, _ = confusion_matrix(y_true, y_pred)
     return (tp + fp) > 0 ? tp / (tp + fp) : 0.0
 end
 
 
+# Recall (召回率)：实际正类中被正确识别的比例
 function recall_score(y_true::Vector{Int}, y_pred::Vector{Int})
     tp, _, _, fn = confusion_matrix(y_true, y_pred)
     return (tp + fn) > 0 ? tp / (tp + fn) : 0.0
 end
 
 
+# F1 score (F1分数)：Precision 和 Recall 的调和平均数
 function f1_score(y_true::Vector{Int}, y_pred::Vector{Int})
     p = precision_score(y_true, y_pred)
     r = recall_score(y_true, y_pred)
@@ -104,6 +113,7 @@ function f1_score(y_true::Vector{Int}, y_pred::Vector{Int})
 end
 
 
+# ROC curve (受试者工作特征曲线)：在不同阈值下计算 TPR 和 FPR
 function roc_curve(y_true::Vector{Int}, y_scores::Vector{Float64})
     thresholds = sort(unique(y_scores); rev=true)
     tpr_list = Float64[]
@@ -121,6 +131,7 @@ function roc_curve(y_true::Vector{Int}, y_scores::Vector{Float64})
 end
 
 
+# AUC-ROC：ROC 曲线下的面积
 function auc_roc(y_true::Vector{Int}, y_scores::Vector{Float64})
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     pairs = sort(collect(zip(fpr, tpr)); by=first)
@@ -136,23 +147,27 @@ function auc_roc(y_true::Vector{Int}, y_scores::Vector{Float64})
 end
 
 
+# MSE (Mean Squared Error, 均方误差)
 function mse(y_true::Vector{Float64}, y_pred::Vector{Float64})
     n = length(y_true)
     return sum((y_true .- y_pred) .^ 2) / n
 end
 
 
+# RMSE (Root Mean Squared Error, 均方根误差)
 function rmse(y_true::Vector{Float64}, y_pred::Vector{Float64})
     return sqrt(mse(y_true, y_pred))
 end
 
 
+# MAE (Mean Absolute Error, 平均绝对误差)
 function mae(y_true::Vector{Float64}, y_pred::Vector{Float64})
     n = length(y_true)
     return sum(abs.(y_true .- y_pred)) / n
 end
 
 
+# R-squared (R平方)：模型解释的方差比例
 function r_squared(y_true::Vector{Float64}, y_pred::Vector{Float64})
     mean_y = mean(y_true)
     ss_res = sum((y_true .- y_pred) .^ 2)
@@ -206,6 +221,7 @@ predict_simple(model::SimpleLogistic, x::Vector{Float64}) =
     predict_proba_simple(model, x) >= 0.5 ? 1 : 0
 
 
+# Cross-validation (交叉验证)：在 k 个折上训练和评估模型
 function cross_validate(X::Vector{Vector{Float64}}, ys::Vector{Int},
                        model_fn::Function; k::Int=5,
                        metric_fn::Function=accuracy, stratified::Bool=false)
@@ -226,6 +242,7 @@ function cross_validate(X::Vector{Vector{Float64}}, ys::Vector{Int},
 end
 
 
+# 生成分类数据集
 function make_classification_data(n::Int=300; seed::Int=42)
     rng = MersenneTwister(seed)
     X = Vector{Vector{Float64}}()
@@ -241,6 +258,7 @@ function make_classification_data(n::Int=300; seed::Int=42)
 end
 
 
+# 生成回归数据集
 function make_regression_data(n::Int=200; seed::Int=42)
     rng = MersenneTwister(seed)
     X = Vector{Vector{Float64}}()
@@ -256,6 +274,7 @@ function make_regression_data(n::Int=200; seed::Int=42)
 end
 
 
+# 生成不平衡分类数据集（少数类比例较低）
 function make_imbalanced_data(n::Int=300; minority_ratio::Float64=0.05, seed::Int=42)
     rng = MersenneTwister(seed)
     X = Vector{Vector{Float64}}()
@@ -275,22 +294,22 @@ end
 
 function demo_split_and_metrics()
     println("=" ^ 60)
-    println("TRAIN / VAL / TEST SPLIT + METRICS")
+    println("训练 / 验证 / 测试划分 + 指标")
     println("=" ^ 60)
     X, ys = make_classification_data(300)
     X_train, ys_train, X_val, ys_val, X_test, ys_test = train_val_test_split(X, ys)
-    @printf("  Train: %d  Val: %d  Test: %d\n",
+    @printf("  训练集: %d  验证集: %d  测试集: %d\n",
             length(X_train), length(X_val), length(X_test))
-    @printf("  Train positive ratio: %.3f\n", sum(ys_train) / length(ys_train))
-    @printf("  Val   positive ratio: %.3f\n", sum(ys_val) / length(ys_val))
+    @printf("  训练集正类比例: %.3f\n", sum(ys_train) / length(ys_train))
+    @printf("  验证集正类比例: %.3f\n", sum(ys_val) / length(ys_val))
 
     model = SimpleLogistic(0.1, 200)
     fit_simple!(model, X_train, ys_train)
 
-    println("\n--- Classification metrics ---")
+    println("\n--- 分类指标 ---")
     y_pred = [predict_simple(model, x) for x in X_test]
     tp, tn, fp, fn = confusion_matrix(ys_test, y_pred)
-    @printf("  Confusion: TP=%d  TN=%d  FP=%d  FN=%d\n", tp, tn, fp, fn)
+    @printf("  混淆矩阵: TP=%d  TN=%d  FP=%d  FN=%d\n", tp, tn, fp, fn)
     @printf("  Accuracy:  %.4f\n", accuracy(ys_test, y_pred))
     @printf("  Precision: %.4f\n", precision_score(ys_test, y_pred))
     @printf("  Recall:    %.4f\n", recall_score(ys_test, y_pred))
@@ -303,50 +322,50 @@ end
 
 function demo_cross_validation()
     println("\n" * "=" ^ 60)
-    println("K-FOLD CROSS VALIDATION")
+    println("K-FOLD CROSS VALIDATION (K折交叉验证)")
     println("=" ^ 60)
     X, ys = make_classification_data(300)
     scores = cross_validate(X, ys, () -> SimpleLogistic(0.1, 200);
                             k=5, metric_fn=accuracy)
     m = mean(scores)
     s = std(scores; corrected=false)
-    println("\nPlain k=5:")
-    @printf("  Fold scores: [%s]\n",
+    println("\n普通 k=5:")
+    @printf("  折分数: [%s]\n",
             join([@sprintf("%.4f", v) for v in scores], ", "))
-    @printf("  Mean: %.4f  (+/- %.4f)\n", m, s)
+    @printf("  均值: %.4f  (+/- %.4f)\n", m, s)
 
     strat = cross_validate(X, ys, () -> SimpleLogistic(0.1, 200);
                            k=5, metric_fn=accuracy, stratified=true)
     sm = mean(strat)
     ss = std(strat; corrected=false)
-    println("\nStratified k=5:")
-    @printf("  Fold scores: [%s]\n",
+    println("\nStratified k=5 (分层K折):")
+    @printf("  折分数: [%s]\n",
             join([@sprintf("%.4f", v) for v in strat], ", "))
-    @printf("  Mean: %.4f  (+/- %.4f)\n", sm, ss)
+    @printf("  均值: %.4f  (+/- %.4f)\n", sm, ss)
 end
 
 
 function demo_imbalanced()
     println("\n" * "=" ^ 60)
-    println("IMBALANCED DATA: WHY ACCURACY LIES")
+    println("不平衡数据：为什么 ACCURACY 会骗人")
     println("=" ^ 60)
     X, ys = make_imbalanced_data(300; minority_ratio=0.05)
     positives = sum(ys)
-    @printf("\n  Class distribution: %d positive, %d negative (%.1f%% positive)\n",
+    @printf("\n  类别分布: %d 正类, %d 负类 (%.1f%% 正类)\n",
             positives, length(ys) - positives, 100 * positives / length(ys))
     baseline = zeros(Int, length(ys))
-    println("\n  Always-negative baseline:")
+    println("\n  始终预测负类基线:")
     @printf("    Accuracy:  %.4f\n", accuracy(ys, baseline))
     @printf("    Precision: %.4f\n", precision_score(ys, baseline))
     @printf("    Recall:    %.4f\n", recall_score(ys, baseline))
     @printf("    F1:        %.4f\n", f1_score(ys, baseline))
-    println("  Accuracy lies; precision and recall expose the failure.")
+    println("  Accuracy 具有误导性；Precision 和 Recall 暴露了失败。")
 end
 
 
 function demo_regression_metrics()
     println("\n" * "=" ^ 60)
-    println("REGRESSION METRICS")
+    println("回归指标")
     println("=" ^ 60)
     X, ys = make_regression_data(200)
     n_train = Int(round(0.8 * length(X)))
@@ -361,7 +380,7 @@ function demo_regression_metrics()
     @printf("  R^2:  %.4f\n", r_squared(y_true, y_pred))
 
     mean_baseline = fill(mean(y_true), length(y_true))
-    println("\n  Predict-the-mean baseline:")
+    println("\n  预测均值基线:")
     @printf("    MSE:  %.4f\n", mse(y_true, mean_baseline))
     @printf("    R^2:  %.4f\n", r_squared(y_true, mean_baseline))
 end

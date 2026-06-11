@@ -1,15 +1,15 @@
-"""Phase 13 Lesson 17 - minimal MCP gateway.
+"""Phase 13 Lesson 17 - 最小 MCP 网关。
 
-Single-file stdlib gateway that:
-  - authenticates by Bearer token
-  - applies per-user RBAC on server.tool
-  - writes an append-only audit log
-  - enforces per-user rate limit (token bucket)
-  - pins backend tool descriptions by hash
+单文件 stdlib 网关：
+  - 通过 Bearer token 认证
+  - 在 server.tool 上应用每用户 RBAC
+  - 写入仅追加审计日志
+  - 强制执行每用户速率限制（token bucket）
+  - 按哈希固定后端工具描述
 
-Backends are in-process stubs to keep the lesson focused on gateway logic.
+后端是进程内 stub，以保持课程专注于网关逻辑。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

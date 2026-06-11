@@ -1,11 +1,11 @@
-"""Speculative decoding: core algorithm and distribution equivalence.
+"""投机解码（Speculative Decoding）：核心算法与分布等价性验证。
 
-Implements:
-- Bernoulli accept / reject using min(1, q/p)
-- Residual distribution (q - p)_+ for rejection fallback
-- Bonus token on full acceptance
-- Empirical check that the marginal distribution matches direct sampling
-- Acceptance rate vs KL divergence sweep
+实现内容：
+- 使用 min(1, q/p) 的 Bernoulli 接受 / 拒绝
+- 残差分布 (q - p)_+ 作为拒绝时的后备方案
+- 全部接受时的奖励 token（bonus token）
+- 经验验证边缘分布与直接采样一致
+- 接受率 vs KL 散度（KL divergence）扫描
 """
 
 import math
@@ -39,7 +39,7 @@ def kl(q, p):
 
 
 def spec_step_one_token(q, p, rng):
-    """Draft 1 token from p, verify with q. Returns (accepted_token, was_accepted)."""
+    """从 p 起草 1 个 token，用 q 验证。返回 (accepted_token, was_accepted)。"""
     d = sample(p, rng)
     p_prob = p[d]
     q_prob = q[d]
@@ -50,8 +50,8 @@ def spec_step_one_token(q, p, rng):
 
 
 def spec_step_n(q, p, N, rng):
-    """Draft N tokens (same context), then verify in one pass.
-    Returns (final_token, n_accepted). Simplified: q and p are fixed per call.
+    """起草 N 个 token（相同上下文），然后一次验证。
+    返回 (final_token, n_accepted)。简化版：每次调用 q 和 p 固定。
     """
     accepted = 0
     for _ in range(N):
@@ -120,28 +120,28 @@ def main():
     p_good = perturb(q, amount=0.02, rng=rng)
     p_bad = perturb(q, amount=0.25, rng=rng)
 
-    print("=== verifier distribution ===")
+    print("=== 验证模型分布 ===")
     print("  q: " + " ".join(f"{qi:.3f}" for qi in q))
     print()
 
-    print("=== speculative vs direct sampling (distribution equivalence) ===")
+    print("=== 投机解码 vs 直接采样（分布等价性） ===")
     spec_c, direct_c = run_distribution_check(q, p_good, 50000, rng)
     chi = chi_square(spec_c, direct_c)
-    print(f"  spec   counts (50000 samples): {spec_c}")
-    print(f"  direct counts (50000 samples): {direct_c}")
-    print(f"  chi^2 = {chi:.2f}   (V-1 = {V-1} df; large means distributions differ)")
-    print(f"  {'PASS' if chi < 30 else 'FAIL'}: spec-decoded tokens match verifier distribution")
+    print(f"  投机   计数 (50000 样本): {spec_c}")
+    print(f"  直接   计数 (50000 样本): {direct_c}")
+    print(f"  chi^2 = {chi:.2f}   (V-1 = {V-1} df; 值大表示分布不同)")
+    print(f"  {'通过' if chi < 30 else '失败'}: 投机解码 token 匹配验证模型分布")
     print()
 
-    print("=== acceptance rate vs KL(q || p) ===")
-    print(f"  {'KL(q||p)':>10}  {'acceptance α':>14}")
+    print("=== 接受率 vs KL(q || p) ===")
+    print(f"  {'KL(q||p)':>10}  {'接受率 α':>14}")
     for noise in (0.005, 0.02, 0.05, 0.10, 0.25, 0.5):
         p = perturb(q, amount=noise, rng=random.Random(noise * 1000))
         alpha = acceptance_rate(q, p, 5000, rng)
         print(f"  {kl(q, p):>10.4f}  {alpha:>14.3f}")
     print()
 
-    print("=== expected tokens per verifier call (theory) ===")
+    print("=== 每次验证调用的期望 token 数（理论） ===")
     print(f"  {'α':>5} " + "".join(f"  N={N:>2}" for N in (1, 3, 5, 7, 10)))
     for alpha in (0.3, 0.5, 0.7, 0.85, 0.95):
         row = f"  {alpha:>5.2f} " + "".join(
@@ -150,9 +150,9 @@ def main():
         print(row)
     print()
 
-    print("takeaway: Leviathan's theorem holds — spec-decoded distribution = verifier's.")
-    print("          At α=0.85 and N=5: ~4.1 tokens per verifier call ≈ 4x fewer big-model")
-    print("          forwards (minus draft-model overhead).")
+    print("要点: Leviathan 定理成立 — 投机解码分布 = 验证模型分布。")
+    print("      当 α=0.85 且 N=5 时: 每次验证调用约 4.1 个 token ≈ 大模型")
+    print("      前向次数减少约 4 倍（减去起草模型开销）。")
 
 
 if __name__ == "__main__":

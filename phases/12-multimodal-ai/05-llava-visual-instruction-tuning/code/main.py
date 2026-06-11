@@ -1,13 +1,12 @@
-"""LLaVA 2-layer MLP projector + prompt builder — stdlib Python.
+"""LLaVA 2 层 MLP projector + prompt builder — stdlib Python.
 
-Walks the LLaVA forward pass:
-  - toy ViT emits 16 patch tokens of dim 16
-  - 2-layer MLP projects each patch to dim 24 (the 'LLM' dim)
-  - build a LLaVA-format prompt with <image> placeholder replaced by the 16
-    projected tokens
-  - report context budget at 2k / 32k / 128k LLM windows
+走过 LLaVA forward pass：
+  - 玩具 ViT 发出 16 个 dim 16 的 patch token
+  - 2 层 MLP 把每个 patch 投影到 dim 24（'LLM' dim）
+  - 构建 LLaVA 格式 prompt，<image> 占位符被 16 个投影 token 取代
+  - 报告 2k / 32k / 128k LLM 窗口下的上下文预算
 
-No numpy, no torch. Linear layers and GELU implemented by hand.
+无 numpy，无 torch。线性层和 GELU 手工实现。
 """
 
 from __future__ import annotations

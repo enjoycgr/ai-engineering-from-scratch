@@ -1,7 +1,8 @@
 """GPT-style causal language modeling — causal mask, loss shift, sampling.
 
-Pure stdlib. Tiny "GPT" with random weights demonstrates the mask,
-next-token prediction, and four sampling strategies on a 20-token vocab.
+纯标准库。一个随机权重的微型 "GPT" 演示了 causal mask（因果掩码）、
+next-token prediction（下一 token 预测）以及在一个 20 token 词表上的
+四种采样策略。
 """
 
 import math
@@ -154,11 +155,11 @@ def demo_ce_loss():
     seq = [3, 1, 7, 0, 4, 9]
     rng = random.Random(7)
     logits = [[rng.gauss(0, 1) for _ in range(vocab_size)] for _ in seq]
-    # Boost correct next-token slightly to simulate a "slightly-trained" model
+    # 稍微提升正确 next-token 的分数，模拟一个"略经训练"的模型
     for i in range(len(seq) - 1):
         logits[i][seq[i + 1]] += 2.0
     loss_trained = cross_entropy_shifted(logits, seq)
-    # Unbiased random
+    # 无偏随机
     logits_rand = [[rng.gauss(0, 1) for _ in range(vocab_size)] for _ in seq]
     loss_rand = cross_entropy_shifted(logits_rand, seq)
     print(f"loss with biased logits (trained-ish):  {loss_trained:.3f}")

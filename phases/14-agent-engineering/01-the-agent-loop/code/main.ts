@@ -1,15 +1,15 @@
-// Phase 14 Lesson 01 — toy ReAct agent loop, in TypeScript.
+// Phase 14 Lesson 01 — TypeScript 版玩具 ReAct agent loop（智能体循环）。
 //
-// Mirrors code/main.py: message buffer, tool registry, stop condition,
-// turn budget, observation formatter. The model is a scripted ToyLLM so the
-// loop runs offline and deterministic; swap for a real provider client and
-// the control flow is identical.
+// 镜像 code/main.py：message buffer（消息缓冲区）、tool registry（工具注册表）、
+// stop condition（停止条件）、turn budget（轮次预算）、observation formatter（观察格式化器）。
+// 模型是脚本化的 ToyLLM，使循环可以离线、确定性运行；
+// 替换为真正的 provider client 后，控制流完全相同。
 //
-// References:
-//   ReAct paper       https://arxiv.org/abs/2210.03629
+// 参考文献：
+//   ReAct 论文        https://arxiv.org/abs/2210.03629
 //   Anthropic agents  https://www.anthropic.com/engineering/building-effective-agents
 //
-// Run: npx tsx code/main.ts
+// 运行：npx tsx code/main.ts
 
 type ToolFn = (args: Record<string, string>) => string;
 

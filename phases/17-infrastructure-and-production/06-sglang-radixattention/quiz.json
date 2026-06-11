@@ -1,75 +1,75 @@
 {
   "lesson": "06-sglang-radixattention",
-  "title": "SGLang and RadixAttention for Prefix-Heavy Workloads",
+  "title": "SGLang 与 RadixAttention：前缀密集型工作负载",
   "questions": [
     {
       "stage": "pre",
-      "question": "What core data structure backs SGLang's KV cache reuse?",
+      "question": "SGLang KV cache 复用的核心数据结构是什么？",
       "options": [
-        "A radix tree where each node owns a token range and its KV blocks",
-        "A hash table keyed by full prompt",
-        "A skip list keyed by request id",
-        "A B-tree of attention scores"
+        "Radix tree，每个节点拥有一个 token 范围及其 KV block",
+        "以完整 prompt 为键的哈希表",
+        "以请求 id 为键的跳表",
+        "attention score 的 B-tree"
       ],
       "correct": 0,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Why is FCFS scheduling wrong for prefix-heavy traffic on SGLang?",
+      "question": "为什么 FCFS 调度对 SGLang 上的前缀密集型流量是错误的？",
       "options": [
-        "FCFS only works on AMD GPUs",
-        "FCFS is the recommended SGLang policy",
-        "FCFS is incompatible with PagedAttention",
-        "FCFS can evict a hot prefix branch before the next long-prefix request hits, breaking radix-tree reuse"
+        "FCFS 只在 AMD GPU 上工作",
+        "FCFS 是 SGLang 的推荐策略",
+        "FCFS 与 PagedAttention 不兼容",
+        "FCFS 可能在下一个长前缀请求到达前驱逐热分支，破坏 radix tree 复用"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "What eviction granularity does SGLang's cache-aware scheduler use to match radix shape?",
+      "question": "SGLang 的 cache-aware scheduler 使用什么驱逐粒度来匹配 radix 形状？",
       "options": [
-        "Per-request only",
-        "Whole branches, starting from shortest-used leaves",
-        "Single tokens",
-        "Random eviction"
+        "仅按请求",
+        "整个分支，从最短的未使用叶子开始",
+        "单个 token",
+        "随机驱逐"
       ],
       "correct": 1,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "What is the most direct engineer's lever for keeping the radix-tree shared prefix discoverable?",
+      "question": "保持 radix tree 共享前缀可发现的最直接工程师杠杆是什么？",
       "options": [
-        "Lower the GPU memory utilization knob",
-        "Fix prompt-template ordering so immutable content (system, tools, schemas) is always first",
-        "Always use static batching",
-        "Disable continuous batching"
+        "降低 GPU 内存利用率旋钮",
+        "固定 prompt-template 排序，使不可变内容（system、tools、schema）始终在前",
+        "始终使用静态 batching",
+        "禁用 continuous batching"
       ],
       "correct": 1,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Which workload pattern does the lesson NOT expect RadixAttention to win on?",
+      "question": "本课预计 RadixAttention 在哪个工作负载模式上不会赢？",
       "options": [
-        "Agents with shared tool schemas",
-        "Voice workloads with repeated preambles",
-        "RAG with a shared retrieval preamble",
-        "Single-shot generation with unique prompts and no shared system prompt"
+        "共享工具 schema 的 agent",
+        "带重复前言的语音工作负载",
+        "带共享检索前言的 RAG",
+        "单次生成，prompt 唯一且无共享系统提示"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "ProjectDiscovery's deployment moved from 7% to 74% prefix-cache hit rate by doing what?",
+      "question": "ProjectDiscovery 的部署通过什么将前缀缓存命中率从 7% 提升到 74%？",
       "options": [
-        "Moving dynamic content out of the cacheable prefix",
-        "Increasing GPU count from 8 to 16",
-        "Switching from vLLM to SGLang without any prompt changes",
-        "Disabling continuous batching"
+        "将动态内容移出可缓存前缀",
+        "将 GPU 数量从 8 增加到 16",
+        "从 vLLM 切换到 SGLang 而不做任何 prompt 更改",
+        "禁用 continuous batching"
       ],
       "correct": 0,
       "explanation": ""

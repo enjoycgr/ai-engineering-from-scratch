@@ -1,62 +1,62 @@
 {
   "lesson": "04-vllm-serving-internals",
-  "title": "vLLM Serving Internals: PagedAttention, Continuous Batching, Chunked Prefill",
+  "title": "vLLM 推理服务内部原理：PagedAttention、Continuous Batching、Chunked Prefill",
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the main problem classic static batching has with mixed-length requests?",
+      "question": "经典静态 batching 在处理混合长度请求时的主要问题是什么？",
       "options": [
-        "It only works with FP4",
-        "It requires NVLink between every GPU",
-        "It cannot use GPUs at all",
-        "Padding to the longest prompt and longest output wastes memory and stalls the whole batch on the slowest sequence"
+        "它只支持 FP4",
+        "它要求每块 GPU 之间都有 NVLink",
+        "它完全不能使用 GPU",
+        "填充到最长 prompt 和最长输出会浪费内存，并在最慢序列上卡住整个 batch"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "How does PagedAttention reduce KV cache fragmentation from 60-80% to under 4%?",
+      "question": "PagedAttention 如何将 KV cache 碎片率从 60-80% 降到 4% 以下？",
       "options": [
-        "By disabling KV cache entirely",
-        "By compressing weights to INT4",
-        "By allocating KV cache in fixed-size blocks (default 16 tokens) referenced through a per-sequence block table",
-        "By holding the full prompt in CPU RAM"
+        "完全禁用 KV cache",
+        "将权重压缩到 INT4",
+        "通过每序列 block table 引用固定大小的 block（默认 16 token）来分配 KV cache",
+        "将整个 prompt 保留在 CPU RAM 中"
       ],
       "correct": 2,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "What invariant defines continuous batching in vLLM's V1 scheduler?",
+      "question": "什么不变量定义了 vLLM V1 scheduler 中的 continuous batching？",
       "options": [
-        "The scheduler runs once per request and the batch never changes",
-        "Each request gets its own dedicated GPU stream",
-        "The scheduler waits 10 ms windows to fill a batch before running",
-        "The scheduler runs once per decode iteration, admitting finished sequences out and waiting ones in"
+        "调度器每次请求运行一次，batch 永不改变",
+        "每个请求获得专属的 GPU stream",
+        "调度器等待 10 ms 窗口填满 batch 后才运行",
+        "调度器每次 decode 迭代运行一次，已完成的序列退出，等待的序列进入"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which latency metric does chunked prefill primarily protect under mixed load?",
+      "question": "在混合负载下，chunked prefill 主要保护哪个延迟指标？",
       "options": [
-        "Mean throughput",
-        "Cold-start time",
-        "Network RTT",
-        "P99 inter-token latency (ITL)"
+        "平均吞吐量",
+        "冷启动时间",
+        "网络 RTT",
+        "P99 token 间延迟（ITL）"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "In vLLM v0.18.0, which speculative-decoding variant remains compatible with --enable-chunked-prefill?",
+      "question": "在 vLLM v0.18.0 中，哪种 speculative decoding 变体仍与 --enable-chunked-prefill 兼容？",
       "options": [
-        "EAGLE-1 only",
-        "N-gram GPU speculative decoding in the V1 scheduler",
-        "No speculative decoding is compatible",
+        "仅 EAGLE-1",
+        "V1 scheduler 中的 N-gram GPU speculative decoding",
+        "没有 speculative decoding 兼容",
         "Draft-model speculative decoding"
       ],
       "correct": 1,
@@ -64,12 +64,12 @@
     },
     {
       "stage": "post",
-      "question": "Why does chunked prefill not in isolation increase mean throughput?",
+      "question": "为什么 chunked prefill 不单独提高平均吞吐量？",
       "options": [
-        "It runs on a different GPU than decode",
-        "It uses speculative decoding under the hood",
-        "It compresses weights more aggressively",
-        "It only reduces decode-time jitter; the throughput win in practice comes from keeping decode sequences alive during long prefills, not from changing the work done"
+        "它在与 decode 不同的 GPU 上运行",
+        "它在底层使用 speculative decoding",
+        "它更激进地压缩权重",
+        "它只减少 decode 时间抖动；实践中吞吐量提升来自在长 prefill 期间保持 decode 序列活跃，而非改变工作量"
       ],
       "correct": 3,
       "explanation": ""

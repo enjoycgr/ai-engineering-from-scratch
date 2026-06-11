@@ -1,16 +1,16 @@
-"""Phase 13 Lesson 13 - MCP async Tasks (SEP-1686) with durable state.
+"""Phase 13 Lesson 13 - 具备持久状态的 MCP 异步 Tasks（SEP-1686）。
 
-Simulates a long-running generate_report tool:
-  - tools/call with _meta.task.required returns immediately with taskId
-  - worker thread updates progress in a filesystem-backed task store
-  - tasks/status polls progress
-  - tasks/result returns the final payload
-  - tasks/cancel signals the worker to stop
-  - crash recovery marks in-flight tasks as failed on reload
+模拟长时间运行的 generate_report 工具：
+  - 带 _meta.task.required 的 tools/call 立即返回 taskId
+  - 工作者线程在文件系统支持的任务存储中更新进度
+  - tasks/status 轮询进度
+  - tasks/result 返回最终载荷
+  - tasks/cancel 向工作者发送停止信号
+  - 崩溃恢复在重新加载时将飞行中的任务标记为失败
 
-Stdlib only.
+仅标准库。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

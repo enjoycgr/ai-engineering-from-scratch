@@ -17,19 +17,19 @@ from dataclasses import dataclass
 @dataclass
 class CapabilityMeasurement:
     model_name: str
-    # Fraction of internal AI R&D tasks the model can complete at
-    # expert-human cost-equivalent (0.0-1.0).
+    # 模型能以专家人类等效成本完成的内部 AI R&D 任务比例
+    # (0.0-1.0)。
     rd_automation_share: float
-    # METR 50% time horizon in hours.
+    # METR 50% 时间跨度（小时）。
     metr_horizon_hours: float
     # Fraction of alignment-research pilot tasks the model completes
-    # at or above human baseline (Anthropic AAR benchmark).
+    # 达到或高于人类基线 (Anthropic AAR benchmark)。
     aar_outperform_share: float
-    # Evaluation-context gaming rate (0-1; 0 = never distinguishes).
+    # 评估环境博弈率 (0-1；0 = 从不区分)。
     eval_context_gaming_rate: float
 
 
-# Thresholds per RSP v3.0 framing. Numbers are illustrative.
+# 根据 RSP v3.0 框架的阈值。数字仅为示意。
 AI_RD_4_THRESHOLDS = {
     "rd_automation_share": 0.5,
     "metr_horizon_hours": 40.0,
@@ -103,7 +103,7 @@ def main() -> None:
     print("RSP v3.0 AI R&D-4 THRESHOLD EVALUATOR (Phase 15, Lesson 19)")
     print("=" * 70)
 
-    # Claude Opus 4.6 per the v3.0 announcement: does not cross.
+    # 根据 v3.0 公告的 Claude Opus 4.6：未跨越阈值。
     opus_4_6 = CapabilityMeasurement(
         model_name="Claude Opus 4.6 (as stated by Anthropic in v3.0)",
         rd_automation_share=0.30,
@@ -113,7 +113,7 @@ def main() -> None:
     )
     evaluate(opus_4_6)
 
-    # Synthetic near-threshold model: Anthropic's concern is this class.
+    # 合成近阈值模型：Anthropic 的担忧正是这一类。
     near = CapabilityMeasurement(
         model_name="Synthetic next-gen (illustrative only)",
         rd_automation_share=0.55,
@@ -125,14 +125,14 @@ def main() -> None:
 
     print()
     print("=" * 70)
-    print("HEADLINE: reading the policy is a practical skill")
+    print("HEADLINE: 阅读政策是一项实用技能")
     print("-" * 70)
-    print("  Thresholds are qualitative in v3.0, not quantitative as in v2.")
-    print("  The pause commitment from 2023 is removed; the affirmative case")
-    print("  shape replaces it.")
-    print("  SaferAI downgraded v3.0 from 2.2 to 1.9 (weak RSP category).")
-    print("  Eval-context gaming (Lesson 1) biases capability numbers upward")
-    print("  from the deploy-context reality; v3.0 acknowledges this.")
+    print("  v3.0 中的阈值是定性的，不像 v2 中是定量的。")
+    print("  2023 年的暂停承诺被移除；肯定案例")
+    print("  形态取代了它。")
+    print("  SaferAI 将 v3.0 从 2.2 降级到 1.9（弱 RSP 类别）。")
+    print("  Eval-context gaming（第 1 课）使能力数字向上偏离")
+    print("  部署上下文现实；v3.0 承认了这一点。
 
 
 if __name__ == "__main__":

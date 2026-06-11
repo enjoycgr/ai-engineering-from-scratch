@@ -12,7 +12,7 @@
         "Subword n-gram embeddings"
       ],
       "correct": 0,
-      "explanation": "GloVe factorizes the global co-occurrence matrix with a thoughtfully weighted log-loss."
+      "explanation": "GloVe 通过精心加权的 log-loss 分解全局共现矩阵。"
     },
     {
       "stage": "pre",
@@ -24,7 +24,7 @@
         "Polysemy disambiguation"
       ],
       "correct": 2,
-      "explanation": "FastText composes a word vector from its subword n-grams, so OOV words still get a sensible vector."
+      "explanation": "FastText 从子词 n-gram 组合词向量，因此 OOV 词仍能获得合理的向量。"
     },
     {
       "stage": "check",
@@ -36,7 +36,7 @@
         "Normalizes vectors to unit length"
       ],
       "correct": 0,
-      "explanation": "The weighting prevents ubiquitous co-occurrences like (the, and) from dominating training."
+      "explanation": "权重函数防止像 (the, and) 这样的 ubiquitous co-occurrences 主导训练。"
     },
     {
       "stage": "check",
@@ -48,7 +48,7 @@
         "The pair with highest IDF"
       ],
       "correct": 2,
-      "explanation": "BPE iteratively merges the most frequent adjacent pair."
+      "explanation": "BPE 迭代合并最频繁的相邻词对。"
     },
     {
       "stage": "check",
@@ -60,7 +60,7 @@
         "Bytes preserve casing implicitly"
       ],
       "correct": 1,
-      "explanation": "Starting from 256 bytes means every UTF-8 string tokenizes; nothing is OOV."
+      "explanation": "从 256 字节开始意味着每个 UTF-8 字符串都能被分词；没有任何东西是 OOV。"
     },
     {
       "stage": "post",
@@ -72,7 +72,7 @@
         "Always byte-level BPE"
       ],
       "correct": 1,
-      "explanation": "Tokenizer-model mismatch silently corrupts inputs; always pair the shipped tokenizer with its model."
+      "explanation": "Tokenizer 与 model mismatch 会静默破坏输入；始终将模型自带的 tokenizer 与其配对使用。"
     },
     {
       "stage": "post",
@@ -84,7 +84,7 @@
         "When the corpus is very small"
       ],
       "correct": 1,
-      "explanation": "FastText's subword composition handles inflections, neologisms, and misspellings that GloVe cannot."
+      "explanation": "FastText 的子词组合能处理屈折变化、新造词和拼写错误，而 GloVe 无法做到。"
     },
     {
       "stage": "post",
@@ -96,7 +96,7 @@
         "Subword pieces (characters, n-grams, or learned merges) below the word level"
       ],
       "correct": 3,
-      "explanation": "All three are subword tokenizers; they differ in how merges or pieces are learned, not in being subword."
+      "explanation": "三者都是 subword tokenizer (子词分词器)；它们的区别在于如何学习合并或片段，而非是否使用子词。"
     }
   ]
 }

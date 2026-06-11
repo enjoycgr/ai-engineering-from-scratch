@@ -5,6 +5,7 @@ from collections import Counter
 from openai import OpenAI
 
 
+# GSM8K 示例库：包含问题、推理过程和答案的 few-shot CoT 示例
 GSM8K_EXAMPLES = [
     {
         "question": (
@@ -102,6 +103,7 @@ GSM8K_EXAMPLES = [
 
 
 def extract_answer(text):
+    """从模型响应文本中提取最终数值答案。"""
     if not text:
         return None
     patterns = [
@@ -121,6 +123,7 @@ def extract_answer(text):
 
 
 def build_cot_prompt(question, examples, num_examples=3):
+    """构建 few-shot CoT 提示词，包含示例推理链。"""
     system = (
         "You are a precise math problem solver. "
         "For each problem, show your step-by-step reasoning clearly. "
@@ -138,6 +141,7 @@ def build_cot_prompt(question, examples, num_examples=3):
 
 
 def build_zero_shot_cot_prompt(question):
+    """构建 zero-shot CoT 提示词（仅追加推理触发词）。"""
     system = (
         "You are a precise math problem solver. "
         "Show your step-by-step reasoning. "
@@ -148,6 +152,7 @@ def build_zero_shot_cot_prompt(question):
 
 
 def build_zero_shot_prompt(question):
+    """构建纯 zero-shot 提示词（无推理过程）。"""
     system = (
         "You are a precise math problem solver. "
         "Give only the final numerical answer. "
@@ -158,6 +163,7 @@ def build_zero_shot_prompt(question):
 
 
 def call_llm(client, model, system, user, temperature=0.0):
+    """调用 LLM API 并返回响应文本。"""
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -171,24 +177,28 @@ def call_llm(client, model, system, user, temperature=0.0):
 
 
 def zero_shot_solve(question, client, model):
+    """使用 zero-shot 策略求解。"""
     system, user = build_zero_shot_prompt(question)
     text = call_llm(client, model, system, user, temperature=0.0)
     return extract_answer(text), text
 
 
 def zero_shot_cot_solve(question, client, model):
+    """使用 zero-shot CoT 策略求解。"""
     system, user = build_zero_shot_cot_prompt(question)
     text = call_llm(client, model, system, user, temperature=0.0)
     return extract_answer(text), text
 
 
 def few_shot_cot_solve(question, examples, client, model, num_examples=3):
+    """使用 few-shot CoT 策略求解。"""
     system, user = build_cot_prompt(question, examples, num_examples)
     text = call_llm(client, model, system, user, temperature=0.0)
     return extract_answer(text), text
 
 
 def self_consistency_solve(question, examples, client, model, n_samples=5):
+    """使用 self-consistency：采样 N 条推理路径并多数投票。"""
     system, user = build_cot_prompt(question, examples)
 
     answers = []
@@ -211,6 +221,7 @@ def self_consistency_solve(question, examples, client, model, n_samples=5):
 
 
 def generate_initial_thoughts(question, client, model, breadth=3):
+    """生成多个初始解题思路（Tree-of-Thought 的第一步）。"""
     system = (
         "You are a math problem solver exploring different solution approaches. "
         "Generate one distinct approach to solving this problem. "
@@ -230,6 +241,7 @@ def generate_initial_thoughts(question, client, model, breadth=3):
 
 
 def evaluate_thought(thought, question, client, model):
+    """评估部分推理路径的质量（0.0 到 1.0）。"""
     system = (
         "You are a math reasoning evaluator. "
         "Score the following partial reasoning on a scale from 0.0 to 1.0. "
@@ -247,6 +259,7 @@ def evaluate_thought(thought, question, client, model):
 
 
 def extend_thought(thought, question, client, model, breadth=2):
+    """扩展部分推理路径，生成下一步推理。"""
     system = (
         "You are a math problem solver continuing a line of reasoning. "
         "Take the partial reasoning below and extend it further toward a solution. "
@@ -266,6 +279,7 @@ def extend_thought(thought, question, client, model, breadth=2):
 
 
 def tree_of_thought_solve(question, client, model, breadth=3, depth=3):
+    """使用 Tree-of-Thought 求解：探索多条推理路径并评估择优。"""
     thoughts = generate_initial_thoughts(question, client, model, breadth)
     scored = [(t, evaluate_thought(t, question, client, model)) for t in thoughts]
     scored.sort(key=lambda x: x[1], reverse=True)
@@ -286,6 +300,7 @@ def tree_of_thought_solve(question, client, model, breadth=3, depth=3):
 
 
 def react_solve(question, client, model, max_steps=5):
+    """使用 ReAct 求解：推理与工具使用交替进行。"""
     system = (
         "You are a math problem solver that can use a calculator. "
         "For each step, output exactly one of:\n"
@@ -334,6 +349,7 @@ def react_solve(question, client, model, max_steps=5):
 
 
 def solve_with_escalation(question, examples, client, model):
+    """升级管道：先尝试 cheap 的 few-shot CoT，置信度低时升级到 ToT。"""
     single_answer, single_text = few_shot_cot_solve(
         question, examples, client, model
     )
@@ -365,6 +381,7 @@ def solve_with_escalation(question, examples, client, model):
 
 
 def run_comparison(questions, expected_answers, examples, client, model):
+    """对比 zero-shot、zero-shot CoT、few-shot CoT 和 self-consistency 的准确率。"""
     methods = {
         "zero_shot": lambda q: zero_shot_solve(q, client, model),
         "zero_shot_cot": lambda q: zero_shot_cot_solve(q, client, model),
@@ -398,6 +415,7 @@ def run_comparison(questions, expected_answers, examples, client, model):
 
 
 def build_structured_prompt(question, context=None):
+    """构建使用 XML 标签的结构化提示词。"""
     system = """<role>
 You are a precise mathematical problem solver with expertise in word problems.
 </role>
@@ -430,6 +448,7 @@ The answer is [number].
 
 
 def prompt_chain_solve(question, client, model):
+    """使用 prompt chaining 分三步求解：提取事实 -> 求解 -> 验证。"""
     extract_system = (
         "Extract the key numerical values and relationships from this math problem. "
         "List each as: [variable]: [value] [unit]. "
@@ -461,6 +480,7 @@ def prompt_chain_solve(question, client, model):
     }
 
 
+# 测试题库
 TEST_QUESTIONS = [
     {
         "question": (

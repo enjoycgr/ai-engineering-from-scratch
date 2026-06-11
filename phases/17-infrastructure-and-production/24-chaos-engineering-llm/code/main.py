@@ -1,6 +1,9 @@
 """Chaos engineering runner with safety plane gates — stdlib Python.
 
+带安全平面关卡的混沌工程运行器 —— 仅使用 Python 标准库。
+
 Runs three LLM-specific experiments and applies burn-rate + blast-radius safety gates.
+运行三个 LLM 专用实验，并应用 burn-rate（燃尽速率）+ blast-radius（影响范围）安全关卡。
 """
 
 from __future__ import annotations
@@ -44,6 +47,7 @@ def run_experiment(e: Experiment) -> dict:
 def main() -> None:
     print("=" * 90)
     print("CHAOS EXPERIMENT RUNNER — safety plane gates burn-rate × blast-radius")
+    print("=" * 90)
     print("=" * 90)
     print(f"SLO error budget: {ERROR_BUDGET_PER_DAY*100:.2f}%/day")
     print(f"Expected baseline error rate: {EXPECTED_ERROR_RATE*100:.3f}%")

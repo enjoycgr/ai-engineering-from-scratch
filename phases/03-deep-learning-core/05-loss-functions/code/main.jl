@@ -1,7 +1,7 @@
-# Loss functions in Julia. MSE, MAE, binary cross-entropy,
-# categorical cross-entropy + softmax, and focal loss for imbalanced
-# classification — each with its analytical gradient.
-# Stdlib only. Sources:
+# Julia 中的 Loss functions（损失函数）。MSE、MAE、binary cross-entropy（二元交叉熵）、
+# categorical cross-entropy + softmax（分类交叉熵 + 软最大值），以及用于不平衡
+# 分类的 focal loss（焦点损失）——每个都附带解析 gradient（梯度）。
+# 仅使用标准库。参考来源：
 #   https://arxiv.org/abs/1708.02002  (Focal loss: Lin et al.)
 #   https://docs.julialang.org/en/v1/base/math/
 
@@ -70,7 +70,7 @@ function softmax(logits::Vector{Float64})::Vector{Float64}
 end
 
 
-# target_index is 0-indexed to mirror the Python lesson.
+# target_index 使用 0-based 索引以与 Python 课程保持一致。
 function categorical_cross_entropy(logits::Vector{Float64}, target_index::Int;
                                    eps::Float64=1e-15)::Float64
     probs = softmax(logits)
@@ -87,9 +87,9 @@ function cce_grad(logits::Vector{Float64}, target_index::Int)::Vector{Float64}
 end
 
 
-# Focal loss for binary classification (sigmoid outputs).
-# Down-weights easy examples by (1 - p_t)^gamma so the model
-# focuses on hard ones; useful for class imbalance.
+# 用于二分类的 Focal loss（sigmoid 输出）。
+# 通过 (1 - p_t)^gamma 对简单样本降权，使模型
+# 聚焦于困难样本；适用于类别不平衡场景。
 function focal_loss(preds::Vector{Float64}, targets::Vector{Float64};
                     gamma::Float64=2.0, alpha::Float64=0.25,
                     eps::Float64=1e-15)::Float64
@@ -117,9 +117,9 @@ function focal_grad(preds::Vector{Float64}, targets::Vector{Float64};
         t = targets[i]
         pt = t * p + (1 - t) * (1 - p)
         at = t * alpha + (1 - t) * (1 - alpha)
-        # d(pt)/d(p) = 2t - 1 (1 if t==1, -1 if t==0).
+        # d(pt)/d(p) = 2t - 1 (t==1 时为 1, t==0 时为 -1)。
         dpt_dp = 2 * t - 1
-        # d/dp [-(1-pt)^gamma * log(pt)] applied via chain rule.
+        # 通过链式法则应用 d/dp [-(1-pt)^gamma * log(pt)]。
         base = (1 - pt) ^ (gamma - 1)
         term = base * (gamma * log(pt) - (1 - pt) / pt)
         grads[i] = at * term * dpt_dp / n
@@ -147,7 +147,7 @@ end
 
 
 mutable struct LossNetwork
-    loss_type::Symbol  # :mse or :bce
+    loss_type::Symbol  # :mse 或 :bce
     lr::Float64
     hidden_size::Int
     w1::Matrix{Float64}
@@ -242,7 +242,7 @@ end
 
 function main()
     println("=" ^ 60)
-    println("STEP 1: MSE Loss")
+    println("步骤 1: MSE Loss (均方误差损失)")
     println("=" ^ 60)
     preds = Float64[0.9, 0.1, 0.7, 0.4]
     targets = Float64[1.0, 0.0, 1.0, 0.0]
@@ -252,18 +252,18 @@ function main()
     println("  MSE Grads:   $(round.(mse_grad(preds, targets), digits=4))")
 
     println("\n" * "=" ^ 60)
-    println("STEP 2: MAE Loss")
+    println("步骤 2: MAE Loss (平均绝对误差损失)")
     println("=" ^ 60)
     @printf("  MAE Loss:    %.6f\n", mae(preds, targets))
     println("  MAE Grads:   $(round.(mae_grad(preds, targets), digits=4))")
 
     println("\n" * "=" ^ 60)
-    println("STEP 3: Binary Cross-Entropy")
+    println("步骤 3: Binary Cross-Entropy (二元交叉熵)")
     println("=" ^ 60)
     @printf("  BCE Loss:    %.6f\n", binary_cross_entropy(preds, targets))
     println("  BCE Grads:   $(round.(bce_grad(preds, targets), digits=4))")
 
-    println("\n  CE loss at different confidence levels (true label = 1):")
+    println("\n  不同置信度下的 CE loss (真实标签 = 1):")
     for conf in [0.01, 0.1, 0.5, 0.9, 0.99]
         ce = -log(max(1e-15, conf))
         ms = (conf - 1.0) ^ 2
@@ -271,10 +271,10 @@ function main()
     end
 
     println("\n" * "=" ^ 60)
-    println("STEP 4: Categorical Cross-Entropy + Softmax")
+    println("步骤 4: Categorical Cross-Entropy + Softmax (分类交叉熵 + 软最大值)")
     println("=" ^ 60)
     logits = Float64[2.0, 1.0, 0.1, -1.0, 3.0]
-    target_idx = 4   # 0-indexed; 5th class
+    target_idx = 4   # 0-based; 第 5 个类别
     probs = softmax(logits)
     println("  Logits:  $logits")
     println("  Softmax: $(round.(probs, digits=4))")
@@ -283,10 +283,10 @@ function main()
     println("  Gradient: $(round.(cce_grad(logits, target_idx), digits=4))")
 
     println("\n" * "=" ^ 60)
-    println("STEP 5: Focal Loss (handles class imbalance)")
+    println("步骤 5: Focal Loss (焦点损失，处理类别不平衡)")
     println("=" ^ 60)
-    # Show focal loss down-weighting easy correct examples vs hard ones.
-    println("  Effect of focal modulator (1 - pt)^gamma for true label = 1:")
+    # 展示 focal loss 对简单正确样本 vs 困难样本的降权效果。
+    println("  真实标签 = 1 时 focal modulator (1 - pt)^gamma 的效果:")
     for p in [0.05, 0.5, 0.95]
         pt = p
         modulator = (1 - pt) ^ 2.0
@@ -295,14 +295,14 @@ function main()
         @printf("    p=%.2f  CE=%.4f  modulator=(1-pt)^2=%.4f  Focal=%.4f\n", p, ce, modulator, focal)
     end
 
-    # Mixed batch: half-correct preds, gamma=2, alpha=0.25.
+    # 混合 batch: 一半正确预测, gamma=2, alpha=0.25。
     @printf("\n  Batch focal loss (gamma=2, alpha=0.25): %.6f\n",
             focal_loss(preds, targets))
     println("  Batch focal grads: $(round.(focal_grad(preds, targets), digits=4))")
     @printf("\n  Batch BCE for comparison: %.6f\n", binary_cross_entropy(preds, targets))
 
     println("\n" * "=" ^ 60)
-    println("STEP 6: MSE vs BCE on Classification")
+    println("步骤 6: MSE vs BCE on Classification (分类任务上 MSE 与 BCE 的对比)")
     println("=" ^ 60)
     data = make_circle_data()
     for loss_type in [:mse, :bce]

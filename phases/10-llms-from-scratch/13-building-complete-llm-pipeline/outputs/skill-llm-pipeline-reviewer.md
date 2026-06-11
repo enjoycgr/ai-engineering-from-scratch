@@ -1,6 +1,6 @@
 ---
 name: llm-pipeline-reviewer
-description: Review an end-to-end LLM training pipeline manifest before a multi-million-dollar run.
+description: 在数百万美元运行前审查端到端 LLM training pipeline manifest。
 version: 1.0.0
 phase: 10
 lesson: 13

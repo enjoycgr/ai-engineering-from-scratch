@@ -1,8 +1,6 @@
-"""Production scaling demo: checkpoints, queues, async vs threads.
+"""生产扩展演示：检查点、队列、异步 vs 线程。
 
-All stdlib. CheckpointStore uses SQLite. AgentQueue is a per-agent state
-machine with 3 states. async vs threads benchmark runs 500 concurrent
-simulated LLM calls.
+全部使用标准库。CheckpointStore使用SQLite。AgentQueue是具有3个状态的每智能体状态机。异步vs线程基准测试运行500个并发模拟LLM调用。
 """
 from __future__ import annotations
 

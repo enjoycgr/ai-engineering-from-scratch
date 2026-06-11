@@ -1,17 +1,17 @@
 ---
 name: grammar-pipeline
-description: Design a classical POS + dependency pipeline for a downstream NLP task.
+description: 为下游 NLP 任务设计经典的 POS + 依存分析流水线。
 version: 1.0.0
 phase: 5
 lesson: 07
 tags: [nlp, pos, parsing]
 ---
 
-Given a downstream task (information extraction, rewrite validation, query decomposition, lemmatization), you output:
+给定一个下游任务（信息抽取、改写验证、查询分解、词形还原），输出：
 
-1. Tagset. Penn Treebank for English-only legacy pipelines, Universal Dependencies for multilingual or cross-lingual.
-2. Library. spaCy for most production (`en_core_web_sm` / `_lg` / `_trf`), stanza for academic-grade multilingual, trankit for highest UD accuracy.
-3. Integration snippet. The 3-5 lines that call the library and consume `.pos_`, `.dep_`, `.head`.
-4. Failure mode to test. Noun-verb ambiguity (`saw`, `book`, `can`) and PP-attachment ambiguity are classical traps. Sample 20 outputs and eyeball.
+1. 标签集（Tagset）。纯英语遗留流水线用 Penn Treebank，多语言或跨语言用 Universal Dependencies。
+2. 库（Library）。大多数生产环境用 spaCy（`en_core_web_sm` / `_lg` / `_trf`），学术级多语言用 stanza，最高 UD 准确率用 trankit。
+3. 集成片段（Integration snippet）。调用库并消费 `.pos_`、`.dep_`、`.head` 的 3-5 行代码。
+4. 需要测试的失效模式（Failure mode to test）。名词-动词歧义（`saw`、`book`、`can`）和介词短语附着歧义（PP-attachment ambiguity）是经典陷阱。采样 20 条输出并人工检查。
 
-Refuse to recommend rolling your own parser. Building parsers from scratch is a research project, not an application task. Flag any pipeline that consumes POS tags without handling lowercase / uppercase variants as fragile.
+拒绝推荐从零自建分析器。从零构建分析器是一个研究项目，不是应用任务。标记任何不处理小写/大写变体就消费 POS 标签的流水线为脆弱。

@@ -37,19 +37,19 @@ POS_DIM = 4
 
 
 def make_video(rng):
-    """1-D 'video': smooth trajectory of T_FRAMES values."""
+    """1-D "视频"：T_FRAMES 个数值的平滑轨迹。"""
     base = rng.gauss(0, 1)
     slope = rng.gauss(0, 0.3)
     return [base + slope * t + rng.gauss(0, 0.05) for t in range(T_FRAMES)]
 
 
 def patchify_with_pos(video):
-    """Each 'patch' here is one frame value + its time position embedding."""
+    """这里的每个"块"(patch)是一个帧值 + 它的时间位置嵌入(position embedding)。"""
     out = []
     for t in range(T_FRAMES):
         pe = sin_embed(t, POS_DIM)
         out.append([video[t]] + pe)
-    return out  # list of (1 + POS_DIM) vectors
+    return out  # (1 + POS_DIM) 维向量的列表
 
 
 def flatten(patches):
@@ -128,7 +128,7 @@ def make_schedule(T):
 
 
 def train_joint(net, alpha_bars, T, t_dim, steps, lr, rng):
-    """Joint sampling: denoiser sees all frames + their time positions simultaneously."""
+    """联合采样：去噪器(denoiser)同时看到所有帧 + 它们的时间位置。"""
     for step in range(steps):
         video = make_video(rng)
         t = rng.randrange(T)
@@ -162,7 +162,7 @@ def sample_joint(net, alphas, alpha_bars, T, t_dim, rng):
 
 
 def independent_per_frame(T_frames, rng):
-    """Baseline: sample each frame independently from a random walk."""
+    """基线：从随机游走中独立采样每一帧。"""
     return [rng.gauss(0, 1) + 0.3 * t for t in range(T_frames)]
 
 
@@ -176,32 +176,32 @@ def main():
     alphas, alpha_bars = make_schedule(T)
     net = init_net(T_FRAMES * (1 + POS_DIM) + t_dim, hidden, T_FRAMES, rng)
 
-    print(f"=== training joint video DDPM: {T_FRAMES} frames per clip ===")
+    print(f"=== 训练联合视频 DDPM：每段剪辑 {T_FRAMES} 帧 ===")
     train_joint(net, alpha_bars, T, t_dim, steps=3000, lr=0.01, rng=rng)
 
     print()
-    print("=== 5 clips, joint sampling (coherent) ===")
+    print("=== 5 段剪辑，联合采样（连贯） ===")
     joint_deltas = []
     for i in range(5):
         clip = sample_joint(net, alphas, alpha_bars, T, t_dim, rng)
         deltas = frame_deltas(clip)
         joint_deltas.extend(deltas)
-        print(f"  clip {i}: " + " ".join(f"{v:+.2f}" for v in clip))
+        print(f"  剪辑 {i}：" + " ".join(f"{v:+.2f}" for v in clip))
 
     print()
-    print("=== 5 clips, independent per-frame (flicker baseline) ===")
+    print("=== 5 段剪辑，独立逐帧采样（闪烁基线） ===")
     indep_deltas = []
     for i in range(5):
         clip = independent_per_frame(T_FRAMES, rng)
         deltas = frame_deltas(clip)
         indep_deltas.extend(deltas)
-        print(f"  clip {i}: " + " ".join(f"{v:+.2f}" for v in clip))
+        print(f"  剪辑 {i}：" + " ".join(f"{v:+.2f}" for v in clip))
 
     avg_joint = sum(joint_deltas) / len(joint_deltas)
     avg_indep = sum(indep_deltas) / len(indep_deltas)
     print()
-    print(f"avg frame-to-frame delta: joint={avg_joint:.2f}  independent={avg_indep:.2f}")
-    print("joint sampling produces smoother motion (smaller deltas).")
+    print(f"平均帧间差值：联合={avg_joint:.2f}  独立={avg_indep:.2f}")
+    print("联合采样产生更平滑的运动（差值更小）。")
 
 
 if __name__ == "__main__":

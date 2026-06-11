@@ -4,6 +4,7 @@ import math
 
 
 class LoRALayer(nn.Module):
+    """LoRA 低秩适配层：用两个小型矩阵 A 和 B 近似权重更新。"""
     def __init__(self, in_features, out_features, rank=8, alpha=16):
         super().__init__()
         self.rank = rank
@@ -18,6 +19,7 @@ class LoRALayer(nn.Module):
 
 
 class LinearWithLoRA(nn.Module):
+    """将 LoRA 注入现有 Linear 层的包装器。"""
     def __init__(self, linear, rank=8, alpha=16):
         super().__init__()
         self.linear = linear
@@ -33,6 +35,7 @@ class LinearWithLoRA(nn.Module):
 
 
 def inject_lora(model, target_modules, rank=8, alpha=16):
+    """将 LoRA 层注入模型中匹配的 target_modules。"""
     for param in model.parameters():
         param.requires_grad = False
 
@@ -53,6 +56,7 @@ def inject_lora(model, target_modules, rank=8, alpha=16):
 
 
 def count_parameters(model):
+    """统计模型中的总参数、可训练参数和冻结参数数量。"""
     total = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     frozen = total - trainable
@@ -65,6 +69,7 @@ def count_parameters(model):
 
 
 def merge_lora_weights(model):
+    """将 LoRA 权重合并回基础 Linear 层，移除 adapter 开销。"""
     for name, module in list(model.named_modules()):
         if isinstance(module, LinearWithLoRA):
             with torch.no_grad():
@@ -81,6 +86,7 @@ def merge_lora_weights(model):
 
 
 def quantize_to_nf4(tensor, block_size=64):
+    """模拟 NF4 量化：将张量映射到每个 block 16 个离散级别。"""
     original_shape = tensor.shape
     flat = tensor.reshape(-1)
 
@@ -97,6 +103,7 @@ def quantize_to_nf4(tensor, block_size=64):
 
 
 def dequantize_from_nf4(quantized, scales, original_shape, pad_size):
+    """从 NF4 量化表示中反量化回浮点张量。"""
     dequantized = quantized.float() * scales
     flat = dequantized.reshape(-1)
     if pad_size > 0:
@@ -105,6 +112,7 @@ def dequantize_from_nf4(quantized, scales, original_shape, pad_size):
 
 
 def quantize_model(model):
+    """量化模型的非可训练参数以模拟 QLoRA 显存节省。"""
     quantized_state = {}
     for name, param in model.named_parameters():
         if not param.requires_grad and param.dim() >= 2:
@@ -120,6 +128,7 @@ def quantize_model(model):
 
 
 def train_lora(model, data, epochs=5, lr=1e-3, batch_size=4):
+    """仅训练可训练参数（LoRA adapter）的简化训练循环。"""
     optimizer = torch.optim.AdamW(
         [p for p in model.parameters() if p.requires_grad], lr=lr
     )
@@ -153,6 +162,7 @@ def train_lora(model, data, epochs=5, lr=1e-3, batch_size=4):
 
 
 def save_lora_adapter(model, path):
+    """仅保存 LoRA A/B 矩阵，不保存基础模型权重。"""
     adapter_state = {}
     for name, module in model.named_modules():
         if isinstance(module, LoRALayer):
@@ -165,6 +175,7 @@ def save_lora_adapter(model, path):
 
 
 def load_lora_adapter(model, path):
+    """将保存的 LoRA adapter 加载到具有相同架构的模型中。"""
     adapter_state = torch.load(path, weights_only=False)
     for name, module in model.named_modules():
         if isinstance(module, LoRALayer):
@@ -176,6 +187,7 @@ def load_lora_adapter(model, path):
 
 
 def create_demo_model(d_model=256, hidden=512, n_classes=10):
+    """创建用于演示 LoRA 注入的简单 MLP 模型。"""
     return nn.Sequential(
         nn.Linear(d_model, hidden),
         nn.ReLU(),
@@ -186,6 +198,7 @@ def create_demo_model(d_model=256, hidden=512, n_classes=10):
 
 
 def create_demo_data(n_samples=500, d_model=256, n_classes=10):
+    """为分类任务生成随机合成数据。"""
     x = torch.randn(n_samples, d_model)
     y = torch.randint(0, n_classes, (n_samples,))
     y_onehot = torch.zeros(n_samples, n_classes).scatter_(1, y.unsqueeze(1), 1.0)

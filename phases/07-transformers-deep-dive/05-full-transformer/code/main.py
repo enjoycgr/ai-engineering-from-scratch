@@ -1,10 +1,10 @@
-"""The full transformer: encoder + decoder blocks in pure stdlib.
+"""完整 Transformer：纯标准库实现的编码器 + 解码器块。
 
-Demonstrates:
+演示内容：
 - LayerNorm vs RMSNorm
 - ReLU-FFN vs SwiGLU FFN
-- encoder block (bidirectional) vs decoder block (causal + cross-attn)
-- pre-norm wiring (2026 default)
+- 编码器块（双向）vs 解码器块（因果 + 交叉注意力）
+- pre-norm 接线方式（2026 年默认）
 """
 
 import math
@@ -160,7 +160,7 @@ def multi_head_attention(X, Wq, Wk, Wv, Wo, n_heads, causal=False, kv_source=Non
 
 
 class BlockParams:
-    """All weights for one encoder or decoder block."""
+    """单个编码器或解码器块的所有权重。"""
     def __init__(self, d, n_heads, ffn_expansion, rng, use_swiglu=True):
         self.d = d
         self.n_heads = n_heads
@@ -177,7 +177,7 @@ class BlockParams:
         else:
             self.W1 = randn(d, h, rng)
             self.W2 = randn(h, d, rng)
-        # cross-attention (decoder)
+        # 交叉注意力（解码器）
         self.Wq_x = randn(d, d, rng)
         self.Wk_x = randn(d, d, rng)
         self.Wv_x = randn(d, d, rng)
@@ -185,22 +185,22 @@ class BlockParams:
 
 
 def encoder_block(x, p):
-    # pre-norm self-attention + residual
+    # pre-norm 自注意力 + 残差
     h = rms_norm(x)
     a = multi_head_attention(h, p.Wq, p.Wk, p.Wv, p.Wo, p.n_heads)
     x = add(x, a)
-    # pre-norm FFN + residual
+    # pre-norm FFN + 残差
     h = rms_norm(x)
     f = ffn_swiglu(h, p.W1, p.W2, p.W3) if p.use_swiglu else ffn_relu(h, p.W1, p.W2)
     return add(x, f)
 
 
 def decoder_block(x, enc_out, p):
-    # 1) masked self-attention
+    # 1) 掩码自注意力
     h = rms_norm(x)
     a = multi_head_attention(h, p.Wq, p.Wk, p.Wv, p.Wo, p.n_heads, causal=True)
     x = add(x, a)
-    # 2) cross-attention to encoder output
+    # 2) 对编码器输出的交叉注意力
     h = rms_norm(x)
     a = multi_head_attention(h, p.Wq_x, p.Wk_x, p.Wv_x, p.Wo_x, p.n_heads, kv_source=enc_out)
     x = add(x, a)
@@ -232,22 +232,22 @@ def main():
     for p in dec_params:
         dec_out = decoder_block(dec_out, enc_out, p)
 
-    print("=== full transformer forward pass ===")
+    print("=== 完整 Transformer 前向传播 ===")
     print(f"source shape:           ({src.rows}, {src.cols})")
     print(f"encoder output shape:   ({enc_out.rows}, {enc_out.cols})")
     print(f"target shape:           ({tgt.rows}, {tgt.cols})")
     print(f"decoder output shape:   ({dec_out.rows}, {dec_out.cols})")
     print()
-    print("first 3 cells of encoder output:")
+    print("encoder output 前 3 个单元格:")
     for i in range(3):
         print("  " + "  ".join(f"{v:+.3f}" for v in enc_out.row(i)[:4]))
     print()
-    print("first 3 cells of decoder output:")
+    print("decoder output 前 3 个单元格:")
     for i in range(3):
         print("  " + "  ".join(f"{v:+.3f}" for v in dec_out.row(i)[:4]))
     print()
-    print("stack: 2-layer encoder + 2-layer decoder, pre-norm, RMSNorm, SwiGLU.")
-    print("this is the 2026 block skeleton (minus RoPE).")
+    print("stack: 2 层编码器 + 2 层解码器, pre-norm, RMSNorm, SwiGLU.")
+    print("这是 2026 年的块骨架（不含 RoPE）。")
 
 
 if __name__ == "__main__":

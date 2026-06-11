@@ -1,8 +1,7 @@
-"""Negotiation: Contract Net + OG-Narrator demo, stdlib only.
+"""协商：Contract Net (合同网) + OG-Narrator 演示，仅使用标准库。
 
-Compares naive all-LLM bargaining against OG-Narrator (deterministic offer
-generator + LLM narration). Measures deal rate over 1000 trials. Includes
-a small Contract Net task-market demo at the end.
+对比 naive all-LLM 讨价还价与 OG-Narrator（确定性报价生成器 + LLM 叙述）。
+测量 1000 次试验的成交率。末尾包含一个小型 Contract Net 任务市场演示。
 """
 from __future__ import annotations
 
@@ -21,9 +20,8 @@ class BargainState:
 
 
 def naive_llm_bargain(state: BargainState, rng: random.Random) -> int:
-    """Simulate naive LLM bargaining: picks a price with high variance and
-    frequently outside the ZOPA (mimics strategic errors documented in
-    arXiv:2402.15813)."""
+    """模拟 naive LLM 讨价还价：以高方差选择价格，且经常超出 ZOPA
+    （模仿 arXiv:2402.15813 中记录的战略错误）。"""
     r = rng.random()
     if state.seller_offer is None:
         candidate = rng.randint(state.buyer_max - 60, state.buyer_max + 30)
@@ -38,7 +36,7 @@ def naive_llm_bargain(state: BargainState, rng: random.Random) -> int:
 
 def og_narrator_bargain(state: BargainState, rng: random.Random,
                         concession: float = 0.35) -> int:
-    """OG-Narrator deterministic offer: zeuthen-style concession toward midpoint."""
+    """OG-Narrator 确定性报价：向中点进行 Zeuthen 风格让步。"""
     if state.seller_offer is None and state.buyer_offer is None:
         return state.buyer_max - max(1, int((state.buyer_max - state.seller_min) * 0.2))
     if state.seller_offer is None:
@@ -52,7 +50,7 @@ def og_narrator_bargain(state: BargainState, rng: random.Random,
 
 def seller_response(state: BargainState, rng: random.Random,
                     concession: float = 0.3) -> int:
-    """Seller uses OG-Narrator-style offer too (for both buyers)."""
+    """卖方同样使用 OG-Narrator 风格的报价（对两种买方都适用）。"""
     if state.buyer_offer is None and state.seller_offer is None:
         return state.seller_min + max(1, int((state.buyer_max - state.seller_min) * 0.4))
     if state.buyer_offer is None:
@@ -71,13 +69,13 @@ def simulate_bargain(buyer_fn, rng: random.Random, buyer_max: int = 100,
     while state.rounds < state.max_rounds:
         state.buyer_offer = buyer_fn(state, rng)
         if state.seller_offer is not None and state.buyer_offer >= state.seller_offer:
-            # trade clears at seller's standing ask; feasible iff within both reservations
+            # 交易以卖方当前要价成交；仅当在双方保留价范围内时才可行
             if state.seller_offer >= state.seller_min and state.seller_offer <= state.buyer_max:
                 deal = True
             break
         state.seller_offer = seller_response(state, rng)
         if state.buyer_offer is not None and state.seller_offer <= state.buyer_offer:
-            # trade clears at buyer's standing bid; feasible iff within both reservations
+            # 交易以买方当前出价成交；仅当在双方保留价范围内时才可行
             if state.buyer_offer <= state.buyer_max and state.buyer_offer >= state.seller_min:
                 deal = True
             break
@@ -141,7 +139,7 @@ class ContractNetManager:
 
 def demo_contract_net() -> None:
     print("\n" + "=" * 72)
-    print("CONTRACT NET TASK MARKET — manager + 3 bidders")
+    print("CONTRACT NET 任务市场 —— manager + 3 个 bidders")
     print("=" * 72)
     task = ContractNetTask(
         task_id="t-1",
@@ -159,21 +157,20 @@ def demo_contract_net() -> None:
 
 def main() -> None:
     print("=" * 72)
-    print("DEAL RATE — naive LLM bargaining vs OG-Narrator")
-    print("reservation prices sampled per trial: seller_min in [50,80], buyer_max in [75,115]")
+    print("成交率 —— naive LLM 讨价还价 vs OG-Narrator")
+    print("每次试验采样保留价：seller_min ∈ [50,80]，buyer_max ∈ [75,115]")
     print("=" * 72)
     bench_deal_rate(naive_llm_bargain, "naive LLM")
     bench_deal_rate(og_narrator_bargain, "OG-Narrator")
     demo_contract_net()
 
-    print("\nTakeaways:")
-    print("  naive LLM-only bargaining has inflated variance -- swings outside the ZOPA.")
-    print("  OG-Narrator (deterministic offer + LLM narration) converges on every trial")
-    print("  because prices are arithmetic, not generative.")
-    print("  The original paper (arXiv:2402.15813) reports 26.67% -> 88.88% on the tighter")
-    print("  real-LLM benchmark. Our simulation shrinks the gap because the opposing seller")
-    print("  is already using deterministic offers -- the structural pattern is the same.")
-    print("  Contract Net scales: broadcast + collect + award; no synchronous chat needed.")
+    print("\n要点:")
+    print("  naive LLM-only 讨价还价具有过高的方差——波动超出 ZOPA (可能达成协议的区域)。")
+    print("  OG-Narrator（确定性报价 + LLM 叙述）在每次试验中都能收敛，")
+    print("  因为价格是算术计算，而非生成式的。")
+    print("  原始论文 (arXiv:2402.15813) 报告在更严格的真实 LLM 基准上从 26.67% -> 88.88%。")
+    print("  我们的模拟缩小了差距，因为对方卖方已经在使用确定性报价——结构模式是相同的。")
+    print("  Contract Net 可扩展：广播 + 收集 + 授予；不需要同步聊天。")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,8 @@ import numpy as np
 
 
 class MultinomialNB:
+    """Multinomial Naive Bayes (多项式朴素贝叶斯) 分类器，用于离散计数特征（如词频）。"""
+
     def __init__(self, alpha=1.0):
         self.alpha = alpha
         self.classes_ = None
@@ -9,6 +11,7 @@ class MultinomialNB:
         self.feature_log_prob_ = None
 
     def fit(self, X, y):
+        # MultinomialNB (多项式朴素贝叶斯) 要求特征值非负
         if np.any(X < 0):
             raise ValueError("MultinomialNB requires non-negative feature values")
         self.classes_ = np.unique(y)
@@ -20,18 +23,24 @@ class MultinomialNB:
 
         for i, c in enumerate(self.classes_):
             X_c = X[y == c]
+            # 计算先验概率的对数：log P(class)
             self.class_log_prior_[i] = np.log(X_c.shape[0] / X.shape[0])
+            # 统计每个特征在该类别中的出现次数，加上 Laplace smoothing (拉普拉斯平滑)
             counts = X_c.sum(axis=0) + self.alpha
             total = counts.sum()
+            # 计算特征条件概率的对数：log P(feature | class)
             self.feature_log_prob_[i] = np.log(counts / total)
 
         return self
 
     def predict_log_proba(self, X):
+        # 在对数空间中计算：log P(class) + sum( count * log P(feature | class) )
+        # 等价于矩阵乘法 X @ log_probs.T + log_priors
         return X @ self.feature_log_prob_.T + self.class_log_prior_
 
     def predict_proba(self, X):
         log_proba = self.predict_log_proba(X)
+        # 减去最大值防止 exp 时溢出
         log_proba -= log_proba.max(axis=1, keepdims=True)
         proba = np.exp(log_proba)
         proba /= proba.sum(axis=1, keepdims=True)
@@ -46,6 +55,8 @@ class MultinomialNB:
 
 
 class GaussianNB:
+    """Gaussian Naive Bayes (高斯朴素贝叶斯) 分类器，用于连续特征。"""
+
     def __init__(self, var_smoothing=1e-9):
         self.var_smoothing = var_smoothing
         self.classes_ = None
@@ -64,7 +75,9 @@ class GaussianNB:
 
         for i, c in enumerate(self.classes_):
             X_c = X[y == c]
+            # 计算每个类别每个特征的均值和方差
             self.means_[i] = X_c.mean(axis=0)
+            # 加上 var_smoothing 防止零方差导致除零错误
             self.vars_[i] = X_c.var(axis=0) + self.var_smoothing
             self.priors_[i] = X_c.shape[0] / X.shape[0]
 
@@ -77,6 +90,7 @@ class GaussianNB:
 
         for i in range(n_classes):
             diff = X - self.means_[i]
+            # Gaussian (高斯) PDF 的对数形式
             log_prob_features = (
                 -0.5 * np.log(2 * np.pi * self.vars_[i])
                 - 0.5 * (diff ** 2) / self.vars_[i]
@@ -101,13 +115,16 @@ class GaussianNB:
 
 
 def make_text_data(n_samples=1000, n_features=200, seed=42):
+    """生成模拟的词袋文本数据：科技文章 vs 体育文章。"""
     rng = np.random.RandomState(seed)
 
+    # 科技类文章：词 0-39 高频，词 80-119 低频
     tech_words_weight = np.zeros(n_features)
     tech_words_weight[:40] = rng.uniform(3, 10, 40)
     tech_words_weight[40:80] = rng.uniform(0.5, 2, 40)
     tech_words_weight[80:] = rng.uniform(0.1, 1, 120)
 
+    # 体育类文章：词 80-119 高频，词 0-39 低频
     sports_words_weight = np.zeros(n_features)
     sports_words_weight[:40] = rng.uniform(0.1, 1, 40)
     sports_words_weight[40:80] = rng.uniform(0.5, 2, 40)
@@ -117,6 +134,7 @@ def make_text_data(n_samples=1000, n_features=200, seed=42):
     n_tech = n_samples // 2
     n_sports = n_samples - n_tech
 
+    # 使用泊松分布生成词频计数
     X_tech = rng.poisson(tech_words_weight, (n_tech, n_features)).astype(float)
     X_sports = rng.poisson(sports_words_weight, (n_sports, n_features)).astype(float)
 
@@ -128,9 +146,11 @@ def make_text_data(n_samples=1000, n_features=200, seed=42):
 
 
 def make_continuous_data(n_samples=300, seed=42):
+    """生成类似 Iris 的连续特征数据（3 个类别，4 个特征）。"""
     rng = np.random.RandomState(seed)
     n_per_class = n_samples // 3
 
+    # 每个类别有不同的均值和协方差
     class_0 = rng.multivariate_normal(
         [5.0, 3.4, 1.4, 0.2],
         np.diag([0.12, 0.14, 0.03, 0.01]),
@@ -155,6 +175,7 @@ def make_continuous_data(n_samples=300, seed=42):
 
 
 def train_test_split(X, y, test_ratio=0.2, seed=42):
+    """将数据随机划分为训练集和测试集。"""
     rng = np.random.RandomState(seed)
     n = len(y)
     idx = rng.permutation(n)
@@ -164,10 +185,12 @@ def train_test_split(X, y, test_ratio=0.2, seed=42):
 
 
 def accuracy(y_true, y_pred):
+    """计算分类准确率。"""
     return np.mean(y_true == y_pred)
 
 
 def print_separator(title):
+    """打印带标题的分隔线。"""
     print(f"\n{'=' * 60}")
     print(f"  {title}")
     print(f"{'=' * 60}\n")
@@ -266,6 +289,7 @@ def demo_comparison():
     X, y = make_continuous_data(n_samples=450, seed=99)
     X_train, X_test, y_train, y_test = train_test_split(X, y, seed=99)
 
+    # 将连续特征平移为正数，以便 MultinomialNB 也能处理
     X_train_pos = X_train - X_train.min(axis=0) + 0.01
     X_test_pos = X_test - X_train.min(axis=0) + 0.01
 

@@ -1,9 +1,8 @@
-"""MemGPT-shaped two-tier memory in stdlib.
+"""基于标准库的 MemGPT 风格两层记忆。
 
-Main context is a fixed-size prompt buffer (core dict + messages list).
-Archival memory is an external searchable store. Agents page data in and out
-via memory tools. No LLM call — a scripted agent drives the scenario so the
-control flow is testable offline.
+主上下文 (Main context) 是固定大小的 prompt 缓冲区（core 字典 + messages 列表）。
+归档记忆 (Archival memory) 是外部可搜索存储。智能体通过记忆工具换入换出数据。
+无 LLM 调用 —— 脚本化智能体驱动场景，使控制流可离线测试。
 """
 
 from __future__ import annotations

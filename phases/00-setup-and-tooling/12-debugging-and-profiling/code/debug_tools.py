@@ -98,6 +98,7 @@ def check_gradient_health(model):
 
 
 def demo_print_debugging():
+    # 第 1 部分：Tensor 打印调试
     print("\n--- 1. Print Debugging for Tensors ---")
     x = torch.randn(32, 784)
     debug_print("input batch", x)
@@ -112,6 +113,7 @@ def demo_print_debugging():
 
 
 def demo_timing():
+    # 第 2 部分：代码段计时
     print("\n--- 2. Timing Code Sections ---")
 
     with Timer("matrix multiply 1000x1000"):
@@ -126,6 +128,7 @@ def demo_timing():
 
 
 def demo_memory_tracking():
+    # 第 3 部分：内存追踪 (tracemalloc)
     print("\n--- 3. Memory Tracking (tracemalloc) ---")
     tracemalloc.start()
 
@@ -143,6 +146,7 @@ def demo_memory_tracking():
 
 
 def demo_shape_checking():
+    # 第 4 部分：模型形状检查
     print("\n--- 4. Shape Checking Through Model ---")
 
     model = nn.Sequential(
@@ -158,6 +162,7 @@ def demo_shape_checking():
 
 
 def demo_nan_detection():
+    # 第 5 部分：NaN 检测
     print("\n--- 5. NaN Detection ---")
 
     model = nn.Sequential(
@@ -186,6 +191,7 @@ def demo_nan_detection():
 
 
 def demo_device_checking():
+    # 第 6 部分：设备检查
     print("\n--- 6. Device Checking ---")
 
     model = nn.Linear(10, 5)
@@ -203,6 +209,7 @@ def demo_device_checking():
 
 
 def demo_gradient_health():
+    # 第 7 部分：梯度健康检查
     print("\n--- 7. Gradient Health Check ---")
 
     model = nn.Sequential(
@@ -222,6 +229,7 @@ def demo_gradient_health():
 
 
 def demo_gpu_memory():
+    # 第 8 部分：GPU 内存摘要
     print("\n--- 8. GPU Memory Summary ---")
 
     if not torch.cuda.is_available():
@@ -247,6 +255,7 @@ def demo_gpu_memory():
 
 
 def demo_logging():
+    # 第 9 部分：结构化日志
     print("\n--- 9. Structured Logging ---")
 
     logger.info("Training started: lr=0.001, batch_size=32, epochs=10")
@@ -257,6 +266,7 @@ def demo_logging():
 
 
 def demo_conditional_breakpoint():
+    # 第 10 部分：条件断点模式
     print("\n--- 10. Conditional Breakpoint Pattern ---")
     print("  In real code, use this pattern:")
     print()

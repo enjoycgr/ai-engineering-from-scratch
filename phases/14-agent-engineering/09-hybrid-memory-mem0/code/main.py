@@ -1,7 +1,7 @@
-"""Mem0-shaped hybrid memory: vector + KV + graph with fusion scoring.
+"""Mem0 风格的混合记忆：向量 + KV + 图，带融合打分。
 
-Stdlib only. Vector store uses token-overlap as an embedding stand-in.
-Scope taxonomy: user / session / agent. Fusion: relevance + importance + recency.
+仅标准库。向量存储用词元重叠作为 embedding 替身。
+作用域分类 (Scope taxonomy)：user / session / agent。融合：relevance + importance + recency。
 """
 
 from __future__ import annotations

@@ -1,7 +1,7 @@
 """AI gateway routing + fallback simulator — stdlib Python.
 
-Models a gateway fronting OpenAI, Anthropic, and self-hosted. Injects 429/5xx
-errors per provider. Compares fallback strategies.
+模拟一个前置 OpenAI、Anthropic 和自托管模型的 gateway。
+按提供商注入 429/5xx 错误。对比 fallback 策略。
 """
 
 from __future__ import annotations

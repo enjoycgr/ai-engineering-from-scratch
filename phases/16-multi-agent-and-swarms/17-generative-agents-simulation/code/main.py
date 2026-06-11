@@ -1,9 +1,9 @@
-"""Generative agents miniature: Smallville-in-stdlib.
+"""生成式 agent (智能体) 微型仿真：stdlib 中的 Smallville。
 
-Five agents share a small world. Agent 0 is seeded with a party goal. Over
-ticks, invitations spread through bilateral memory observations, reflection
-synthesizes beliefs, and plans update. By the final tick, 3+ agents converge
-at the party location without any central orchestrator.
+五个 agent 共享一个小世界。Agent 0 被植入派对目标。在 tick 中，
+邀请通过双边记忆观察传播，reflection (反思) 综合信念，计划更新。
+在最后一个 tick，3 个以上的 agent 在没有中央 orchestrator (编排器) 的情况下
+汇聚在派对地点。
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 
 
-TICK_DURATION_S = 0.01  # simulated; output is instantaneous
+TICK_DURATION_S = 0.01  # 模拟的；输出是瞬时的
 
 
 @dataclass
@@ -42,6 +42,7 @@ class Agent:
         self.stream.append(Memory(tick, "observation", content, importance))
 
     def reflect(self, tick: int) -> None:
+        # 对近期高重要性记忆进行 reflection (反思)
         recent_important = [m for m in self.stream if m.importance >= 6 and tick - m.ts <= 5]
         for m in recent_important:
             if "invited" in m.content and "party at" in m.content:
@@ -75,19 +76,19 @@ def retrieve_top_k(stream: list[Memory], query: str, tick: int, k: int = 3) -> l
 def run_simulation(n_agents: int = 5, ticks: int = 6) -> None:
     agents = [Agent(f"agent-{i}", location="home") for i in range(n_agents)]
 
-    # Seed agent 0 with the party goal.
+    # 用派对目标植入 agent 0
     agents[0].stream.append(Memory(0, "goal", "host a Valentine's party at HobbsCafe at tick 5", 10))
     agents[0].plans.append(Plan(tick=5, where="HobbsCafe", note="host the party"))
     agents[0].beliefs.append("there is a party I was invited to")
 
     print("=" * 72)
-    print(f"GENERATIVE AGENTS (miniature) — {n_agents} agents, {ticks} ticks")
+    print(f"生成式 AGENT (微型) —— {n_agents} 个 agent，{ticks} 个 tick")
     print("=" * 72)
 
     for tick in range(ticks):
         print(f"\n--- tick {tick} ---")
-        # Invitation propagation: agent 0 invites direct neighbors tick 0-2; then each invited
-        # agent invites one more on subsequent ticks.
+        # 邀请传播：agent 0 在 tick 0-2 邀请直接邻居；然后每个被邀请的
+        # agent 在后续 tick 中再邀请一个
         if tick == 0:
             for i in (1, 2):
                 agents[i].observe(tick, f"agent-0 invited me to a party at HobbsCafe at tick 5", importance=8)
@@ -106,20 +107,20 @@ def run_simulation(n_agents: int = 5, ticks: int = 6) -> None:
             if action.startswith(a.name + " moves"):
                 print(f"  {action}")
 
-    # Final state
+    # 最终状态
     print("\n" + "=" * 72)
-    print("final locations:")
+    print("最终位置:")
     for a in agents:
         print(f"  {a.name:10s} at {a.location}")
 
     at_party = sum(1 for a in agents if a.location == "HobbsCafe")
-    print(f"\n{at_party}/{n_agents} agents converged at HobbsCafe for the party.")
-    print("No orchestrator. One seed. The rest is memory + reflection + plan.")
+    print(f"\n{at_party}/{n_agents} 个 agent 汇聚在 HobbsCafe 参加派对。")
+    print("没有 orchestrator (编排器)。一个种子。其余是 memory + reflection + plan。")
 
 
 def demo_retrieval() -> None:
     print("\n" + "=" * 72)
-    print("RETRIEVAL DEMO — top-k by recency + importance + relevance")
+    print("检索演示 —— 按 recency (新近性) + importance (重要性) + relevance (相关性) 取 top-k")
     print("=" * 72)
     stream = [
         Memory(0, "observation", "saw Isabella at the cafe", importance=4),
@@ -136,10 +137,10 @@ def demo_retrieval() -> None:
 def main() -> None:
     run_simulation()
     demo_retrieval()
-    print("\nTakeaways:")
-    print("  one seed + three components = coordinated arrival without an orchestrator.")
-    print("  reflection is load-bearing: dropping it stops belief formation.")
-    print("  retrieval combines recency, importance, relevance -- no single score is enough.")
+    print("\n要点:")
+    print("  一个种子 + 三个组件 = 在没有 orchestrator (编排器) 的情况下协调到达。")
+    print("  reflection (反思) 是承重的：去掉它会停止信念形成。")
+    print("  retrieval (检索) 结合 recency (新近性)、importance (重要性)、relevance (相关性)——没有一个分数是足够的。")
 
 
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
-"""Phase 13 Lesson 08 - toy MCP client, multi-server namespace merge.
+"""Phase 13 Lesson 08 - 玩具 MCP 客户端，多服务器命名空间合并。
 
-No real subprocess - simulates three MCP servers in-process as callables so
-we can focus on discovery, merging, and routing. The Session and dispatch
-shape match the real stdio client; swap the in-process stub for a real
-subprocess to get a working client.
+无真实子进程——将三个 MCP 服务器模拟为进程内可调用对象，以便
+我们专注于发现、合并和路由。Session 和 dispatch
+形状与真实 stdio 客户端匹配；将进程内 stub 替换为真实
+子进程以获得工作客户端。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

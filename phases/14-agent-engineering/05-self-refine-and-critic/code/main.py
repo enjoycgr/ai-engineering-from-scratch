@@ -1,8 +1,8 @@
-"""Toy Self-Refine and CRITIC loop.
+"""Toy Self-Refine 和 CRITIC 循环。
 
-Task: produce a 3-bullet summary under 60 chars per bullet that does not contain
-known factual errors. Self-Refine uses LLM-style self-critique; CRITIC routes
-verification through an external fact list.
+任务：生成一个每条 bullet 不超过 60 字符的 3-bullet summary（摘要），
+且不包含已知事实错误。Self-Refine 使用 LLM 风格 self-critique（自我批评）；
+CRITIC 通过外部事实列表路由 verification（验证）。
 """
 
 from __future__ import annotations

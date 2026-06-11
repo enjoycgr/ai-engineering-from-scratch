@@ -175,7 +175,7 @@ def pagerank(graph, damping=0.85, max_iter=100, tol=1e-6):
 
 def demo_social_network():
     print("=" * 60)
-    print("DEMO 1: Small Social Network -- BFS and DFS")
+    print("演示 1: 小型社交网络 -- BFS 与 DFS")
     print("=" * 60)
 
     g = Graph(6)
@@ -186,25 +186,25 @@ def demo_social_network():
     g.add_edge(3, 4)
     g.add_edge(4, 5)
 
-    print(f"\nGraph: {g}")
-    print(f"\nAdjacency matrix:\n{g.adjacency_matrix().astype(int)}")
+    print(f"\n图: {g}")
+    print(f"\n邻接矩阵:\n{g.adjacency_matrix().astype(int)}")
 
     for node in range(g.n):
-        print(f"  Node {node}: degree={g.degree(node)}, neighbors={g.neighbors(node)}")
+        print(f"  节点 {node}: 度={g.degree(node)}, 邻居={g.neighbors(node)}")
 
     bfs_order, bfs_dist = bfs(g, 0)
-    print(f"\nBFS from node 0:")
-    print(f"  Visit order: {bfs_order}")
-    print(f"  Distances:   {bfs_dist}")
+    print(f"\n从节点 0 开始 BFS:")
+    print(f"  访问顺序: {bfs_order}")
+    print(f"  距离:    {bfs_dist}")
 
     dfs_order = dfs(g, 0)
-    print(f"\nDFS from node 0:")
-    print(f"  Visit order: {dfs_order}")
+    print(f"\n从节点 0 开始 DFS:")
+    print(f"  访问顺序: {dfs_order}")
 
 
 def demo_laplacian():
     print("\n" + "=" * 60)
-    print("DEMO 2: Laplacian Eigenvalues and Connected Components")
+    print("演示 2: Laplacian 特征值与连通分量")
     print("=" * 60)
 
     g = Graph(7)
@@ -214,23 +214,23 @@ def demo_laplacian():
     g.add_edge(3, 4)
     g.add_edge(5, 6)
 
-    print(f"\nGraph: {g}")
-    print(f"Connected components: {connected_components(g)}")
+    print(f"\n图: {g}")
+    print(f"连通分量: {connected_components(g)}")
 
     L = g.laplacian()
     eigenvalues = np.linalg.eigvalsh(L)
     print(f"\nLaplacian:\n{L.astype(int)}")
-    print(f"\nEigenvalues: {np.round(eigenvalues, 4)}")
+    print(f"\n特征值: {np.round(eigenvalues, 4)}")
 
     n_zeros = np.sum(np.abs(eigenvalues) < 1e-8)
-    print(f"Number of zero eigenvalues: {n_zeros}")
-    print(f"Number of connected components: {len(connected_components(g))}")
-    print(f"Match: {n_zeros == len(connected_components(g))}")
+    print(f"零特征值数量: {n_zeros}")
+    print(f"连通分量数量: {len(connected_components(g))}")
+    print(f"匹配: {n_zeros == len(connected_components(g))}")
 
 
 def demo_message_passing():
     print("\n" + "=" * 60)
-    print("DEMO 3: Message Passing with Random Node Features")
+    print("演示 3: 随机节点特征的消息传递")
     print("=" * 60)
 
     g = Graph(5)
@@ -244,25 +244,25 @@ def demo_message_passing():
     features = rng.randn(5, 3)
     W = rng.randn(3, 2) * 0.5
 
-    print(f"\nGraph: {g}")
-    print(f"\nNode features (5 nodes, 3 features each):")
+    print(f"\n图: {g}")
+    print(f"\n节点特征 (5 个节点，每个 3 维特征):")
     for i in range(5):
-        print(f"  Node {i}: {np.round(features[i], 4)}")
+        print(f"  节点 {i}: {np.round(features[i], 4)}")
 
     output = message_passing(g, features, W)
-    print(f"\nAfter 1 round of message passing (output dim = 2):")
+    print(f"\n经过 1 轮消息传递后 (输出维度 = 2):")
     for i in range(5):
-        print(f"  Node {i}: {np.round(output[i], 4)}")
+        print(f"  节点 {i}: {np.round(output[i], 4)}")
 
     output2 = message_passing(g, output, rng.randn(2, 2) * 0.5)
-    print(f"\nAfter 2 rounds (2-hop neighborhood info):")
+    print(f"\n经过 2 轮后 (2 跳邻域信息):")
     for i in range(5):
-        print(f"  Node {i}: {np.round(output2[i], 4)}")
+        print(f"  节点 {i}: {np.round(output2[i], 4)}")
 
 
 def demo_spectral_clustering():
     print("\n" + "=" * 60)
-    print("DEMO 4: Spectral Clustering on Two Communities")
+    print("演示 4: 两个社区的谱聚类")
     print("=" * 60)
 
     g = Graph(10)
@@ -274,30 +274,30 @@ def demo_spectral_clustering():
             g.add_edge(i, j)
     g.add_edge(2, 7)
 
-    print(f"\nGraph: two cliques (0-4 and 5-9) connected by edge 2-7")
+    print(f"\n图: 两个团 (0-4 和 5-9) 通过边 2-7 连接")
 
     labels = spectral_clustering(g, k=2)
-    print(f"\nSpectral clustering labels: {labels}")
-    print(f"Cluster 0: {np.where(labels == 0)[0]}")
-    print(f"Cluster 1: {np.where(labels == 1)[0]}")
+    print(f"\n谱聚类标签: {labels}")
+    print(f"簇 0: {np.where(labels == 0)[0]}")
+    print(f"簇 1: {np.where(labels == 1)[0]}")
 
     L = g.laplacian()
     eigenvalues = np.linalg.eigvalsh(L)
-    print(f"\nLaplacian eigenvalues: {np.round(eigenvalues, 4)}")
-    print(f"Fiedler value (algebraic connectivity): {eigenvalues[1]:.4f}")
+    print(f"\nLaplacian 特征值: {np.round(eigenvalues, 4)}")
+    print(f"Fiedler 值 (代数连通性): {eigenvalues[1]:.4f}")
 
     scores = pagerank(g)
-    print(f"\nPageRank scores:")
+    print(f"\nPageRank 分数:")
     for i in range(g.n):
-        print(f"  Node {i}: {scores[i]:.4f}")
+        print(f"  节点 {i}: {scores[i]:.4f}")
 
     bridge_nodes = [2, 7]
     non_bridge = [n for n in range(g.n) if n not in bridge_nodes]
-    print(f"\nBridge nodes {bridge_nodes} PageRank: "
+    print(f"\n桥节点 {bridge_nodes} PageRank: "
           f"{np.mean(scores[bridge_nodes]):.4f}")
-    print(f"Non-bridge nodes avg PageRank: "
+    print(f"非桥节点平均 PageRank: "
           f"{np.mean(scores[non_bridge]):.4f}")
-    print("Bridge nodes have higher PageRank -- they connect communities.")
+    print("桥节点具有更高的 PageRank -- 它们连接社区。")
 
 
 if __name__ == "__main__":

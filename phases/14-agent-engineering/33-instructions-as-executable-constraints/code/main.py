@@ -6,6 +6,11 @@ rule means adding a check; the checker grows with the workbench.
 
 Run: python3 code/main.py
 """
+# 解析 agent-rules.md，运行一个虚假的 agent turn，根据 rules 为该 turn 评分。
+# Markdown 中的每条规则有一个 slug、一个 category、一行 description，
+# 和一个 `check:` 字段，指向 `RuleChecker` 上的一个 function。
+# 添加新规则意味着添加一个 check；checker 随 workbench 一起成长。
+# 运行：python3 code/main.py
 
 from __future__ import annotations
 

@@ -1,9 +1,9 @@
-"""Real-time voice agent pipeline simulator.
+"""实时语音助手管线模拟器。
 
-Simulates an audio chunk stream through VAD → STT → LLM → TTS with a
-latency budget. No real models; tracks timing to show where budget goes.
+模拟音频块流经过 VAD → STT → LLM → TTS，带延迟预算。
+没有真实模型；追踪时序以展示预算去向。
 
-Run: python3 code/main.py
+运行：python3 code/main.py
 """
 
 import math
@@ -51,13 +51,13 @@ def main():
     random.seed(0)
     rng = random.Random(0)
 
-    print("=== Step 1: simulate 1.5 s of user speech as 20 ms chunks ===")
+    print("=== 步骤 1：模拟 1.5 s 用户语音作为 20 ms 块 ===")
     chunks = [simulate_chunk(True, rng) for _ in range(75)]
     chunks += [simulate_chunk(False, rng) for _ in range(20)]
-    print(f"  generated {len(chunks)} chunks, {CHUNK_MS} ms each = {len(chunks)*CHUNK_MS} ms")
+    print(f"  生成了 {len(chunks)} 个块, 每个 {CHUNK_MS} ms = {len(chunks)*CHUNK_MS} ms")
 
     print()
-    print("=== Step 2: VAD-gate and buffer speech ===")
+    print("=== 步骤 2：VAD 门控并缓冲语音 ===")
     buffered = []
     in_speech = False
     for c in chunks:
@@ -67,10 +67,10 @@ def main():
             in_speech = True
         elif in_speech and len(buffered) >= 16000 * 0.3:
             break
-    print(f"  buffered {len(buffered) / 16000:.3f} s of speech")
+    print(f"  缓冲了 {len(buffered) / 16000:.3f} s 语音")
 
     print()
-    print("=== Step 3: simulate STT / LLM / TTS with timing ===")
+    print("=== 步骤 3：模拟 STT / LLM / TTS 时序 ===")
     budget = {}
     t = time.time()
 
@@ -88,17 +88,17 @@ def main():
 
     total = (time.time() - t) * 1000
 
-    print(f"  user said: {text!r}")
-    print(f"  agent replied: {reply!r}")
+    print(f"  用户说: {text!r}")
+    print(f"  助手回复: {reply!r}")
     print()
-    print("  latency breakdown:")
+    print("  延迟分解:")
     for stage, ms in budget.items():
         bar = "#" * int(ms / 10)
         print(f"    {stage:<10s}  {ms:>6.1f} ms  {bar}")
-    print(f"  end-to-end: {total:.1f} ms   (target: &lt; 500 ms)")
+    print(f"  端到端: {total:.1f} ms   (目标: < 500 ms)")
 
     print()
-    print("=== Step 4: where the 2026 production budget goes ===")
+    print("=== 步骤 4：2026 生产预算去向 ===")
     rows = [
         ("network in",  "50-100"),
         ("VAD",          "20-80"),
@@ -108,13 +108,13 @@ def main():
         ("network out",  "50-100"),
         ("TOTAL",        "400-1400"),
     ]
-    print("  | stage           | typical ms |")
+    print("  | 阶段           | 典型 ms |")
     for name, ms in rows:
         print(f"  | {name:<15} | {ms:>10} |")
 
     print()
-    print("  sub-500 ms: LiveKit + Silero + Deepgram + GPT-4o + Cartesia")
-    print("  sub-200 ms: Moshi (full-duplex) or Sesame CSM — different architecture (see lesson 15)")
+    print("  < 500 ms: LiveKit + Silero + Deepgram + GPT-4o + Cartesia")
+    print("  < 200 ms: Moshi (全双工) 或 Sesame CSM — 不同架构 (见第 15 课)")
 
 
 if __name__ == "__main__":

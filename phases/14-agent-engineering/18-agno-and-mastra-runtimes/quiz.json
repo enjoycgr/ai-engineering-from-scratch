@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "Which language pairing does the lesson recommend for each runtime?",
+      "question": "本课为每个 runtime (运行时) 推荐哪种语言搭配？",
       "options": [
         "Agno for TypeScript, Mastra for Python",
         "Agno for Python, Mastra for TypeScript",
@@ -12,11 +12,11 @@
         "Both are Go-first"
       ],
       "correct": 1,
-      "explanation": "Agno is Python (FastAPI-shaped); Mastra is TypeScript (Vercel AI SDK-shaped)."
+      "explanation": "Agno 是 Python（FastAPI 形态）；Mastra 是 TypeScript（Vercel AI SDK 形态）。"
     },
     {
       "stage": "pre",
-      "question": "What is Agno's recommended production deployment shape?",
+      "question": "Agno 推荐的生产部署形态是什么？",
       "options": [
         "A long-lived stateful daemon",
         "A stateless session-scoped FastAPI backend; each request starts a fresh agent and session state lives in a DB",
@@ -24,23 +24,23 @@
         "A WebSocket-only server"
       ],
       "correct": 1,
-      "explanation": "Stateless FastAPI per request; session state externalized to a DB."
+      "explanation": "每个请求的无状态 FastAPI；session state (会话状态) 外部化到 DB (数据库)。"
     },
     {
       "stage": "check",
-      "question": "What are Mastra's three primitives?",
+      "question": "Mastra 的三大原语是什么？",
       "options": [
-        "Agents, Tools, Workflows",
-        "Actor, Message, Inbox",
-        "Plan, Worker, Solver",
-        "Node, Edge, State"
+        "Agents (智能体), Tools (工具), Workflows (工作流)",
+        "Actor (参与者), Message (消息), Inbox (收件箱)",
+        "Plan (计划), Worker (工作者), Solver (求解器)",
+        "Node (节点), Edge (边), State (状态)"
       ],
       "correct": 0,
-      "explanation": "Agents (LLM + role), Tools (Zod-typed), and Workflows are Mastra's three primitives."
+      "explanation": "Agents (LLM + 角色)、Tools (Zod-typed，Zod 类型化) 和 Workflows (工作流) 是 Mastra 的三大原语。"
     },
     {
       "stage": "check",
-      "question": "Roughly what agent-instantiation cost does Agno target per its docs?",
+      "question": "根据文档，Agno 的目标 agent (智能体) 实例化成本大约是多少？",
       "options": [
         "About 2 microseconds with about 3.75 KiB per agent",
         "About 200 milliseconds and 100 MiB per agent",
@@ -48,11 +48,11 @@
         "About 10 minutes and 4 GiB per agent"
       ],
       "correct": 0,
-      "explanation": "Agno's docs cite about 2 microseconds and about 3.75 KiB per agent."
+      "explanation": "Agno 的文档引用约 2 微秒和约 3.75 KiB 每个 agent (智能体)。"
     },
     {
       "stage": "check",
-      "question": "What does Mastra's Unified Model Router give?",
+      "question": "Mastra 的 Unified Model Router (统一模型路由器) 提供什么？",
       "options": [
         "A single client surface for thousands of models across many providers",
         "A queue for tool calls",
@@ -60,11 +60,11 @@
         "A graph checkpointer"
       ],
       "correct": 0,
-      "explanation": "Mastra's Unified Model Router cites 3,300+ models across 94 providers."
+      "explanation": "Mastra 的 Unified Model Router (统一模型路由器) 引用 94 个提供商的 3,300+ 模型。"
     },
     {
       "stage": "post",
-      "question": "When is perf-for-perf's-sake the wrong reason to pick Agno?",
+      "question": "什么时候 perf-for-perf's-sake (为性能而性能) 是选择 Agno 的错误理由？",
       "options": [
         "When the workload is one slow agent call per request and overhead is not the bottleneck",
         "When using Python 3.13",
@@ -72,11 +72,11 @@
         "When using Langfuse"
       ],
       "correct": 0,
-      "explanation": "2 microseconds matters at chat fan-in scale, not for a single slow call per request."
+      "explanation": "2 微秒在聊天并发规模才有意义，不是每个请求单个慢调用。"
     },
     {
       "stage": "post",
-      "question": "What licensing surface should you read carefully before forking Mastra?",
+      "question": "在 fork (分叉) Mastra 之前应该仔细阅读哪个许可证面？",
       "options": [
         "There is no license file",
         "ee/ directories are source-available rather than Apache 2.0 and restrict commercial use",
@@ -84,7 +84,7 @@
         "Mastra requires CLA but no license review"
       ],
       "correct": 1,
-      "explanation": "Mastra is Apache 2.0 except for ee/ which is source-available; check the restrictions before forking."
+      "explanation": "Mastra 主体是 Apache 2.0，但 ee/ 是 source-available (源码可用)；fork (分叉) 前检查限制。"
     }
   ]
 }

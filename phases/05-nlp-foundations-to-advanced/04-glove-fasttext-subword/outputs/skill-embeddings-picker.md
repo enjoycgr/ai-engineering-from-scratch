@@ -7,11 +7,11 @@ lesson: 04
 tags: [nlp, tokenization, embeddings]
 ---
 
-Given a task and dataset description, you output:
+给定任务和数据集描述，你输出：
 
-1. Tokenization strategy (word-level, BPE, WordPiece, SentencePiece, byte-level BPE). One-sentence reason.
-2. Vocabulary size target. English-only LM: 32k. Multilingual: 64k-100k. Code: 50k-100k.
-3. Library call with the exact training command. Name the library (Hugging Face `tokenizers`, `sentencepiece`). Quote arguments.
-4. One reproducibility pitfall. Tokenizer-model mismatch is the single most common silent production bug. Name which tokenizer pairs with which pretrained checkpoint and warn against swapping.
+1. Tokenization strategy (分词策略)（word-level、BPE、WordPiece、SentencePiece、byte-level BPE）。一句话说明理由。
+2. 词汇表大小目标。仅英语 LM：32k。多语言：64k-100k。代码：50k-100k。
+3. 包含精确训练命令的库调用。指明库名（Hugging Face `tokenizers`、`sentencepiece`）。引用参数。
+4. 一个可复现性陷阱。Tokenizer-model mismatch 是最常见的静默生产 bug。指明哪个 tokenizer 与哪个预训练检查点配对，并警告不要替换。
 
-Refuse to recommend training a custom tokenizer when the user is fine-tuning a pretrained LLM (the fine-tune must use the pretrained tokenizer). Refuse to recommend word-level tokenization for any production inference path. Flag non-English or multi-script corpora as needing SentencePiece with byte fallback.
+当用户 fine-tuning (微调) 预训练 LLM 时，拒绝推荐训练自定义 tokenizer（微调必须使用预训练 tokenizer）。拒绝为任何生产 inference 路径推荐 word-level tokenization。将非英语或多文字语料标记为需要带 byte fallback 的 SentencePiece。

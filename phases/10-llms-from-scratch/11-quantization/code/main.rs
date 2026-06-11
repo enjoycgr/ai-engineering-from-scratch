@@ -1,13 +1,13 @@
-// Lesson: Quantization — INT8 / GPTQ / AWQ / GGUF (phase 10 / lesson 11)
-// Topic: symmetric INT8 quantization of an FP32 weight vector. Computes scale
-// from abs-max, rounds + clips to [-127, 127], dequantizes, reports MSE,
-// max abs error, SNR, cosine similarity, and a bit-width sweep (8 / 4 / 2 bit).
-// Refs:
+// 课程：Quantization（量化）—— INT8 / GPTQ / AWQ / GGUF（phase 10 / lesson 11）
+// 主题：FP32 权重向量的对称 INT8 量化。根据 abs-max 计算 scale，
+// round + clip 到 [-127, 127]，反量化，报告 MSE、最大绝对误差、SNR、
+// 余弦相似度，以及 bit-width 扫描（8 / 4 / 2 bit）。
+// 参考：
 //   https://pytorch.org/docs/stable/quantization.html
 //   https://leimao.github.io/article/Neural-Networks-Quantization/
 //   https://arxiv.org/abs/2210.17323  (GPTQ)
 //   https://arxiv.org/abs/2306.00978  (AWQ)
-// Build: rustc --edition 2021 -O code/main.rs -o /tmp/lesson_quant && /tmp/lesson_quant
+// 构建：rustc --edition 2021 -O code/main.rs -o /tmp/lesson_quant && /tmp/lesson_quant
 
 use std::f64;
 
@@ -18,7 +18,7 @@ fn lcg(seed: &mut u64) -> f64 {
     unit * 2.0 - 1.0
 }
 
-// Box-Muller via the LCG, so we generate normal-ish floats without external crates.
+// 通过 LCG 实现 Box-Muller，无需外部 crate 即可生成近似正态分布的浮点数。
 fn randn(seed: &mut u64) -> f64 {
     let u1 = (lcg(seed) + 1.0) / 2.0;
     let u2 = (lcg(seed) + 1.0) / 2.0;

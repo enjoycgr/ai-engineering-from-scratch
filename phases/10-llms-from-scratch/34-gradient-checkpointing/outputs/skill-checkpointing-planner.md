@@ -1,27 +1,27 @@
 ---
 name: checkpointing-planner
-description: Choose an activation recomputation policy per layer (none / selective / full / offload) given a training config and HBM budget.
+description: 给定训练配置和 HBM 预算，为每层选择激活重计算策略（none / selective / full / offload）。
 version: 1.0.0
 phase: 10
 lesson: 34
 tags: [gradient-checkpointing, activation-recomputation, selective-checkpoint, fsdp-offload, training-memory]
 ---
 
-Given the training config (layer count L, hidden size d, sequence length S, microbatch B, dtype bytes per value, attention kernel, tensor-parallel degree TP, pipeline-parallel degree PP, expert-parallel degree EP if MoE) and the per-rank HBM budget after weights and optimizer state, output:
+给定训练配置（层数 L、隐藏大小 d、序列长度 S、microbatch B、dtype 每值字节数、attention kernel、tensor-parallel 度 TP、pipeline-parallel 度 PP、如果是 MoE 则 expert-parallel 度 EP）以及权重和优化器状态后的每 rank HBM 预算，输出：
 
-1. Per-layer policy. For each layer family in the stack (embedding, attention, FFN, MoE expert, norm, output head) pick none, selective, full, or offload. Default to selective for attention when S exceeds 4_096; default to none on residual streams and norms; default to offload on FFN only when the measured PCIe transfer time for that layer's activations is less than its measured recompute time.
-2. Segment size k. If full checkpointing is on, pick k as round(sqrt(L)) for uniform layer cost, smaller k when activation memory dominates the budget. Report extra FLOP percentage as (1/k) of forward FLOPs.
-3. FlashAttention interaction. Confirm whether the attention kernel already recomputes softmax. If yes, selective attention checkpointing buys little; downgrade to none. State the kernel by name (FlashAttention-2/3, xFormers memory-efficient, vanilla).
-4. TP / PP plan. For TP, name the activations that need gather or rescatter on recompute and the per-step communication bytes added. For PP, confirm which pipeline stages get checkpointed end-to-end so reverse microbatches free activation memory before flowing back.
-5. Budget math. Predict activation memory before and after the policy (in MB per rank). Predict FLOP overhead as percent of fwd+bwd. Reject any plan that does not fit in the HBM budget with 10 percent headroom.
+1. 每层策略。为栈中的每个层家族（embedding、attention、FFN、MoE expert、norm、output head）选择 none、selective、full 或 offload。S 超过 4_096 时 attention 默认 selective；残差流和 norm 默认 none；FFN 上仅当该层激活的测量 PCIe 传输时间小于其测量重计算时间时默认 offload。
+2. 段大小 k。如果开启 full checkpointing，均匀层成本时 k 选 round(sqrt(L))，激活内存主导预算时选更小的 k。报告额外 FLOP 百分比为前向 FLOP 的 (1/k)。
+3. FlashAttention 交互。确认 attention kernel 是否已经重计算 softmax。如果是，选择性 attention checkpointing 收益很小；降级为 none。按名称说明 kernel（FlashAttention-2/3、xFormers memory-efficient、vanilla）。
+4. TP / PP 计划。对于 TP，命名重计算时需要 gather 或 rescatter 的激活以及每步增加的通信字节。对于 PP，确认哪些流水线阶段端到端检查点，使反向 microbatch 在流回之前释放激活内存。
+5. 预算数学。预测策略前后的激活内存（每 rank MB）。预测 FLOP 开销为 fwd+bwd 的百分比。拒绝任何在 10% headroom 内无法容纳 HBM 预算的计划。
 
-Refuse full checkpointing every layer when selective on attention alone closes the budget; profile shows the FLOP overhead is many times higher than selective for the same memory savings, and the exact ratio is workload-specific. Refuse offload when the layer's measured activation transfer time on the target PCIe link exceeds its measured recompute time; recompute wins. Refuse "checkpoint everywhere" for FP8 training when the chosen framework does not snapshot amax history; the recompute will drift the scale and silently corrupt gradients.
+当仅 attention 上的 selective 就能关闭预算时，拒绝每层的 full checkpointing；分析显示 FLOP 开销比 selective 高很多倍却获得相同的内存节省，且精确比率是工作负载特定的。当目标 PCIe 链路上该层的测量激活传输时间超过其测量重计算时间时，拒绝 offload；重计算获胜。当所选框架不快照 amax 历史时，拒绝 FP8 训练的"到处检查点"；重计算会使尺度漂移并静默损坏梯度。
 
-Example input: "L=64, d=8192, S=8192, B=1, bf16, FlashAttention-3, TP=8, PP=4, HBM budget per rank 32 GB after weights, MoE with 8 experts and EP=8."
+示例输入："L=64, d=8192, S=8192, B=1, bf16, FlashAttention-3, TP=8, PP=4, HBM budget per rank 32 GB after weights, MoE with 8 experts and EP=8."
 
-Example output:
-- Per-layer policy: attention selective, FFN none, MoE expert full, embedding none, output head offload.
-- Segment size: full applied on MoE only at k=8; FLOP overhead 12 percent on expert path, 0 elsewhere.
-- FlashAttention interaction: FA-3 already recomputes softmax; selective at the layer wrapper, not inside the kernel.
-- TP / PP plan: TP gather of the attention input on recompute, 0.3 GB per step extra comms; PP stages each checkpoint their full forward; PP stage 3 retains its activations for the final backward.
-- Budget math: activations 38 GB without policy, 11 GB with policy. Total FLOP overhead 7.5 percent fwd+bwd.
+示例输出：
+- 每层策略：attention selective、FFN none、MoE expert full、embedding none、output head offload。
+- 段大小：full 仅在 MoE 上应用，k=8；expert 路径 FLOP 开销 12%，其他地方 0。
+- FlashAttention 交互：FA-3 已经重计算 softmax；selective 在层包装器上，不在 kernel 内部。
+- TP / PP 计划：TP gather 重计算时的 attention 输入，每步额外通信 0.3 GB；PP 阶段各自检查点其完整前向；PP stage 3 保留其激活用于最终后向。
+- 预算数学：无策略时激活 38 GB，有策略时 11 GB。总 FLOP 开销 7.5% fwd+bwd。

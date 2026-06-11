@@ -2,38 +2,63 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "Your model outputs raw logits of shape (N, C). You write `loss = cross_entropy(softmax(logits), y)`. What goes wrong?",
-      "options": ["Nothing — that is the correct API", "cross_entropy re-applies softmax inside, so you end up computing softmax(softmax(logits)), producing nearly-uniform probabilities and useless gradients", "cross_entropy raises a ValueError about the shape", "Accuracy drops by exactly 1/C"],
+      "question": "你的模型输出形状为 (N, C) 的原始 logits。你写了 `loss = cross_entropy(softmax(logits), y)`。哪里出错了？",
+      "options": [
+        "没问题——这是正确的 API",
+        "cross_entropy 内部会重新应用 softmax，所以你最终计算的是 softmax(softmax(logits))，产生几乎均匀的概率和无用的梯度",
+        "cross_entropy 会抛出关于形状的 ValueError",
+        "准确率恰好下降 1/C"
+      ],
       "correct": 1,
-      "explanation": "PyTorch's cross_entropy expects raw logits — it fuses log_softmax and NLL internally for numerical stability. Applying softmax first gives softmax(softmax(x)), which compresses logits toward uniform and makes gradients nearly zero. Training loss looks plausible for a few steps then stalls. Always pass raw logits."
+      "explanation": "PyTorch 的 cross_entropy 期望原始 logits——它在内部融合了 log_softmax 和 NLL 以保证数值稳定性。先应用 softmax 会得到 softmax(softmax(x))，它将 logits 压缩向均匀分布并使梯度几乎为零。训练损失在几步后看起来合理然后停滞。始终传入原始 logits。"
     },
     {
       "stage": "pre",
-      "question": "You evaluate a 10-class classifier and get 92% accuracy. Class 0 has 9,000 examples; classes 1-9 share 1,000 examples (roughly 111 each, 10,000 total). What does the headline number hide?",
-      "options": ["Nothing — accuracy is accuracy", "The model could be predicting class 0 for every input and still score 90% (9000/10000); the remaining 2% could come from any other class. Per-class precision/recall tells you what is really happening", "The validation loss is wrong", "The model is definitely over-fitting"],
+      "question": "你评估一个 10 类分类器，得到 92% 的准确率。类别 0 有 9000 个样本；类别 1-9 共享 1000 个样本（每类约 111 个，总共 10000 个）。这个 headline 数字隐藏了什么？",
+      "options": [
+        "没什么——准确率就是准确率",
+        "模型可以对每个输入都预测类别 0，仍然能得到 90%（9000/10000）；剩下的 2% 可以来自任何其他类别。逐类精确率/召回率（Per-class precision/recall）才能告诉你真正发生了什么",
+        "验证损失错了",
+        "模型肯定过拟合（Overfitting）了"
+      ],
       "correct": 1,
-      "explanation": "On a 9000/1000 split (90/10 imbalance with 10,000 total examples), always predicting the majority class gets 9000/10000 = 90% accuracy. A 92% number could hide nine minority classes at roughly 20% accuracy each. Per-class precision, recall, F1, and the confusion matrix are the diagnostics that surface this, which is why aggregate accuracy alone never justifies shipping a classifier."
+      "explanation": "在 9000/1000 的划分（90/10 不平衡，总共 10000 个样本）中，始终预测多数类得到 9000/10000 = 90% 的准确率。92% 的数字可能隐藏了九个少数类每类约 20% 的准确率。逐类精确率、召回率、F1 和混淆矩阵（Confusion matrix）才是揭示这一点的诊断工具，这也是为什么仅凭总体准确率不足以决定发布一个分类器。"
     },
     {
       "stage": "post",
-      "question": "Mixup replaces one-hot labels with interpolated soft targets like lambda * y_i + (1-lambda) * y_j. Why does this help generalisation?",
-      "options": ["It doubles the effective batch size", "The model is forced to produce smooth predictions between classes instead of memorising hard one-hot targets, which improves both calibration and test accuracy", "It lets you train with a larger learning rate", "It guarantees zero train loss"],
+      "question": "Mixup 将 one-hot 标签替换为插值的软目标，如 lambda * y_i + (1-lambda) * y_j。为什么这有助于泛化（Generalisation）？",
+      "options": [
+        "它将有效 batch size 翻倍",
+        "模型被迫在类别之间产生平滑的预测，而不是记忆硬 one-hot 目标，这同时改善了校准（Calibration）和测试准确率",
+        "它允许你用更大的学习率（Learning rate）训练",
+        "它保证训练损失为零"
+      ],
       "correct": 1,
-      "explanation": "Training against hard one-hot targets pushes logits to be arbitrarily sharp at each training point, which hurts calibration and invites overfitting. Mixup's convex combination of inputs and labels forces the classifier to behave smoothly between training points, which is a reasonable prior for natural image classes and consistently improves test accuracy without extra data."
+      "explanation": "针对硬 one-hot 目标训练会推动 logits 在每个训练点任意尖锐，这损害校准（Calibration）并 invites 过拟合（Overfitting）。Mixup 对输入和标签的凸组合迫使分类器在训练点之间平滑表现，这是自然图像类别的合理先验，并且无需额外数据就能持续提升测试准确率。"
     },
     {
       "stage": "post",
-      "question": "You swap `RandomCrop(32, padding=4, padding_mode='zeros')` for `padding_mode='reflect'` on CIFAR-10. Why is reflect better here?",
-      "options": ["Reflect pad is faster", "Zero padding creates hard black borders that the model learns to depend on; reflect pad mirrors the edge pixels so augmented crops look like natural photographs", "Reflect pad changes the output size", "Reflect pad is required by batch normalization"],
+      "question": "在 CIFAR-10 上，你将 `RandomCrop(32, padding=4, padding_mode='zeros')` 替换为 `padding_mode='reflect'`。为什么 reflect 在这里更好？",
+      "options": [
+        "Reflect pad 更快",
+        "Zero padding 会产生硬黑边，模型学会依赖它们；reflect pad 镜像边缘像素，使得增强后的裁剪看起来像自然照片",
+        "Reflect pad 改变输出尺寸",
+        "Reflect pad 是批归一化（Batch normalization）所要求的"
+      ],
       "correct": 1,
-      "explanation": "Zero-padded crops have visible black borders that leak information about crop position into the features. The network can learn to look at the corner and implicitly undo the augmentation. Reflect pad mirrors real content, so every crop still looks like a natural image and the network cannot cheat on the augmentation."
+      "explanation": "Zero-padded 裁剪有明显的黑色边框，将裁剪位置的信息泄露到特征中。网络可以学会观察角落并隐式地撤销增强。Reflect pad 镜像真实内容，所以每个裁剪仍然看起来像自然图像，网络无法在增强上作弊。"
     },
     {
       "stage": "post",
-      "question": "You train a classifier and the confusion matrix shows most errors are class 3 predicted as class 5 and class 5 predicted as class 3. What is the single most impactful next step?",
-      "options": ["Add more training data across all classes equally", "Increase batch size", "Look at a sample of class-3 and class-5 images that confuse the model; the two classes may be genuinely ambiguous, mislabelled, or visually similar in a way that calls for a targeted augmentation or a re-labelled training set", "Switch from SGD to Adam"],
+      "question": "你训练一个分类器，混淆矩阵（Confusion matrix）显示大多数错误是类别 3 被预测为类别 5，以及类别 5 被预测为类别 3。下一步最有影响力的单一行动是什么？",
+      "options": [
+        "为所有类别均等增加更多训练数据",
+        "增大 batch size（批量大小）",
+        "查看一些让模型困惑的类别 3 和类别 5 的样本；这两个类别可能确实模糊、标签错误，或在视觉上相似，需要有针对性的增强（Augmentation）或重新标注的训练集",
+        "从 SGD 切换到 Adam"
+      ],
       "correct": 2,
-      "explanation": "A confusion matrix concentrated on one off-diagonal pair means the failure mode is specific. The right action is to inspect those images: you often find mislabelled data, near-duplicate classes, or a simple invariance the model has not learnt. Blanket changes (more data, new optimizer) rarely help when the failure is this localised."
+      "explanation": "混淆矩阵集中在一个非对角线对意味着失败模式是特定的。正确的行动是检查这些图像：你经常会发现标签错误、近重复类别，或模型尚未学会的某种简单不变性。 blanket 更改（更多数据、新优化器）很少在失败如此局部化时有所帮助。"
     }
   ]
 }

@@ -1,12 +1,12 @@
-// Lesson: Real-Time Vision Edge Deployment (phase 04 / lesson 15)
-// Topic: edge inference loop in Rust. Builds a tiny depthwise-separable conv block
-// (the MobileNet primitive), runs it over a 160x160x3 input tensor, and reports
-// p50/p95/p99 latency the way an on-device profiler would. Stdlib only.
-// Refs:
+// 课程：实时视觉边缘部署 (phase 04 / lesson 15)
+// 主题：Rust 中的边缘推理循环。构建一个微型 depthwise-separable 卷积块
+// (MobileNet 原语)，在 160x160x3 的输入张量上运行，并报告
+// p50/p95/p99 延迟，如同设备端分析器那样。仅使用标准库。
+// 参考：
 //   https://doc.rust-lang.org/std/time/struct.Instant.html
 //   https://arxiv.org/abs/1704.04861  (MobileNetV1: depthwise separable convolutions)
 //   https://pytorch.org/docs/stable/quantization.html  (edge measurement discipline)
-// Build: rustc --edition 2021 -O code/main.rs -o /tmp/lesson_edge && /tmp/lesson_edge
+// 构建：rustc --edition 2021 -O code/main.rs -o /tmp/lesson_edge && /tmp/lesson_edge
 
 use std::time::Instant;
 
@@ -36,7 +36,7 @@ impl Tensor {
     }
 }
 
-// Cheap deterministic PRNG. Avoids pulling in rand for a stdlib-only lesson.
+// 廉价的确定性 PRNG。避免为仅使用标准库的课程引入 rand。
 fn lcg(seed: &mut u64) -> f32 {
     *seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
     let bits = (*seed >> 33) as u32;
@@ -49,8 +49,8 @@ fn fill_random(t: &mut Tensor, seed: &mut u64) {
     }
 }
 
-// Depthwise conv: one 3x3 kernel per input channel, no cross-channel mixing.
-// This is the part MobileNet uses to cut FLOPs by ~9x vs a dense conv.
+// Depthwise conv：每个输入通道一个 3x3 卷积核，无跨通道混合。
+// 这是 MobileNet 用来将 FLOPs 削减约 9 倍（相对于密集卷积）的部分。
 fn depthwise_conv(input: &Tensor, weights: &[f32]) -> Tensor {
     let mut out = Tensor::zeros(input.h, input.w, input.c);
     let pad = K / 2;
@@ -78,8 +78,8 @@ fn depthwise_conv(input: &Tensor, weights: &[f32]) -> Tensor {
     out
 }
 
-// Pointwise 1x1 conv: mixes channels. Together with the depthwise above this is
-// one MobileNet block: ~8-9x cheaper than a full HxWxC_in x C_out 3x3 dense conv.
+// Pointwise 1x1 conv：混合通道。与上面的 depthwise 一起构成
+// 一个 MobileNet 块：比完整的 HxWxC_in x C_out 3x3 密集卷积便宜约 8-9 倍。
 fn pointwise_conv(input: &Tensor, weights: &[f32], c_out: usize) -> Tensor {
     let mut out = Tensor::zeros(input.h, input.w, c_out);
     for y in 0..input.h {
@@ -179,9 +179,9 @@ fn main() {
     println!("  {:>5.1} fps   {:>5.2} GFLOPs/s", throughput_fps, gflops_s);
 
     println!();
-    println!("Edge measurement discipline (also enforced here):");
-    println!("  - {} warmup passes ignored to avoid cold-cache bias", WARMUP);
-    println!("  - fixed input resolution (production resolution must match)");
-    println!("  - p50 reported alongside p99 so tail latency is visible");
+    println!("边缘测量规范（此处同样执行）：");
+    println!("  - 忽略 {} 次预热 pass，以避免冷缓存偏差", WARMUP);
+    println!("  - 固定输入分辨率（生产分辨率必须匹配）");
+    println!("  - 同时报告 p50 和 p99，以便尾部延迟可见");
     println!();
 }

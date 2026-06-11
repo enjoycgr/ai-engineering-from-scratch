@@ -1,8 +1,9 @@
-"""MARL patterns — CTDE, value decomposition, centralized value — on a tiny grid.
+"""MARL 模式 —— CTDE (集中式训练分布式执行)、value decomposition (值分解)、
+centralized value (集中式价值) —— 在一个微型网格上。
 
-Two agents, 4x4 grid, one pellet. All four styles share the same environment
-and reward. Scripted policies demonstrate how CTDE variants converge faster
-than the independent baseline even without gradient updates.
+两个 agent (智能体)，4x4 网格，一个 pellet。所有四种风格共享相同的环境
+和奖励。脚本策略演示了 CTDE 变体如何比独立基线更快收敛，
+即使没有梯度更新。
 """
 from __future__ import annotations
 
@@ -15,9 +16,9 @@ GRID = 4
 
 @dataclass
 class Env:
-    """Cooperative task: TWO pellets, each agent must collect one; step cost
-    applies whether the agent moves or not; collisions (two agents same cell)
-    cost an extra step."""
+    """合作任务：两个 pellet，每个 agent (智能体) 必须收集一个；
+    无论 agent 是否移动都适用 step cost (步长成本)；碰撞（两个 agent 在同一单元格）
+    额外花费一步。"""
     agent0: tuple[int, int]
     agent1: tuple[int, int]
     pellet0: tuple[int, int]
@@ -67,8 +68,8 @@ def move_or_wait(pos: tuple[int, int], target: tuple[int, int], wait: bool) -> t
 
 
 def run_independent(env: Env, max_steps: int = 50) -> int:
-    """Each agent independently targets the nearest pellet; no awareness of
-    the other agent's target. Often both target the same pellet."""
+    """每个 agent (智能体) 独立瞄准最近的 pellet；没有意识到
+    另一个 agent 的目标。通常两者瞄准同一个 pellet。"""
     steps = 0
     while not env.done and steps < max_steps:
         p0_target = min(env.pellets_remaining, key=lambda p: manhattan(env.agent0, p))
@@ -81,7 +82,7 @@ def run_independent(env: Env, max_steps: int = 50) -> int:
 
 
 def _assigned_targets(env: Env) -> tuple[tuple[int, int], tuple[int, int]]:
-    """Centralized optimal pellet assignment: minimize total Manhattan."""
+    """集中式最优 pellet 分配：最小化总 Manhattan 距离。"""
     pellets = list(env.pellets_remaining)
     if len(pellets) == 1:
         return pellets[0], pellets[0]
@@ -92,8 +93,8 @@ def _assigned_targets(env: Env) -> tuple[tuple[int, int], tuple[int, int]]:
 
 
 def run_maddpg_style(env: Env, max_steps: int = 50) -> int:
-    """Centralized critic assigns each agent a distinct pellet; each agent's
-    actor moves toward its assigned target. Deploy-time only the actors run."""
+    """集中式 critic (评论家) 为每个 agent (智能体) 分配一个不同的 pellet；
+    每个 agent 的 actor (演员) 向其分配的目标移动。部署时只有 actor 运行。"""
     steps = 0
     while not env.done and steps < max_steps:
         t0, t1 = _assigned_targets(env)
@@ -105,7 +106,7 @@ def run_maddpg_style(env: Env, max_steps: int = 50) -> int:
 
 
 def run_qmix_style(env: Env, max_steps: int = 50) -> int:
-    """Value decomposition: each agent picks the pellet with higher local Q
+    """Value decomposition (值分解): each agent picks the pellet with higher local Q
     (lower manhattan). Monotone mixing makes this argmax-decomposable."""
     steps = 0
     while not env.done and steps < max_steps:
@@ -122,7 +123,7 @@ def run_qmix_style(env: Env, max_steps: int = 50) -> int:
 
 
 def run_mappo_style(env: Env, max_steps: int = 50) -> int:
-    """PPO with centralized value function. Behaves like CTDE at deploy; the
+    """PPO with centralized value function (集中式价值函数). Behaves like CTDE at deploy; the
     scripted variant mirrors MADDPG here because they converge to similar
     policies on this size task."""
     return run_maddpg_style(env, max_steps)
@@ -146,13 +147,13 @@ def main() -> None:
     bench("MADDPG-style (CTDE)", run_maddpg_style)
     bench("QMIX-style (mono decomp)", run_qmix_style)
     bench("MAPPO-style (centralized V)", run_mappo_style)
-    print("\nTakeaways:")
-    print("  independent baseline wastes steps on duplicate effort.")
-    print("  CTDE-family variants coordinate so only the closer agent moves per step.")
-    print("  QMIX and MAPPO reach the same steady-state behavior with different training")
-    print("  stories; at deploy-time the policy they learn is similar.")
-    print("  In LLM-agent systems, this is the 'router decides which sub-agent advances'")
-    print("  pattern. CTDE is a design discipline even when you do not train end-to-end.")
+    print("\n要点:")
+    print("  independent (独立) 基线在重复努力上浪费步数。")
+    print("  CTDE (集中式训练分布式执行) 家族变体协调，使得每步只有更近的 agent (智能体) 移动。")
+    print("  QMIX 和 MAPPO 达到相同的稳态行为，但训练故事不同；")
+    print("  在部署时，它们学习的策略是相似的。")
+    print("  在 LLM-agent 系统中，这是 'router (路由器) 决定哪个 sub-agent (子智能体) 前进'")
+    print("  模式。即使不进行端到端训练，CTDE 也是一种设计纪律。")
 
 
 if __name__ == "__main__":

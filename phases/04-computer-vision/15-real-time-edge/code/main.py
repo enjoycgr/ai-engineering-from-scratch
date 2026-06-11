@@ -39,8 +39,8 @@ def flops_estimate(model, input_shape):
     def conv_hook(m, inp, out):
         c_out, c_in_per_group, kh, kw = m.weight.shape
         h, w = out.shape[-2:]
-        # Groups account for depthwise / grouped convs: each output channel
-        # only touches c_in_per_group inputs, not all c_in.
+        # Groups 对应 depthwise / grouped convs：每个输出通道
+        # 只接触 c_in_per_group 个输入，而不是全部 c_in。
         total[0] += 2 * c_in_per_group * c_out * kh * kw * h * w
 
     def linear_hook(m, inp, out):

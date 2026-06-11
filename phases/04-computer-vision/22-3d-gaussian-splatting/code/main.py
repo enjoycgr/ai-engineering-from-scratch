@@ -118,6 +118,7 @@ def main():
     model = Splats2D(num_splats=48, image_size=48).to(device)
     opt = torch.optim.Adam(model.parameters(), lr=0.08)
 
+    # 用48个2D高斯拟合一个红色圆形 + 蓝色正方形
     print("Fitting 48 2D Gaussians to a red circle + blue square...")
     for step in range(300):
         pred = model((48, 48))
@@ -130,6 +131,7 @@ def main():
         final = F.mse_loss(model((48, 48)), target).item()
     print(f"final mse: {final:.4f}")
 
+    # 球谐函数（Spherical Harmonics）合理性检查
     print("\nSpherical harmonics sanity check:")
     sh = torch.randn(1, 16, 3)
     dirs = F.normalize(torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]), dim=-1)

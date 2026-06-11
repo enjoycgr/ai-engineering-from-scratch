@@ -1,12 +1,11 @@
-"""Toy RadixAttention scheduler — stdlib Python.
+"""玩具级 RadixAttention 调度器 —— 纯 Python 标准库。
 
-Simulate an SGLang-style radix-tree KV cache plus two schedulers:
-  FCFS         : naive first-come first-served
-  CACHE_AWARE  : depth-first dispatch on hottest branch
+模拟 SGLang 风格的 radix tree KV cache 加两种调度器：
+  FCFS         : 朴素先到先服务
+  CACHE_AWARE  : 最热分支上的深度优先调度
 
-Also show how scrambled prompt ordering collapses hit rate. Pedagogical
-constants — the shape matches the published numbers, not the absolute
-latencies.
+同时展示打乱 prompt 顺序如何使命中率崩塌。
+教学常数 —— 趋势匹配公开数字，非绝对延迟。
 """
 
 from __future__ import annotations
@@ -16,7 +15,7 @@ from collections import defaultdict
 import random
 
 
-KV_BUDGET_BLOCKS = 160    # small budget so eviction bites under FCFS
+KV_BUDGET_BLOCKS = 160    # 小预算使 FCFS 下驱逐生效
 BLOCK_TOKENS = 16
 
 
@@ -39,18 +38,18 @@ class Request:
 
 
 class RadixCache:
-    """Represent the tree as a dict: path_tuple -> blocks (last_used)."""
+    """将树表示为 dict: path_tuple -> blocks (last_used)。"""
 
     def __init__(self, budget_blocks: int = KV_BUDGET_BLOCKS):
         self.budget = budget_blocks
         self.used = 0
         self.time = 0
-        # key: tuple of segments. value: (blocks, last_used)
+        # key: segment 元组。value: [blocks, last_used]
         self.nodes: dict[tuple[str, ...], list[int]] = {}
 
     def walk(self, segments: list[str]) -> int:
-        """Return number of tokens that are already cached at the longest matching
-        prefix, bumping last_used along the path."""
+        """返回最长匹配前缀上已缓存的 token 数，
+        沿路径更新 last_used。"""
         reused = 0
         self.time += 1
         for i in range(1, len(segments) + 1):
@@ -63,7 +62,7 @@ class RadixCache:
         return reused
 
     def insert(self, segments: list[str]) -> None:
-        """Insert any missing segments on the path, evicting LRU leaves if over budget."""
+        """在路径上插入缺失的 segment，超预算时驱逐 LRU 叶子。"""
         for i in range(1, len(segments) + 1):
             key = tuple(segments[:i])
             if key in self.nodes:
@@ -130,7 +129,7 @@ def workload_rag(n: int = 80, docs: int = 4, seed: int = 1) -> list[Request]:
 
 
 def workload_scrambled(n: int = 80, docs: int = 4, seed: int = 1) -> list[Request]:
-    """Prompts reorder [SYSTEM, TOOLS, DOC] randomly. Tree cannot share the prefix."""
+    """Prompt 随机重排 [SYSTEM, TOOLS, DOC]。树无法共享前缀。"""
     rng = random.Random(seed)
     reqs = []
     for i in range(n):

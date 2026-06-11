@@ -4,6 +4,8 @@ import hashlib
 import re
 
 
+# 提示词模式库：10 种可复用的结构化模式
+# 每种模式包含名称、模板、变量列表、推荐 temperature 和描述
 PROMPT_PATTERNS = {
     "persona": {
         "name": "Persona Pattern",
@@ -145,6 +147,7 @@ PROMPT_PATTERNS = {
 }
 
 
+# 模型配置：支持 OpenAI、Anthropic 和 Google 的模型参数
 MODEL_CONFIGS = {
     "gpt-4o": {
         "provider": "openai",
@@ -168,6 +171,7 @@ MODEL_CONFIGS = {
 
 
 def build_prompt(pattern_name, variables, system_override=None):
+    """根据模式名称和变量构建完整的提示词（system + user + metadata）。"""
     pattern = PROMPT_PATTERNS.get(pattern_name)
     if not pattern:
         raise ValueError(f"Unknown pattern: {pattern_name}. Available: {list(PROMPT_PATTERNS.keys())}")
@@ -192,6 +196,7 @@ def build_prompt(pattern_name, variables, system_override=None):
 
 
 def build_multi_turn(pattern_name, turns, system_override=None):
+    """构建多轮对话格式的提示词。"""
     pattern = PROMPT_PATTERNS.get(pattern_name)
     if not pattern:
         raise ValueError(f"Unknown pattern: {pattern_name}")
@@ -209,6 +214,7 @@ def build_multi_turn(pattern_name, turns, system_override=None):
 
 
 def format_openai_request(prompt):
+    """将通用提示词格式化为 OpenAI API 请求体。"""
     return {
         "model": MODEL_CONFIGS["gpt-4o"]["model"],
         "messages": [
@@ -221,6 +227,7 @@ def format_openai_request(prompt):
 
 
 def format_anthropic_request(prompt):
+    """将通用提示词格式化为 Anthropic API 请求体。"""
     return {
         "model": MODEL_CONFIGS["claude-3.5-sonnet"]["model"],
         "system": prompt["system"],
@@ -233,6 +240,7 @@ def format_anthropic_request(prompt):
 
 
 def format_google_request(prompt):
+    """将通用提示词格式化为 Google Gemini API 请求体。"""
     return {
         "model": MODEL_CONFIGS["gemini-1.5-pro"]["model"],
         "contents": [
@@ -253,7 +261,9 @@ FORMATTERS = {
 
 
 def simulate_llm_call(model_name, request):
+    """模拟 LLM 调用，返回带有延迟和 token 用量的假响应。"""
     time.sleep(0.01)
+
     prompt_hash = hashlib.md5(json.dumps(request, sort_keys=True).encode()).hexdigest()[:8]
 
     simulated_responses = {
@@ -293,6 +303,7 @@ def simulate_llm_call(model_name, request):
 
 
 def run_prompt_test(prompt, models=None):
+    """在多个模型上运行同一提示词，收集结果用于对比。"""
     if models is None:
         models = list(MODEL_CONFIGS.keys())
 
@@ -319,6 +330,7 @@ def run_prompt_test(prompt, models=None):
 
 
 def score_response(response_text, criteria):
+    """根据评分标准（长度、关键词、禁用词、格式）给响应打分。"""
     scores = {}
 
     if "max_words" in criteria:
@@ -373,6 +385,7 @@ def score_response(response_text, criteria):
 
 
 def compare_models(test_results, criteria):
+    """对比多个模型的测试结果并按综合得分排序。"""
     comparison = {}
     for model_name, result in test_results.items():
         scores = score_response(result["response"], criteria)
@@ -390,6 +403,7 @@ def compare_models(test_results, criteria):
     return comparison, ranked
 
 
+# 测试套件：覆盖多种提示词模式的端到端测试用例
 TEST_SUITE = [
     {
         "name": "Persona: Technical Writer",
@@ -478,6 +492,7 @@ TEST_SUITE = [
 
 
 def run_test_suite():
+    """运行完整测试套件，输出每个测试的模型排名和汇总结果。"""
     print("=" * 70)
     print("  PROMPT ENGINEERING TEST SUITE")
     print("=" * 70)
@@ -529,6 +544,7 @@ def run_test_suite():
 
 
 def run_pattern_catalog_demo():
+    """打印所有可用提示词模式的目录。"""
     print("=" * 70)
     print("  PROMPT PATTERN CATALOG")
     print("=" * 70)
@@ -541,6 +557,7 @@ def run_pattern_catalog_demo():
 
 
 def run_single_prompt_demo():
+    """构建单个提示词并在所有模型上运行演示。"""
     print(f"\n{'=' * 70}")
     print("  SINGLE PROMPT BUILD + TEST")
     print("=" * 70)

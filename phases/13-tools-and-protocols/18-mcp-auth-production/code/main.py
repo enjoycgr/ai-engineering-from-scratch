@@ -1,20 +1,18 @@
-"""Phase 13 Lesson 18 - MCP auth in production.
+"""Phase 13 Lesson 18 - MCP 生产认证。
 
-A stdlib walk-through of the production MCP auth surface:
+生产 MCP 认证表面的 stdlib 走过：
 
-  - RFC 8414 authorization server metadata
-  - RFC 7591 dynamic client registration (DCR fallback path)
-  - PKCE (RFC 7636) authorization code flow with audience pinning (RFC 8707)
-  - JWT validation on the resource server
-  - JWKS cache refresh on a schedule (the IdP rotates keys; the resource
-    server only re-fetches them)
-  - Audience-replay rejection via the aud claim
+  - RFC 8414 授权服务器元数据
+  - RFC 7591 动态客户端注册（DCR 回退路径）
+  - PKCE（RFC 7636）带受众固定的授权码流程（RFC 8707）
+  - 资源服务器上的 JWT 验证
+  - 按计划刷新 JWKS 缓存（IdP 轮换密钥；资源服务器只重新获取它们）
+  - 通过 aud 声明拒绝受众重播
 
-Three roles model the system: an AuthorizationServer that issues tokens and
-rotates its signing keys, a ResourceServer (the MCP server) that caches the
-JWKS and validates every request, and a Client that enrolls and obtains tokens.
+三个角色建模系统：颁发 token 和轮换其签名密钥的 AuthorizationServer，
+缓存 JWKS 并验证每个请求的 ResourceServer（MCP 服务器），以及注册并获取 token 的 Client。
 
-Stdlib only. Run: python3 main.py
+仅标准库。运行：python3 main.py
 """
 
 from __future__ import annotations

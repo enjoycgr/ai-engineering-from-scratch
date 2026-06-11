@@ -23,6 +23,7 @@ function pairKey(a: Sym, b: Sym): string {
 }
 
 function wordCounts(text: string): WordCounts {
+  // 将文本拆分为小写单词并统计频率
   const counts: WordCounts = new Map();
   const matches = text.toLowerCase().match(WORD_TOKEN_RE) ?? [];
   for (const word of matches) {
@@ -32,6 +33,7 @@ function wordCounts(text: string): WordCounts {
 }
 
 function initVocab(counts: WordCounts): Vocab {
+  // 将每个单词拆分为字符数组，并附加词尾标记 </w>
   const vocab: Vocab = new Map();
   for (const [word, freq] of counts) {
     const symbols: Sym[] = [...word, END_OF_WORD];
@@ -43,6 +45,7 @@ function initVocab(counts: WordCounts): Vocab {
 type PairCounts = Map<string, { pair: Pair; count: number }>;
 
 function pairCounts(vocab: Vocab): PairCounts {
+  // 统计词汇表中所有相邻字符对的频率
   const pairs: PairCounts = new Map();
   for (const [symbols, freq] of vocab) {
     for (let i = 0; i < symbols.length - 1; i += 1) {
@@ -61,6 +64,7 @@ function pairCounts(vocab: Vocab): PairCounts {
 }
 
 function bestPair(pairs: PairCounts): Pair | undefined {
+  // 返回频率最高的字符对
   let best: { pair: Pair; count: number } | undefined;
   for (const entry of pairs.values()) {
     if (!best || entry.count > best.count) {
@@ -71,6 +75,7 @@ function bestPair(pairs: PairCounts): Pair | undefined {
 }
 
 function mergePair(vocab: Vocab, pair: Pair): Vocab {
+  // 在词汇表中将指定的字符对 (a, b) 合并为单个符号 a+b
   const [a, b] = pair;
   const merged = a + b;
   const next: Vocab = new Map();
@@ -92,6 +97,7 @@ function mergePair(vocab: Vocab, pair: Pair): Vocab {
 }
 
 function trainBpe(text: string, numMerges: number): { merges: Merge[]; tokens: Sym[] } {
+  // 在语料上训练 BPE：执行 numMerges 次最频繁字符对的合并
   const counts = wordCounts(text);
   if (counts.size === 0) {
     throw new Error("wordCounts: corpus produced no words");
@@ -114,6 +120,7 @@ function trainBpe(text: string, numMerges: number): { merges: Merge[]; tokens: S
 }
 
 function encodeBpe(word: string, merges: readonly Merge[]): Sym[] {
+  // 使用学到的合并列表对单词进行 BPE 编码（朴素 O(n·|merges|) 方法）
   let symbols: Sym[] = [...word, END_OF_WORD];
   for (const [a, b] of merges) {
     const merged = a + b;
@@ -130,9 +137,9 @@ function encodeBpe(word: string, merges: readonly Merge[]): Sym[] {
 }
 
 function rankedEncode(word: string, merges: readonly Merge[]): Sym[] {
-  // Merge-rank lookup: production tokenizers (tiktoken, HF) score every
-  // adjacent pair by its position in the merge list and merge the lowest
-  // rank first. Same answer as encodeBpe, near-linear in word length.
+  // Merge-rank (合并排名) 查找：生产级分词器（tiktoken、HF）
+  // 通过合并列表中的位置为每对相邻字符评分，并优先合并排名最低的。
+  // 结果与 encodeBpe 相同，但时间复杂度接近单词长度的线性。
   const ranks: Map<string, number> = new Map();
   merges.forEach(([a, b], idx) => {
     ranks.set(pairKey(a, b), idx);

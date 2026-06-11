@@ -1,8 +1,7 @@
-"""Letta-shaped memory blocks with a sleep-time consolidation agent.
+"""Letta 风格的记忆块，带 sleep-time consolidation agent。
 
-Primary agent writes raw facts during turns. Sleep-time agent runs between
-turns, off the critical path, and consolidates blocks. Scripted so it runs
-offline.
+主智能体 (Primary agent) 在轮次中写入原始事实。Sleep-time agent 在轮次间运行，
+位于 critical path 之外，合并块。脚本化，可离线运行。
 """
 
 from __future__ import annotations

@@ -3,7 +3,7 @@ import random
 
 
 def sin_embed(t, T, dim=8):
-    """Sinusoidal timestep embedding."""
+    """正弦时间步嵌入（Sinusoidal timestep embedding）。"""
     out = []
     half = dim // 2
     for i in range(half):
@@ -96,6 +96,7 @@ def apply_update(net, grads, lr):
 
 
 def make_schedule(T):
+    # 前向噪声调度（noise schedule）：beta 从 1e-4 线性增长到 0.02
     betas = [1e-4 + (0.02 - 1e-4) * t / (T - 1) for t in range(T)]
     alphas = [1 - b for b in betas]
     alpha_bars, cum = [], 1.0
@@ -106,6 +107,7 @@ def make_schedule(T):
 
 
 def sample_data(rng):
+    # 双峰高斯混合分布：一半概率在 -2 附近，一半在 +2 附近
     return rng.gauss(-2.0, 0.4) if rng.random() < 0.5 else rng.gauss(2.0, 0.4)
 
 
@@ -115,6 +117,7 @@ def train(net, alpha_bars, T, steps, lr, t_dim, rng):
         t = rng.randrange(T)
         a_bar = alpha_bars[t]
         eps = rng.gauss(0, 1)
+        # 闭式一步加噪：x_t = sqrt(α̅_t) * x0 + sqrt(1 - α̅_t) * ε
         x_t = math.sqrt(a_bar) * x0 + math.sqrt(1 - a_bar) * eps
         t_emb = sin_embed(t, T, t_dim)
         eps_hat, cache = forward([x_t], t_emb, net)
@@ -126,11 +129,13 @@ def train(net, alpha_bars, T, steps, lr, t_dim, rng):
 
 
 def sample(net, alphas, alpha_bars, T, t_dim, rng):
+    # 从标准高斯噪声开始反向去噪
     x = rng.gauss(0, 1)
     for t in range(T - 1, -1, -1):
         t_emb = sin_embed(t, T, t_dim)
         eps_hat, _ = forward([x], t_emb, net)
         beta_t = 1 - alphas[t]
+        # 反向过程（reverse process）均值重参数化
         mean = (x - beta_t / math.sqrt(1 - alpha_bars[t]) * eps_hat[0]) / math.sqrt(alphas[t])
         if t > 0:
             x = mean + math.sqrt(beta_t) * rng.gauss(0, 1)
@@ -140,6 +145,7 @@ def sample(net, alphas, alpha_bars, T, t_dim, rng):
 
 
 def histogram(samples, lo=-5.0, hi=5.0, bins=30):
+    # 简单的 ASCII 直方图，用于可视化采样分布
     width = (hi - lo) / bins
     counts = [0] * bins
     for s in samples:
@@ -161,20 +167,20 @@ def main():
     _, alphas, alpha_bars = make_schedule(T)
     net = init_net(1, t_dim, hidden, rng)
 
-    print("=== training DDPM on two-mode 1-D mixture ===")
+    print("=== 在双峰一维混合分布上训练 DDPM ===")
     train(net, alpha_bars, T, steps=4000, lr=0.01, t_dim=t_dim, rng=rng)
 
     print()
-    print("=== sampling ===")
+    print("=== 采样 ===")
     samples = [sample(net, alphas, alpha_bars, T, t_dim, rng) for _ in range(500)]
     print(histogram(samples))
     m = sum(samples) / len(samples)
     pos = sum(1 for s in samples if s > 0)
-    print(f"mean {m:+.3f}, modeA(<0)={500-pos}, modeB(>0)={pos}")
+    print(f"均值 {m:+.3f}, 模式A(<0)={500-pos}, 模式B(>0)={pos}")
 
     print()
-    print("takeaway: trained noise predictor + reverse chain reproduces both modes.")
-    print("          same loss function that scales to images, video, 3D.")
+    print("要点：训练好的噪声预测器 + 反向链可以重建两个模式。")
+    print("      同样的损失函数可以扩展到图像、视频、3D。")
 
 
 if __name__ == "__main__":

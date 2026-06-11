@@ -2,6 +2,7 @@ import math
 import random
 
 
+# Module (模块) 基类：所有层和容器的抽象接口
 class Module:
     def __init__(self):
         self.training = True
@@ -22,9 +23,11 @@ class Module:
         self.training = False
 
 
+# Linear layer (线性层)：仿射变换 y = W*x + b
 class Linear(Module):
     def __init__(self, fan_in, fan_out):
         super().__init__()
+        # Kaiming 初始化：std = sqrt(2 / fan_in)，适用于 ReLU
         std = math.sqrt(2.0 / fan_in)
         self.weights = [[random.gauss(0, std) for _ in range(fan_in)] for _ in range(fan_out)]
         self.biases = [0.0] * fan_out
@@ -35,6 +38,7 @@ class Linear(Module):
         self.input = None
 
     def forward(self, x):
+        # 缓存输入用于 backward pass (反向传播)
         self.input = x
         output = []
         for i in range(self.fan_out):
@@ -45,6 +49,7 @@ class Linear(Module):
         return output
 
     def backward(self, grad):
+        # 计算 weight gradient (权重梯度)、bias gradient (偏置梯度) 和 input gradient (输入梯度)
         input_grad = [0.0] * self.fan_in
         for i in range(self.fan_out):
             self.bias_grads[i] += grad[i]
@@ -54,6 +59,7 @@ class Linear(Module):
         return input_grad
 
     def parameters(self):
+        # 返回所有可训练的 parameter (参数) 及其对应的 gradient (梯度)
         params = []
         for i in range(self.fan_out):
             for j in range(self.fan_in):
@@ -62,19 +68,23 @@ class Linear(Module):
         return params
 
 
+# ReLU (修正线性单元)：max(0, x)
 class ReLU(Module):
     def __init__(self):
         super().__init__()
         self.mask = None
 
     def forward(self, x):
+        # 缓存 mask 用于 backward pass
         self.mask = [1.0 if v > 0 else 0.0 for v in x]
         return [max(0.0, v) for v in x]
 
     def backward(self, grad):
+        # 梯度通过 mask：正数位置原样传递，负数位置置零
         return [g * m for g, m in zip(grad, self.mask)]
 
 
+# Sigmoid (S型函数)：1 / (1 + exp(-x))
 class Sigmoid(Module):
     def __init__(self):
         super().__init__()
@@ -83,14 +93,17 @@ class Sigmoid(Module):
     def forward(self, x):
         self.output = []
         for v in x:
+            # 裁剪防止 exp 溢出
             v = max(-500, min(500, v))
             self.output.append(1.0 / (1.0 + math.exp(-v)))
         return self.output
 
     def backward(self, grad):
+        # sigmoid 的导数：o * (1 - o)
         return [g * o * (1 - o) for g, o in zip(grad, self.output)]
 
 
+# Tanh 激活函数
 class Tanh(Module):
     def __init__(self):
         super().__init__()
@@ -101,9 +114,11 @@ class Tanh(Module):
         return self.output
 
     def backward(self, grad):
+        # tanh 的导数：1 - tanh^2(x)
         return [g * (1 - o * o) for g, o in zip(grad, self.output)]
 
 
+# Dropout：训练时随机置零，评估时直通
 class Dropout(Module):
     def __init__(self, p=0.5):
         super().__init__()
@@ -113,6 +128,7 @@ class Dropout(Module):
     def forward(self, x):
         if not self.training:
             return x
+        # 倒置 Dropout：缩放保留元素以保持期望值
         self.mask = [0.0 if random.random() < self.p else 1.0 / (1 - self.p) for _ in x]
         return [v * m for v, m in zip(x, self.mask)]
 
@@ -122,6 +138,7 @@ class Dropout(Module):
         return [g * m for g, m in zip(grad, self.mask)]
 
 
+# BatchNorm (批归一化)：归一化激活值，加速训练
 class BatchNorm(Module):
     def __init__(self, size, momentum=0.1, eps=1e-5):
         super().__init__()
@@ -143,12 +160,14 @@ class BatchNorm(Module):
         output_batch = []
 
         if self.training:
+            # 计算 batch 均值
             mean = [0.0] * self.size
             for sample in batch:
                 for j in range(self.size):
                     mean[j] += sample[j]
             mean = [m / batch_size for m in mean]
 
+            # 计算 batch 方差
             var = [0.0] * self.size
             for sample in batch:
                 for j in range(self.size):
@@ -157,6 +176,7 @@ class BatchNorm(Module):
 
             self.std_inv = [1.0 / math.sqrt(v + self.eps) for v in var]
 
+            # 归一化并应用 gamma/beta 缩放平移
             self.x_norm = []
             self.batch_input = batch
             for sample in batch:
@@ -165,10 +185,12 @@ class BatchNorm(Module):
                 output = [self.gamma[j] * normed[j] + self.beta[j] for j in range(self.size)]
                 output_batch.append(output)
 
+            # 更新 running statistics (滑动统计量)
             for j in range(self.size):
                 self.running_mean[j] = (1 - self.momentum) * self.running_mean[j] + self.momentum * mean[j]
                 self.running_var[j] = (1 - self.momentum) * self.running_var[j] + self.momentum * var[j]
         else:
+            # 评估模式：使用 running statistics
             std_inv = [1.0 / math.sqrt(v + self.eps) for v in self.running_var]
             for sample in batch:
                 normed = [(sample[j] - self.running_mean[j]) * std_inv[j] for j in range(self.size)]
@@ -179,6 +201,7 @@ class BatchNorm(Module):
 
     def forward(self, x):
         if self.training:
+            # 单样本训练时更新 running_mean（用于兼容逐样本训练）
             for j in range(self.size):
                 self.running_mean[j] = (1 - self.momentum) * self.running_mean[j] + self.momentum * x[j]
 
@@ -207,6 +230,7 @@ class BatchNorm(Module):
         return params
 
 
+# Sequential (顺序容器)：串联多个 Module
 class Sequential(Module):
     def __init__(self, *modules):
         super().__init__()
@@ -218,6 +242,7 @@ class Sequential(Module):
         return x
 
     def backward(self, grad):
+        # Backward pass (反向传播)：从最后一层到第一层
         for module in reversed(self.modules):
             grad = module.backward(grad)
         return grad
@@ -242,6 +267,7 @@ class Sequential(Module):
         return len(self.parameters())
 
 
+# MSELoss (均方误差损失)：用于回归任务
 class MSELoss:
     def __call__(self, predicted, target):
         self.predicted = predicted
@@ -255,6 +281,7 @@ class MSELoss:
         return [2 * (p - t) / n for p, t in zip(self.predicted, self.target)]
 
 
+# BCELoss (二元交叉熵损失)：用于二分类任务
 class BCELoss:
     def __call__(self, predicted, target):
         self.predicted = predicted
@@ -263,6 +290,7 @@ class BCELoss:
         n = len(predicted)
         self.loss = 0
         for p, t in zip(predicted, target):
+            # 裁剪防止 log(0)
             p = max(eps, min(1 - eps, p))
             self.loss += -(t * math.log(p) + (1 - t) * math.log(1 - p))
         self.loss /= n
@@ -278,12 +306,14 @@ class BCELoss:
         return grads
 
 
+# SGD (随机梯度下降) Optimizer (优化器)
 class SGD:
     def __init__(self, parameters, lr=0.01):
         self.params = parameters
         self.lr = lr
 
     def step(self):
+        # 使用 gradient (梯度) 更新 parameter (参数)
         for container, i, j, grad_container in self.params:
             if j is not None:
                 container[i][j] -= self.lr * grad_container[i][j]
@@ -291,6 +321,7 @@ class SGD:
                 container[i] -= self.lr * grad_container[i]
 
     def zero_grad(self):
+        # 清零所有 gradient
         for container, i, j, grad_container in self.params:
             if j is not None:
                 grad_container[i][j] = 0.0
@@ -298,6 +329,7 @@ class SGD:
                 grad_container[i] = 0.0
 
 
+# Adam (自适应矩估计) Optimizer (优化器)
 class Adam:
     def __init__(self, parameters, lr=0.001, beta1=0.9, beta2=0.999, eps=1e-8):
         self.params = parameters
@@ -317,9 +349,11 @@ class Adam:
             else:
                 g = grad_container[i]
 
+            # 更新一阶矩 (momentum) 和二阶矩 (variance) 估计
             self.m[idx] = self.beta1 * self.m[idx] + (1 - self.beta1) * g
             self.v[idx] = self.beta2 * self.v[idx] + (1 - self.beta2) * g * g
 
+            # 偏差修正
             m_hat = self.m[idx] / (1 - self.beta1 ** self.t)
             v_hat = self.v[idx] / (1 - self.beta2 ** self.t)
 
@@ -338,6 +372,7 @@ class Adam:
                 grad_container[i] = 0.0
 
 
+# DataLoader (数据加载器)：将数据分成 batch (批次)，可选 shuffle (打乱)
 class DataLoader:
     def __init__(self, data, batch_size=32, shuffle=True):
         self.data = data
@@ -359,17 +394,20 @@ class DataLoader:
         return (len(self.data) + self.batch_size - 1) // self.batch_size
 
 
+# 生成 circle classification (圆形分类) 数据集
 def make_circle_data(n=500, seed=42):
     random.seed(seed)
     data = []
     for _ in range(n):
         x = random.uniform(-2, 2)
         y = random.uniform(-2, 2)
+        # 点在圆内标签为 1，否则为 0
         label = 1.0 if x * x + y * y < 1.5 else 0.0
         data.append(([x, y], [label]))
     return data
 
 
+# 使用 Adam 训练 4 层网络
 def train_framework():
     random.seed(42)
 
@@ -443,6 +481,7 @@ def train_framework():
     return model, test_accuracy
 
 
+# 使用 SGD 训练相同架构
 def train_with_sgd():
     random.seed(42)
 
@@ -494,6 +533,7 @@ def train_with_sgd():
     return correct / len(test_data) * 100
 
 
+# 使用 Dropout 训练
 def train_with_dropout():
     random.seed(42)
 
@@ -541,6 +581,7 @@ def train_with_dropout():
     return correct / len(test_data) * 100
 
 
+# 打印样本预测结果
 def sample_predictions(model, data):
     test_points = [
         ([0.0, 0.0], "inside"),
@@ -563,7 +604,7 @@ def sample_predictions(model, data):
 
 if __name__ == "__main__":
     print("=" * 70)
-    print("MINI FRAMEWORK -- Phase 3 Capstone")
+    print("MINI FRAMEWORK (迷你框架) -- Phase 3 Capstone")
     print("=" * 70)
     print()
 
@@ -593,11 +634,11 @@ if __name__ == "__main__":
     print(f"  Adam + Dropout(0.3):   {dropout_acc:.1f}%")
 
     print("\n" + "=" * 70)
-    print("FRAMEWORK COMPONENTS")
+    print("FRAMEWORK COMPONENTS (框架组件)")
     print("=" * 70)
-    print(f"  Modules:    Linear, ReLU, Sigmoid, Tanh, Dropout, BatchNorm")
-    print(f"  Containers: Sequential")
-    print(f"  Losses:     MSELoss, BCELoss")
-    print(f"  Optimizers: SGD, Adam")
-    print(f"  Data:       DataLoader (batching + shuffle)")
+    print(f"  Modules (模块):    Linear, ReLU, Sigmoid, Tanh, Dropout, BatchNorm")
+    print(f"  Containers (容器): Sequential")
+    print(f"  Losses (损失):     MSELoss, BCELoss")
+    print(f"  Optimizers (优化器): SGD, Adam")
+    print(f"  Data (数据):       DataLoader (batching + shuffle)")
     print(f"  Total:      ~500 lines of pure Python")

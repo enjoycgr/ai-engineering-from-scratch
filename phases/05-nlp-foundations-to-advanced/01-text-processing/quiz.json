@@ -1,22 +1,22 @@
 {
   "lesson": "01-text-processing",
-  "title": "Text Processing — Tokenization, Stemming, Lemmatization",
+  "title": "文本处理 —— 分词、词干提取、词形还原",
   "questions": [
     {
       "stage": "pre",
-      "question": "Why does a language model need preprocessing before training?",
+      "question": "为什么语言模型在训练前需要预处理？",
       "options": [
-        "Preprocessing improves GPU utilization",
-        "Models consume discrete integer tokens, not raw text",
-        "Models read strings directly",
-        "Preprocessing is required only for languages without whitespace"
+        "预处理提高 GPU 利用率",
+        "模型消费的是离散的整数 token，而不是原始文本",
+        "模型直接读取字符串",
+        "预处理仅对没有空格的语言是必需的"
       ],
       "correct": 1,
-      "explanation": "Models operate on integer token IDs; preprocessing bridges continuous language to discrete inputs."
+      "explanation": "模型操作的是整数 token ID；预处理将连续的语言桥接到离散输入。"
     },
     {
       "stage": "pre",
-      "question": "Which preprocessing operation is rule-based suffix stripping?",
+      "question": "哪种预处理操作是基于规则的后缀剥离？",
       "options": [
         "Stemming",
         "POS tagging",
@@ -24,11 +24,11 @@
         "Tokenization"
       ],
       "correct": 0,
-      "explanation": "Stemming chops suffixes with rules; it is fast but can be wrong."
+      "explanation": "Stemming 用规则砍掉后缀；它很快但可能出错。"
     },
     {
       "stage": "check",
-      "question": "What does the Porter stemmer step 1a return for the word 'ponies'?",
+      "question": "Porter stemmer 步骤 1a 对单词 'ponies' 返回什么？",
       "options": [
         "ponies",
         "ponie",
@@ -36,23 +36,23 @@
         "poni"
       ],
       "correct": 3,
-      "explanation": "The 'ies' rule replaces the suffix with 'i', producing 'poni'; step 1b in real Porter cleans it up."
+      "explanation": "'ies' 规则将后缀替换为 'i'，产生 'poni'；真正的 Porter 步骤 1b 会清理它。"
     },
     {
       "stage": "check",
-      "question": "Why does lemmatization usually need a POS tag?",
+      "question": "为什么 lemmatization 通常需要 POS tag？",
       "options": [
-        "Unicode handling",
-        "Speed",
-        "Grammatical context disambiguates forms like 'better' (ADJ) versus 'better' (VERB)",
-        "To reduce memory usage"
+        "Unicode 处理",
+        "速度",
+        "语法上下文可以消除形式歧义，如 'better' (ADJ) 与 'better' (VERB)",
+        "减少内存使用"
       ],
       "correct": 2,
-      "explanation": "Lemmas depend on grammatical role; without the tag the lookup is ambiguous."
+      "explanation": "词元取决于语法角色；没有标签，查找是模糊的。"
     },
     {
       "stage": "check",
-      "question": "When translating NLTK Penn Treebank POS tags to WordNet tags, what does a tag starting with 'V' map to?",
+      "question": "将 NLTK Penn Treebank POS tags 翻译为 WordNet tags 时，以 'V' 开头的标签映射到什么？",
       "options": [
         "'n' (noun)",
         "'v' (verb)",
@@ -60,43 +60,43 @@
         "'a' (adjective)"
       ],
       "correct": 1,
-      "explanation": "Verb-prefixed Penn Treebank tags map to WordNet 'v'."
+      "explanation": "以 V 开头的 Penn Treebank 动词标签映射到 WordNet 的 'v'。"
     },
     {
       "stage": "post",
-      "question": "What is 'training/inference mismatch' in NLP preprocessing?",
+      "question": "NLP 预处理中的 'training/inference mismatch' 是什么？",
       "options": [
-        "Different batch sizes between train and test",
-        "Training and serving apply different preprocessing, so the model sees an unfamiliar distribution at inference",
-        "A GPU memory issue",
-        "Mixing tokenizer libraries within a notebook"
+        "训练和测试之间的不同 batch size",
+        "训练和 serving 应用不同的预处理，因此模型在 inference 时看到不熟悉的分布",
+        "GPU 内存问题",
+        "在 notebook 中混合使用 tokenizer 库"
       ],
       "correct": 1,
-      "explanation": "Different preprocessing at training vs inference is the most common production NLP failure."
+      "explanation": "训练和 inference 使用不同的预处理是生产 NLP 中最常见的故障。"
     },
     {
       "stage": "post",
-      "question": "Which tool would you reach for in a transformer pipeline instead of classical preprocessing?",
+      "question": "在 transformer 流程中，你会选择哪个工具代替经典预处理？",
       "options": [
         "NLTK word_tokenize",
-        "The model's own tokenizer (e.g. via tokenizers / transformers)",
-        "A regex tokenizer",
+        "模型自己的 tokenizer（例如通过 tokenizers / transformers）",
+        "正则表达式 tokenizer",
         "spaCy en_core_web_sm"
       ],
       "correct": 1,
-      "explanation": "Transformer models ship a paired tokenizer; classical preprocessing is bypassed."
+      "explanation": "Transformer 模型附带配对的 tokenizer；经典预处理被绕过。"
     },
     {
       "stage": "post",
-      "question": "Why pin NLTK and spaCy versions in requirements?",
+      "question": "为什么要在 requirements 中锁定 NLTK 和 spaCy 版本？",
       "options": [
-        "License compatibility",
-        "Tokenizer and lemmatizer behavior shifts between minor releases, silently changing training distribution",
-        "Older versions support more languages",
-        "Newer versions are slower"
+        "许可证兼容性",
+        "Tokenizer 和 lemmatizer 行为在次要版本之间会变化，悄然改变训练分布",
+        "旧版本支持更多语言",
+        "新版本更慢"
       ],
       "correct": 1,
-      "explanation": "Library upgrades can change tokenization output, drifting from the training distribution."
+      "explanation": "库升级可能改变分词输出，导致与训练分布的漂移。"
     }
   ]
 }

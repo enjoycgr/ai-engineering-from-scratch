@@ -1,13 +1,12 @@
-"""LLaVA-OneVision token budget + curriculum planner — stdlib.
+"""LLaVA-OneVision token 预算 + 课程规划器 — stdlib。
 
-Given a total visual-token budget per sample and a task-mix (single-image, multi-
-image, video fractions), allocates:
-  - AnyRes tile count and pooling factor for single-image
-  - images-per-sample and per-image resolution for multi-image
-  - frames-per-sample and per-frame pooling for video
+给定每样本总视觉 token 预算和任务混合（单图像、多图像、视频比例），分配：
+  - 单图像的 AnyRes 瓦片数和 pooling 因子
+  - 多图像的每样本图像数和每图像分辨率
+  - 视频的每样本帧数和每帧 pooling
 
-Prints a stage-by-stage training schedule with expected FLOPs per sample.
-Keeps the budget roughly constant across scenarios so the LLM never blows context.
+打印带每样本预期 FLOPs 的逐阶段训练计划。
+跨场景保持预算大致恒定，因此 LLM 不会爆炸上下文。
 """
 
 from __future__ import annotations

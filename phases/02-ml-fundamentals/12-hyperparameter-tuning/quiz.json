@@ -2,20 +2,20 @@
   {
     "id": "hptune-pre-1",
     "stage": "pre",
-    "question": "What is the difference between a parameter and a hyperparameter?",
+    "question": "参数 (parameter) 和超参数 (hyperparameter) 的区别是什么？",
     "options": [
-      "Parameters are set by the user; hyperparameters are learned during training",
-      "Parameters are learned during training (weights, biases); hyperparameters are set before training starts (learning rate, max depth)",
-      "There is no difference; they are synonyms",
-      "Parameters apply to neural networks only; hyperparameters apply to tree models"
+      "参数由用户设置；超参数在训练过程中学习",
+      "参数在训练过程中学习（权重、偏置）；超参数在训练开始前设置（learning rate (学习率)、max depth (最大深度)）",
+      "没有区别；它们是同义词",
+      "参数只适用于神经网络；超参数只适用于树模型"
     ],
     "correct": 1,
-    "explanation": "Parameters are learned by the optimization algorithm during training (e.g., weights). Hyperparameters are set before training and control how learning happens (e.g., learning rate, regularization strength)."
+    "explanation": "参数由优化算法在训练过程中学习（例如权重）。超参数在训练前设置，控制学习如何进行（例如 learning rate (学习率)、regularization (正则化) 强度）。"
   },
   {
     "id": "hptune-pre-2",
     "stage": "pre",
-    "question": "Grid search over 4 hyperparameters with 5 values each requires how many evaluations?",
+    "question": "对 4 个超参数进行 grid search (网格搜索)，每个超参数有 5 个取值，需要多少次评估？",
     "options": [
       "20",
       "25",
@@ -23,45 +23,45 @@
       "4"
     ],
     "correct": 2,
-    "explanation": "Grid search evaluates every combination: 5^4 = 625. This exponential scaling is why grid search becomes impractical with many hyperparameters."
+    "explanation": "Grid search (网格搜索) 评估每种组合：5^4 = 625。这种指数级增长是 grid search (网格搜索) 在超参数较多时变得不实用的原因。"
   },
   {
     "id": "hptune-post-1",
     "stage": "post",
-    "question": "Why does random search often outperform grid search with the same evaluation budget?",
+    "question": "为什么 random search (随机搜索) 在相同评估预算下通常优于 grid search (网格搜索)？",
     "options": [
-      "Random search uses a better optimization algorithm",
-      "Most hyperparameters have low effective dimensionality, so random search covers the important ones more densely",
-      "Random search always finds the global optimum",
-      "Grid search cannot handle continuous hyperparameters"
+      "Random search (随机搜索) 使用了更好的优化算法",
+      "大多数超参数具有低有效维度，因此 random search (随机搜索) 更密集地覆盖了重要的超参数",
+      "Random search (随机搜索) 总能找到全局最优",
+      "Grid search (网格搜索) 无法处理连续超参数"
     ],
     "correct": 1,
-    "explanation": "Usually only 1-2 hyperparameters matter for a given problem. Grid search wastes evaluations varying unimportant ones. Random search gives unique values for every parameter per trial, covering important dimensions more densely."
+    "explanation": "通常只有 1-2 个超参数对给定问题真正重要。Grid search (网格搜索) 浪费评估在不重要的维度上变化。Random search (随机搜索) 每次试验给每个参数一个唯一值，更密集地覆盖了重要维度。"
   },
   {
     "id": "hptune-post-2",
     "stage": "post",
-    "question": "In Bayesian optimization, what does the acquisition function balance?",
+    "question": "在 Bayesian optimization (贝叶斯优化) 中，acquisition function (采集函数) 平衡了什么？",
     "options": [
-      "Training speed and model accuracy",
-      "Exploitation (searching near known good points) and exploration (searching uncertain regions)",
-      "The number of features and the number of samples",
-      "Bias and variance in the surrogate model"
+      "训练速度和模型准确率",
+      "Exploitation（在已知好的点附近搜索）和 exploration（在不确定区域搜索）",
+      "特征数量和样本数量",
+      "代理模型中的偏差和方差"
     ],
     "correct": 1,
-    "explanation": "The acquisition function decides where to evaluate next by balancing exploitation (near known good results) and exploration (where the surrogate model is uncertain). This directs search more efficiently than random."
+    "explanation": "Acquisition function (采集函数) 通过平衡 exploitation（在已知好结果附近搜索）和 exploration（在 surrogate model (代理模型) 不确定的地方搜索）来决定下一个评估点。这比随机搜索更有效地引导搜索。"
   },
   {
     "id": "hptune-post-3",
     "stage": "post",
-    "question": "You tune hyperparameters using the test set and report the best test performance. What is wrong with this approach?",
+    "question": "你使用 test set (测试集) 调优超参数并报告最佳测试性能。这种做法有什么问题？",
     "options": [
-      "Nothing -- this is standard practice",
-      "You overfitted to the test set; the reported performance is optimistic and will not generalize",
-      "The test set should be used for training, not tuning",
-      "Hyperparameters should only be integers"
+      "没问题——这是标准做法",
+      "你对 test set (测试集) 过拟合了；报告的性能过于乐观，无法泛化",
+      "test set (测试集) 应该用于训练，而不是调优",
+      "超参数只能是整数"
     ],
     "correct": 1,
-    "explanation": "Tuning on the test set means you selected hyperparameters that happen to perform well on those specific samples. This is overfitting to the test set. Use a validation set for tuning and reserve the test set for final evaluation."
+    "explanation": "在 test set (测试集) 上调优意味着你选择了恰好在这部分样本上表现好的超参数。这是对 test set (测试集) 的过拟合。使用 validation set (验证集) 进行调优，并保留 test set (测试集) 用于最终评估。"
   }
 ]

@@ -7,6 +7,11 @@ temp-and-rename writes so a partial failure cannot corrupt the file.
 
 Run: python3 code/main.py
 """
+# Schema-first（模式优先）agent state，带 atomic writes（原子写入）。
+# 为 `agent_state.json` 和 `task_board.json` 写入 JSON Schema 文件，
+# 实现一个处理所需子集（required、type、enum、pattern、items）的微小 stdlib validator，
+# 以及一个 StateManager，使用 temp-and-rename writes，使 partial failure 无法 corrupt 文件。
+# 运行：python3 code/main.py
 
 from __future__ import annotations
 

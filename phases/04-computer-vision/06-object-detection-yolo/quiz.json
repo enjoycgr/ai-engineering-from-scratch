@@ -2,38 +2,63 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "A YOLO detector with grid 13x13, 3 anchors per cell, and 20 classes produces a head output of shape (N, 13, 13, 3, 25). Why is the last dimension 25?",
-      "options": ["4 box coords + 1 bias + 20 classes", "4 box coords + 1 objectness + 20 classes = 5 + C", "25 is the number of classes in COCO", "It is padding to the next power of 2"],
+      "question": "一个 YOLO 检测器使用 13x13 网格，每个单元 3 个锚框（Anchor），20 个类别，产生的 head 输出形状为 (N, 13, 13, 3, 25)。为什么最后一维是 25？",
+      "options": [
+        "4 个框坐标 + 1 个偏置 + 20 个类别",
+        "4 个框坐标 + 1 个目标置信度（Objectness） + 20 个类别 = 5 + C",
+        "25 是 COCO 中的类别数",
+        "它是填充到下一个 2 的幂"
+      ],
       "correct": 1,
-      "explanation": "Every anchor emits four box regression targets (tx, ty, tw, th), one objectness score, and C class logits. For YOLO-style detectors the per-anchor dimension is always 5 + C. On COCO with 80 classes it is 85; on PASCAL VOC with 20 it is 25."
+      "explanation": "每个锚框输出四个框回归目标（tx, ty, tw, th）、一个目标置信度（Objectness）分数和 C 个类别 logits。对于 YOLO 风格的检测器，每个锚框的维度始终是 5 + C。在 COCO 上 80 个类别时为 85；在 PASCAL VOC 上 20 个类别时为 25。"
     },
     {
       "stage": "pre",
-      "question": "Why does YOLO predict tx, ty through a sigmoid before adding the grid cell?",
-      "options": ["To normalise them to [0, 1] so the centre stays inside the cell and cannot escape to a neighbouring cell's territory", "Sigmoid is required by the convolution", "To prevent NaN during training", "To make the box larger"],
+      "question": "为什么 YOLO 在将 tx, ty 加到网格单元之前先通过 sigmoid？",
+      "options": [
+        "将它们归一化到 [0, 1]，使中心保持在单元内部，不能逃逸到相邻单元的区域",
+        "Sigmoid 是卷积所要求的",
+        "为了防止训练中出现 NaN",
+        "为了让框更大"
+      ],
       "correct": 0,
-      "explanation": "sigmoid(tx) is in [0, 1], so (sigmoid(tx) + cell_x) * stride places the centre somewhere inside the cell at column cell_x. This constraint keeps each cell responsible for only the objects centred within its own area, which is the assumption that makes grid-based training stable."
+      "explanation": "sigmoid(tx) 在 [0, 1] 范围内，所以 (sigmoid(tx) + cell_x) * stride 将中心放置在列 cell_x 的单元内部某处。这个约束使每个单元只对自己区域内中心的对象负责，这是基于网格的训练稳定的假设。"
     },
     {
       "stage": "post",
-      "question": "Your detector predicts 15 boxes around a single object after the head. You apply NMS with iou_threshold=0.45 and get back 1 box. What did NMS do?",
-      "options": ["It averaged all 15 predictions", "It sorted the 15 boxes by score, kept the highest-scoring, and deleted every box whose IoU with it exceeded 0.45; the other 14 all overlapped the winner above the threshold so one remained", "It picked a random survivor", "It merged the boxes geometrically"],
+      "question": "你的检测器在 head 后对一个物体预测了 15 个框。你应用 NMS（非极大值抑制），iou_threshold=0.45，返回 1 个框。NMS 做了什么？",
+      "options": [
+        "它平均了所有 15 个预测",
+        "它按分数对 15 个框排序，保留最高分的，并删除所有与它 IoU 超过 0.45 的框；其余 14 个都与获胜者重叠超过阈值，所以只剩一个",
+        "它随机挑选一个幸存者",
+        "它在几何上合并框"
+      ],
       "correct": 1,
-      "explanation": "NMS is a greedy deduplication: sort by score, keep the top, remove everything close to it (IoU > threshold), repeat. It does not merge or average. That is why detection latency benchmarks include NMS time and why modern models like RT-DETR replace it with a learned alternative."
+      "explanation": "NMS 是一种贪婪去重：按分数排序，保留最高分，移除所有与它接近的（IoU > 阈值），重复。它不会合并或平均。这就是为什么检测延迟基准包含 NMS 时间，以及为什么 RT-DETR 等现代模型用学习到的替代方案替换它。"
     },
     {
       "stage": "post",
-      "question": "Your model has mAP@0.5 = 0.75 but mAP@0.5:0.95 = 0.32. What is the most accurate interpretation?",
-      "options": ["The model is broken; mAP@0.5 must equal mAP@0.5:0.95", "The model finds the right objects but its boxes are not tightly localised — fine at IoU 0.5, fail at IoU 0.7+", "The dataset has too many classes", "The inference threshold is too high"],
+      "question": "你的模型 mAP@0.5 = 0.75，但 mAP@0.5:0.95 = 0.32。最准确的解释是什么？",
+      "options": [
+        "模型坏了；mAP@0.5 必须等于 mAP@0.5:0.95",
+        "模型能找到正确的物体，但框的定位不紧密——在 IoU 0.5 时还行，在 IoU 0.7+ 时失败",
+        "数据集类别太多了",
+        "推理阈值太高了"
+      ],
       "correct": 1,
-      "explanation": "mAP@0.5 is lenient about localisation; mAP@0.5:0.95 averages over strict thresholds up to 0.95. A big gap between the two means the boxes are in roughly the right place but not tight. Typical fixes: CIoU/DIoU box loss, higher-resolution features, anchor sets better tuned to the dataset."
+      "explanation": "mAP@0.5 对定位要求宽松；mAP@0.5:0.95 对高达 0.95 的严格阈值取平均。两者之间差距大意味着框大致在正确位置但不紧密。典型修复：CIoU/DIoU 框损失、更高分辨率的特征、更适合数据集的锚框（Anchor）集合。"
     },
     {
       "stage": "post",
-      "question": "YOLO loss weights lambda_coord=5.0 and lambda_noobj=0.5 roughly mirror the original paper. What do these ratios encode?",
-      "options": ["GPU memory trade-offs", "The fact that most cells have no object, so the no-object cells must be downweighted or they would dominate the total loss; and the fact that box regression is a smaller-scale loss than cross-entropy, so it needs upweighting to produce comparable gradients", "Random choices the authors never justified", "The number of anchors per cell"],
+      "question": "YOLO 损失权重 lambda_coord=5.0 和 lambda_noobj=0.5 大致反映了原始论文。这些比例编码了什么？",
+      "options": [
+        "GPU 内存权衡",
+        "大多数单元没有物体，所以无物体单元必须被降权，否则它们会主导总损失；而且框回归的损失尺度比交叉熵（Cross-entropy）小，所以需要加权以产生可比的梯度",
+        "作者从未证明的随机选择",
+        "每个单元的锚框（Anchor）数量"
+      ],
       "correct": 1,
-      "explanation": "In a 13x13 grid there are 169 cells, usually with one to five objects. The 160+ empty cells all contribute objectness loss; without a small lambda_noobj they would overwhelm the positive signal. Conversely, MSE box loss is numerically small next to cross-entropy, so lambda_coord > 1 keeps its gradients comparable. Both ratios are about balancing per-component gradient magnitudes."
+      "explanation": "在 13x13 网格中有 169 个单元，通常只有 1 到 5 个物体。160 多个空单元都贡献目标置信度（Objectness）损失；如果没有较小的 lambda_noobj，它们会淹没正样本信号。相反，MSE 框损失在数值上比交叉熵（Cross-entropy）小，所以 lambda_coord > 1 保持其梯度可比。两个比例都是关于平衡各组件梯度幅度的。"
     }
   ]
 }

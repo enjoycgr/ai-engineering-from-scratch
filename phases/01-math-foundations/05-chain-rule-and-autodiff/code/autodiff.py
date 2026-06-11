@@ -105,7 +105,7 @@ class Value:
 
 
 def demo_basic():
-    print("=== Basic: y = relu(x1 * x2 + 1) ===")
+    print("=== 基础: y = relu(x1 * x2 + 1) ===")
     x1 = Value(2.0)
     x2 = Value(3.0)
     a = x1 * x2
@@ -123,7 +123,7 @@ def demo_basic():
 
 
 def demo_power():
-    print("=== Power: y = x^3, dy/dx at x=2 ===")
+    print("=== 幂运算: y = x^3, dy/dx at x=2 ===")
     x = Value(2.0)
     y = x ** 3
     y.backward()
@@ -136,7 +136,7 @@ def demo_power():
 
 
 def demo_complex():
-    print("=== Complex: f = relu(a*b + c) ===")
+    print("=== 复杂: f = relu(a*b + c) ===")
     a = Value(2.0)
     b = Value(-3.0)
     c = Value(10.0)
@@ -155,7 +155,7 @@ def demo_complex():
 
 
 def demo_neuron():
-    print("=== Single neuron: y = relu(w1*x1 + w2*x2 + b) ===")
+    print("=== 单个神经元: y = relu(w1*x1 + w2*x2 + b) ===")
     w1 = Value(0.5)
     w2 = Value(-1.5)
     x1 = Value(3.0)
@@ -226,22 +226,8 @@ class MLP:
         return [p for layer in self.layers for p in layer.parameters()]
 
 
-def gradient_check(build_expr, x_val, h=1e-7):
-    x = Value(x_val)
-    y = build_expr(x)
-    y.backward()
-    autodiff_grad = x.grad
-
-    y_plus = build_expr(Value(x_val + h)).data
-    y_minus = build_expr(Value(x_val - h)).data
-    numerical_grad = (y_plus - y_minus) / (2 * h)
-
-    diff = abs(autodiff_grad - numerical_grad)
-    return autodiff_grad, numerical_grad, diff
-
-
 def demo_mlp_training():
-    print("=== Mini MLP Training on XOR ===")
+    print("=== 在 XOR 上训练微型 MLP ===")
     random.seed(42)
     model = MLP([2, 4, 1])
 
@@ -262,9 +248,9 @@ def demo_mlp_training():
             p.data -= lr * p.grad
 
         if step % 20 == 0 or step == 99:
-            print(f"  step {step:3d}  loss = {loss.data:.4f}")
+            print(f"  步 {step:3d}  loss = {loss.data:.4f}")
 
-    print("\n  Predictions after training:")
+    print("\n  训练后的预测:")
     for x, y in zip(xs, ys):
         pred = model(x)
         sign = "+" if pred.data > 0 else "-"
@@ -272,8 +258,22 @@ def demo_mlp_training():
     print("  DONE\n")
 
 
+def gradient_check(build_expr, x_val, h=1e-7):
+    x = Value(x_val)
+    y = build_expr(x)
+    y.backward()
+    autodiff_grad = x.grad
+
+    y_plus = build_expr(Value(x_val + h)).data
+    y_minus = build_expr(Value(x_val - h)).data
+    numerical_grad = (y_plus - y_minus) / (2 * h)
+
+    diff = abs(autodiff_grad - numerical_grad)
+    return autodiff_grad, numerical_grad, diff
+
+
 def demo_gradient_check():
-    print("=== Gradient Checking ===")
+    print("=== 梯度检查 ===")
 
     expressions = [
         ("x^3 + 2x + 1",       lambda x: x ** 3 + x * 2 + 1),
@@ -283,7 +283,7 @@ def demo_gradient_check():
         ("log(x^2 + 1)",       lambda x: (x ** 2 + 1).log()),
     ]
 
-    print(f"  {'Expression':<22} {'Autodiff':>12} {'Numerical':>12} {'Diff':>12}")
+    print(f"  {'表达式':<22} {'Autodiff':>12} {'数值':>12} {'差异':>12}")
     print("  " + "-" * 60)
 
     all_passed = True
@@ -295,13 +295,13 @@ def demo_gradient_check():
         print(f"  {name:<22} {ad:12.8f} {num:12.8f} {diff:12.2e}  {status}")
 
     if all_passed:
-        print("  ALL CHECKS PASSED\n")
+        print("  所有检查通过\n")
     else:
-        print("  SOME CHECKS FAILED\n")
+        print("  部分检查失败\n")
 
 
 def demo_exp_log():
-    print("=== Exp and Log operations ===")
+    print("=== Exp 和 Log 操作 ===")
     x = Value(2.0)
     y = x.exp()
     y.backward()
@@ -321,11 +321,11 @@ def demo_exp_log():
 
 
 def demo_verify_pytorch():
-    print("=== Verify against PyTorch ===")
+    print("=== 与 PyTorch 验证 ===")
     try:
         import torch
     except ImportError:
-        print("  PyTorch not installed, skipping verification.\n")
+        print("  PyTorch 未安装，跳过验证。\n")
         return
 
     x1_v = Value(2.0)
@@ -338,7 +338,7 @@ def demo_verify_pytorch():
     y_t = torch.relu(x1_t * x2_t + 1.0)
     y_t.backward()
 
-    print(f"  Our engine: dy/dx1={x1_v.grad}, dy/dx2={x2_v.grad}")
+    print(f"  我们的引擎: dy/dx1={x1_v.grad}, dy/dx2={x2_v.grad}")
     print(f"  PyTorch:    dy/dx1={x1_t.grad.item()}, dy/dx2={x2_t.grad.item()}")
     assert abs(x1_v.grad - x1_t.grad.item()) < 1e-6
     assert abs(x2_v.grad - x2_t.grad.item()) < 1e-6
@@ -354,4 +354,4 @@ if __name__ == "__main__":
     demo_gradient_check()
     demo_mlp_training()
     demo_verify_pytorch()
-    print("All demos passed.")
+    print("所有演示通过。")

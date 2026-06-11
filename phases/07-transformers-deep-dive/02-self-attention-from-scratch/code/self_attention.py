@@ -2,12 +2,14 @@ import numpy as np
 
 
 def softmax(x):
+    # 为数值稳定性，先减去每行的最大值
     shifted = x - np.max(x, axis=-1, keepdims=True)
     exp_x = np.exp(shifted)
     return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
 
 def scaled_dot_product_attention(Q, K, V):
+    # 缩放点积注意力：Q @ K^T / sqrt(dk)，softmax，然后 @ V
     dk = Q.shape[-1]
     scores = Q @ K.T / np.sqrt(dk)
     weights = softmax(scores)
@@ -16,6 +18,7 @@ def scaled_dot_product_attention(Q, K, V):
 
 
 class SelfAttention:
+    # 单头自注意力，包含可学习的 Q/K/V 投影
     def __init__(self, d_model, dk, dv, seed=42):
         rng = np.random.default_rng(seed)
         scale_qk = np.sqrt(2.0 / (d_model + dk))
@@ -26,6 +29,7 @@ class SelfAttention:
         self.dk = dk
 
     def forward(self, X):
+        # 通过权重矩阵投影得到 Q、K、V
         Q = X @ self.Wq
         K = X @ self.Wk
         V = X @ self.Wv
@@ -33,6 +37,7 @@ class SelfAttention:
 
 
 class MultiHeadSelfAttention:
+    # 多头自注意力：并行运行多个注意力头，拼接后通过 Wo 投影
     def __init__(self, d_model, n_heads, seed=42):
         assert d_model % n_heads == 0
         self.n_heads = n_heads
@@ -59,6 +64,7 @@ class MultiHeadSelfAttention:
 
 
 def print_attention_matrix(weights, tokens):
+    # 以表格形式打印注意力权重矩阵
     print(f"\n{'':>6}", end="")
     for token in tokens:
         print(f"{token:>6}", end="")
@@ -71,6 +77,7 @@ def print_attention_matrix(weights, tokens):
 
 
 def ascii_heatmap(weights, tokens, chars=" ░▒▓█"):
+    # 使用 ASCII 字符将注意力权重可视化为热力图
     print(f"\n{'':>6}", end="")
     for t in tokens:
         print(f"{t:>6}", end="")

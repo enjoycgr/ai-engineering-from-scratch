@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "post",
-      "question": "What three primitives does an MCP server expose?",
+      "question": "MCP server 暴露哪三种原语？",
       "options": [
         "Functions, types, classes",
         "Tools, resources, prompts",
@@ -16,7 +16,7 @@
     },
     {
       "stage": "post",
-      "question": "What wire format does MCP use?",
+      "question": "MCP 使用哪种传输格式？",
       "options": [
         "GraphQL over HTTP",
         "gRPC with protobuf",
@@ -28,7 +28,7 @@
     },
     {
       "stage": "post",
-      "question": "Which metadata field signals a tool mutates state and should require human approval?",
+      "question": "哪个元数据字段表示工具变更状态并应需要人工批准？",
       "options": [
         "readonly: false",
         "mutating: true",
@@ -40,7 +40,7 @@
     },
     {
       "stage": "post",
-      "question": "What is the 2025-06-18 transport that replaced the earlier SSE-only remote transport?",
+      "question": "2025-06-18 的哪种传输取代了早期的仅 SSE 远程传输？",
       "options": [
         "WebTransport",
         "Streamable HTTP",
@@ -52,7 +52,7 @@
     },
     {
       "stage": "post",
-      "question": "When should a tool be split into its own MCP server instead of staying inline?",
+      "question": "工具何时应拆分为独立的 MCP server 而非保持内联？",
       "options": [
         "When it is called fewer than 10 times per day",
         "When it is called from two or more hosts and is read-only/cacheable",

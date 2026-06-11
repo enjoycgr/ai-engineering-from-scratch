@@ -1,46 +1,46 @@
 {
   "lesson": "19-ai-gateways",
-  "title": "AI Gateways — LiteLLM, Portkey, Kong AI Gateway, Bifrost",
+  "title": "AI Gateways（AI 网关）—— LiteLLM、Portkey、Kong AI Gateway、Bifrost",
   "questions": [
     {
       "stage": "pre",
-      "question": "What is the core role of an AI gateway in the lesson?",
+      "question": "课程中 AI gateway 的核心角色是什么？",
       "options": [
-        "A model fine-tuning service",
-        "A vector database for retrieval",
-        "A logging-only sidecar",
-        "A process sitting between apps and model providers that consolidates routing, fallback, retries, rate limits, secret references, observability, and guardrails behind one API"
+        "模型微调服务",
+        "用于检索的向量数据库",
+        "仅日志 sidecar",
+        "位于应用与模型提供商之间的进程，将 routing、fallback、retries、rate limits、secret references、observability 和 guardrails 统一到一个 API 后"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "What scale ceiling does Kong's benchmark report for LiteLLM?",
+      "question": "Kong 基准报告 LiteLLM 的 scale ceiling 是多少？",
       "options": [
-        "It tops out at 50 RPS",
-        "It breaks down around ~2000 RPS with 8 GB memory and cascading failures under sustained load",
-        "It scales linearly past 10k RPS",
-        "LiteLLM cannot be benchmarked"
+        "50 RPS 就封顶",
+        "约 2000 RPS 时崩溃，8 GB 内存，持续负载下级联故障",
+        "线性扩展到 10k RPS 以上",
+        "LiteLLM 无法被基准测试"
       ],
       "correct": 1,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Per the Kong benchmark on equivalent CPU, how much faster is Kong AI Gateway than Portkey and LiteLLM?",
+      "question": "在等效 CPU 的 Kong 基准中，Kong AI Gateway 比 Portkey 和 LiteLLM 快多少？",
       "options": [
-        "228% faster than Portkey and 859% faster than LiteLLM",
-        "About 10% and 20% faster",
-        "Identical",
-        "Slower than both"
+        "比 Portkey 快 228%，比 LiteLLM 快 859%",
+        "约快 10% 和 20%",
+        "相同",
+        "比两者都慢"
       ],
       "correct": 0,
       "explanation": ""
     },
     {
       "stage": "check",
-      "question": "Which gateway does the lesson position with 20-40 ms latency overhead and guardrails / PII redaction / jailbreak detection focus?",
+      "question": "课程中哪个 gateway 定位在 20-40 ms 延迟开销，并聚焦 guardrails / PII redaction / jailbreak detection？",
       "options": [
         "Kong AI Gateway",
         "LiteLLM",
@@ -52,24 +52,24 @@
     },
     {
       "stage": "post",
-      "question": "What does the lesson say is the forcing function for self-hosted vs managed gateway decisions?",
+      "question": "课程认为 self-hosted vs managed gateway 决策的决定性因素是什么？",
       "options": [
-        "Whether the gateway is open source",
-        "Number of supported providers",
-        "Cost per request",
-        "Data residency requirements"
+        "Gateway 是否开源",
+        "支持的提供商数量",
+        "单次请求成本",
+        "Data residency 要求"
       ],
       "correct": 3,
       "explanation": ""
     },
     {
       "stage": "post",
-      "question": "Which gateways stay within budget when the SLA is TTFT P99 < 100 ms?",
+      "question": "当 SLA 为 TTFT P99 < 100 ms 时，哪些 gateway 仍在预算内？",
       "options": [
-        "Any gateway",
-        "Only Portkey",
-        "Only LiteLLM",
-        "Kong (~3-8 ms) or Cloudflare/Vercel edge gateways (~1-3 ms); Portkey at 20-40 ms is too heavy"
+        "任意 gateway",
+        "仅 Portkey",
+        "仅 LiteLLM",
+        "Kong（约 3-8 ms）或 Cloudflare/Vercel edge gateway（约 1-3 ms）；Portkey 的 20-40 ms 太重"
       ],
       "correct": 3,
       "explanation": ""

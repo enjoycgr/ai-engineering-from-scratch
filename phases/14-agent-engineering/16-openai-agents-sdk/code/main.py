@@ -1,8 +1,8 @@
 """OpenAI Agents SDK-shaped runtime in stdlib.
 
-Five primitives: Agent, FunctionTool, Handoff, Guardrail, Tracing.
-Handoffs are tools named transfer_to_<agent>. Guardrails trip on input/output.
-A span tree mirrors what the real SDK emits.
+Five primitives: Agent (智能体), FunctionTool (函数工具), Handoff (交接), Guardrail (护栏), Tracing (追踪).
+Handoff (交接) 是名为 transfer_to_<agent> 的工具。Guardrail (护栏) 在 input/output (输入/输出) 时触发。
+Span tree (跨度树) 镜像真实 SDK 发射的内容。
 """
 
 from __future__ import annotations

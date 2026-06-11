@@ -1,23 +1,23 @@
 /**
- * AI gateway skeleton — TypeScript port.
+ * AI gateway skeleton — TypeScript 移植版。
  *
- * Implements the four core gateway primitives from docs/en.md:
- *   1. Auth: API-key check with constant-time comparison + per-tenant resolution.
- *   2. Rate limit: token-bucket per tenant; LiteLLM-style.
- *   3. Retry: exponential backoff with jitter on transient 429/5xx; bounded.
- *   4. Fallback chain: try providers in order until one succeeds.
+ * 实现 docs/en.md 中的四个核心 gateway 原语：
+ *   1. Auth：API-key 校验，constant-time comparison + 按租户解析。
+ *   2. Rate limit：按租户的 token-bucket；LiteLLM 风格。
+ *   3. Retry：对临时性 429/5xx 的 exponential backoff with jitter；有界。
+ *   4. Fallback chain：按顺序尝试提供商直到成功。
  *
- * Plus the same fallback simulator main.py runs (4 gateway profiles, 3-provider
- * chain, error injection) so the numbers stay reproducible.
+ * 外加与 main.py 相同的 fallback 模拟器（4 个 gateway 画像、3 提供商链、
+ * 错误注入），以保持数字可复现。
  *
- * Citations:
- *   - Kong AI Gateway benchmark (228% vs Portkey, 859% vs LiteLLM):
+ * 引用：
+ *   - Kong AI Gateway benchmark（228% vs Portkey、859% vs LiteLLM）：
  *     https://konghq.com/blog/engineering/ai-gateway-benchmark-kong-ai-gateway-portkey-litellm
- *   - LiteLLM (MIT OSS, 100+ providers): https://github.com/BerriAI/litellm
- *   - Portkey (Apache 2.0 since March 2026): https://github.com/Portkey-AI/gateway
+ *   - LiteLLM（MIT OSS，100+ 提供商）：https://github.com/BerriAI/litellm
+ *   - Portkey（2026 年 3 月起 Apache 2.0）：https://github.com/Portkey-AI/gateway
  *   - Kong AI Gateway docs: https://docs.konghq.com/gateway/latest/ai-gateway/
  *
- * Runs on Node 20+ stdlib. No npm deps.
+ * 在 Node 20+ stdlib 上运行。无 npm 依赖。
  */
 
 import { timingSafeEqual, createHash } from "node:crypto";
@@ -26,9 +26,9 @@ import { timingSafeEqual, createHash } from "node:crypto";
 
 type Tenant = {
   id: string;
-  // SHA-256 hex of the issued API key. Never store keys in plaintext.
+  // 签发 API key 的 SHA-256 hex。绝不明文存储 key。
   keyHashHex: string;
-  // Per-tenant tier: shapes rate-limit budgets.
+  // 按租户 tier：决定 rate-limit 预算。
   tier: "free" | "trial" | "paid";
 };
 
@@ -103,7 +103,7 @@ class TokenBucketLimiter {
     return bucket;
   }
 
-  // Returns true if the request fits within the bucket; false otherwise.
+  // 如果请求在 bucket 内返回 true；否则 false。
   allow(tenant: Tenant, cost = 1): boolean {
     const bucket = this.getOrCreate(tenant);
     const nowNs = this.now();

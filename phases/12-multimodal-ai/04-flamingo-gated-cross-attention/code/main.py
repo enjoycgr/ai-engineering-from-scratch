@@ -1,12 +1,12 @@
-"""Flamingo gated cross-attention + Perceiver resampler toy — stdlib Python.
+"""Flamingo 门控 cross-attention + Perceiver resampler toy — stdlib Python.
 
-Demonstrates:
-  - Perceiver resampler: variable-length patch tokens -> fixed-length latents
-  - gated cross-attention: tanh(alpha) * cross + x residual
-  - alpha=0 -> visual contribution is exactly zero (frozen LLM preserved)
-  - interleaved-sequence attention mask for (img1, txt1, img2, txt2)
+演示：
+  - Perceiver resampler: 可变长度 patch token -> 固定长度 latent
+  - 门控 cross-attention: tanh(alpha) * cross + x 残差
+  - alpha=0 -> 视觉贡献恰好为零（冻结 LLM 被保留）
+  - (img1, txt1, img2, txt2) 的交错序列 attention mask
 
-Pure Python. No numpy, no torch.
+纯 Python。无 numpy，无 torch。
 """
 
 from __future__ import annotations

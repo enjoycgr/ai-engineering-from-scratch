@@ -22,7 +22,9 @@ class VideoPatch3D(nn.Module):
 class DividedAttentionBlock(nn.Module):
     def __init__(self, dim=64, heads=2):
         super().__init__()
+        # 时间注意力（temporal attention）：同一空间位置，跨帧
         self.time_attn = nn.MultiheadAttention(dim, heads, batch_first=True)
+        # 空间注意力（spatial attention）：同一帧，跨位置
         self.space_attn = nn.MultiheadAttention(dim, heads, batch_first=True)
         self.ln1 = nn.LayerNorm(dim)
         self.ln2 = nn.LayerNorm(dim)
@@ -33,10 +35,12 @@ class DividedAttentionBlock(nn.Module):
         T, H, W = grid
         n, seq, d = x.shape
 
+        # 时间注意力：重塑为 (n*H*W, T, d)
         xt = x.view(n, T, H * W, d).permute(0, 2, 1, 3).reshape(n * H * W, T, d)
         a, _ = self.time_attn(self.ln1(xt), self.ln1(xt), self.ln1(xt), need_weights=False)
         xt = (xt + a).reshape(n, H * W, T, d).permute(0, 2, 1, 3).reshape(n, seq, d)
 
+        # 空间注意力：重塑为 (n*T, H*W, d)
         xs = xt.view(n, T, H * W, d).reshape(n * T, H * W, d)
         a, _ = self.space_attn(self.ln2(xs), self.ln2(xs), self.ln2(xs), need_weights=False)
         xs = (xs + a).reshape(n, T, H * W, d).reshape(n, seq, d)
@@ -66,14 +70,15 @@ def count_tokens(T, H, W, p_t=2, p_h=8, p_w=8):
 
 
 def main():
+    # 计算 5 秒 360p 视频（150 帧，480x360）的 token 数量
     print("[token count for 5s 360p video (150 frames, 480x360)]")
     tokens = count_tokens(150, 480, 360, p_t=2, p_h=8, p_w=8)
     T_tok = 150 // 2
     S_tok = (480 // 8) * (360 // 8)
     print(f"  tokens per clip: {tokens:,}")
     print(f"  attention pairs (joint): {tokens ** 2:,}")
-    # Divided temporal: T^2 attention at every spatial position.
-    # Divided spatial:  (H*W)^2 attention at every timestep.
+    # 分割时间注意力：在每个空间位置上做 T^2 注意力
+    # 分割空间注意力：在每个时间步上做 (H*W)^2 注意力
     divided_time = S_tok * T_tok ** 2
     divided_space = T_tok * S_tok ** 2
     print(f"  divided time total: {divided_time:,}")

@@ -1,15 +1,15 @@
-"""Propose-then-commit HITL state machine — stdlib Python.
+"""Propose-then-commit HITL 状态机 —— stdlib Python。
 
-Four phases:
-  1. propose:  agent persists the proposed action with idempotency key
-  2. surface:  reviewer sees metadata (intent, lineage, blast, rollback)
-  3. commit:   positive ack required; idempotent
-  4. verify:   re-read target resource after commit
+四个阶段：
+  1. propose：智能体用幂等性键持久化拟议动作
+  2. surface：评审员看到元数据（intent, lineage, blast, rollback）
+  3. commit：需要正向确认；幂等
+  4. verify：提交后重新读取目标资源
 
-Three demos:
-  - clean approval flow
-  - retry after transient failure -> idempotency catches
-  - rubber-stamp UI vs challenge-and-response checklist
+三个演示：
+  - 干净的审批流
+  - 瞬态失败后重试 -> 幂等性捕获
+  - rubber-stamp UI vs challenge-and-response 清单
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ class Store:
             json.dump(data, f)
 
 
-# ---------- Executed side-effect tracker (pretends to be a backend) ----------
+# ---------- 已执行副作用追踪器（假装是后端） ----------
 
 SIDE_EFFECTS: list[str] = []
 
@@ -68,12 +68,12 @@ def execute(proposal: Proposal) -> bool:
 
 
 def verify(proposal: Proposal) -> bool:
-    # In a real system, this re-reads the target resource.
+    # 在真实系统中，这会重新读取目标资源。
     needle = f"{proposal.action}:{json.dumps(proposal.payload)}"
     return needle in SIDE_EFFECTS
 
 
-# ---------- Flow ----------
+# ---------- 流程 ----------
 
 def propose(store: Store, p: Proposal) -> str:
     k = p.key()
@@ -91,8 +91,8 @@ def propose(store: Store, p: Proposal) -> str:
 def surface(store: Store, k: str) -> None:
     r = store.all()[k]
     print(f"  [surface] proposal {k}")
-    # Use 'name' rather than 'field' to avoid shadowing dataclasses.field
-    # if a reader adds a dataclass below this module later (Ruff F402).
+    # 使用 'name' 而非 'field' 以避免遮蔽 dataclasses.field，
+    # 以防读者后续在此模块下方添加 dataclass (Ruff F402)。
     for name in ("intent", "lineage", "blast_radius", "rollback"):
         print(f"    {name:<14} {r[name]}")
 
@@ -144,7 +144,7 @@ def commit(store: Store, k: str) -> bool:
     return True
 
 
-# ---------- Demos ----------
+# ---------- 演示 ----------
 
 def main() -> None:
     print("=" * 80)
@@ -163,22 +163,22 @@ def main() -> None:
         rollback="no in-band rollback; follow up with correction email",
     )
 
-    print("\nDemo 1: clean approval flow (challenge-and-response)")
+    print("\n演示 1：干净审批流（challenge-and-response）")
     print("-" * 80)
     k = propose(store, p)
     surface(store, k)
     checklist_approve(store, k, understood=True, verified=True, rollback_ready=True)
     commit(store, k)
 
-    print("\nDemo 2: retry after approval; idempotency catches re-exec")
+    print("\n演示 2：审批后重试；幂等性捕获重复执行")
     print("-" * 80)
     initial = len(SIDE_EFFECTS)
     commit(store, k)  # retry
     commit(store, k)  # retry
-    print(f"  total side effects after 2 retries: {len(SIDE_EFFECTS)} "
-          f"(was {initial}) -> idempotent")
+    print(f"  2 次重试后总副作用数: {len(SIDE_EFFECTS)} "
+          f"(原 {initial}) -> idempotent")
 
-    print("\nDemo 3: rubber-stamp UI vs challenge-and-response")
+    print("\n演示 3：rubber-stamp UI vs challenge-and-response")
     print("-" * 80)
     p2 = Proposal(
         thread_id="t-002", action="db.update",
@@ -204,22 +204,21 @@ def main() -> None:
     # Reviewer cannot tick rollback-ready; checklist_approve declines
     ok = checklist_approve(store, k3, understood=True, verified=True,
                            rollback_ready=False)
-    # Pedagogical intent: call commit() on a rejected proposal so the
-    # log demonstrates that commit() refuses when status is still
-    # "waiting" rather than "approved". We WANT the refusal line to
-    # print.
+    # 教学意图：对被拒绝的提案调用 commit()，使得
+    # 日志展示 commit() 在状态仍为 "waiting" 而非 "approved" 时拒绝。
+    # 我们希望拒绝行被打印出来。
     if not ok:
         commit(store, k3)
 
     print()
     print("=" * 80)
-    print("HEADLINE: make structured review the path of least resistance")
+    print("HEADLINE: 让结构化评审成为阻力最小的路径")
     print("-" * 80)
-    print("  Idempotency keys prevent double-execution on retry.")
-    print("  Durability lets approvals arrive two days late and still apply.")
-    print("  Challenge-and-response checklist is the documented mitigation")
-    print("  for rubber-stamp approval; EU AI Act Article 14 expects it.")
-    print("  Post-commit verify closes the 'thought it happened' class.")
+    print("  幂等性键防止重试时的双重执行。")
+    print("  持久性让审批迟到两天仍然适用。")
+    print("  Challenge-and-response 清单是 rubber-stamp 审批的")
+    print("  文档化缓解措施；EU AI Act Article 14 期望它。")
+    print("  提交后验证消除 '以为它发生了' 的类别。")
 
 
 if __name__ == "__main__":

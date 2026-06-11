@@ -1,7 +1,7 @@
-# Probability + distributions in Julia. Hand-written PMFs, PDFs,
-# samplers (Bernoulli, Categorical, Uniform, Normal via Box-Muller),
-# softmax + log-softmax + cross-entropy, marginals, central limit demo.
-# Stdlib only. Sources:
+# Julia 中的概率与分布。手写 PMF、PDF，
+# 采样器（Bernoulli、Categorical、Uniform、Box-Muller 正态分布），
+# softmax + log-softmax + cross-entropy，边缘分布，中心极限定理演示。
+# 仅使用标准库。参考来源：
 #   https://docs.julialang.org/en/v1/stdlib/Random/
 #   https://docs.julialang.org/en/v1/manual/missing/
 #   https://en.wikipedia.org/wiki/Box-Muller_transform
@@ -86,7 +86,7 @@ end
 function sample_normal_box_muller(rng::AbstractRNG, mu::Float64, sigma::Float64, n::Int)
     samples = Float64[]
     for _ in 1:n
-        # rand(rng) is in [0, 1); guard against u1 == 0 so log(u1) stays finite.
+        # rand(rng) 返回 [0, 1)；防止 u1 == 0 导致 log(u1) 变为负无穷。
         u1 = rand(rng)
         while u1 == 0.0
             u1 = rand(rng)
@@ -153,10 +153,10 @@ function main()
     rng = MersenneTwister(42)
 
     println("=" ^ 60)
-    println("PROBABILITY AND DISTRIBUTIONS")
+    println("概率与分布")
     println("=" ^ 60)
 
-    println("\n--- Conditional Probability ---")
+    println("\n--- 条件概率 ---")
     p_king_given_face = conditional_probability(4 / 52, 12 / 52)
     @printf("P(King | Face card) = %.4f\n", p_king_given_face)
 
@@ -181,89 +181,89 @@ function main()
         @printf("  f(%+.0f) = %.4f\n", x, normal_pdf(x, 0.0, 1.0))
     end
 
-    println("\n--- Expected Value & Variance ---")
+    println("\n--- 期望值与方差 ---")
     die_values = Float64[1, 2, 3, 4, 5, 6]
     die_probs = fill(1 / 6, 6)
     mu = expected_value(die_values, die_probs)
     var = variance_of(die_values, die_probs)
-    @printf("  Fair die: E[X] = %.4f, Var(X) = %.4f, SD = %.4f\n", mu, var, sqrt(var))
+    @printf("  公平骰子: E[X] = %.4f, Var(X) = %.4f, SD = %.4f\n", mu, var, sqrt(var))
 
-    println("\n--- Sampling: Bernoulli (p=0.3, n=20) ---")
+    println("\n--- 采样: Bernoulli (p=0.3, n=20) ---")
     bern = sample_bernoulli(rng, 0.3, 20)
-    println("  Samples: $bern")
-    @printf("  Empirical mean: %.4f (expected 0.3)\n", mean(bern))
+    println("  样本: $bern")
+    @printf("  经验均值: %.4f (期望 0.3)\n", mean(bern))
 
-    println("\n--- Sampling: Categorical ---")
+    println("\n--- 采样: Categorical ---")
     cat_samples = sample_categorical(rng, Float64[0.1, 0.3, 0.4, 0.2], 1000)
     counts = [count(==(i), cat_samples) for i in 0:3]
-    println("  Counts from 1000 samples: $counts")
-    println("  Empirical: $(round.(counts ./ 1000, digits=4))")
-    println("  Expected:  [0.1, 0.3, 0.4, 0.2]")
+    println("  1000 次采样的计数: $counts")
+    println("  经验值: $(round.(counts ./ 1000, digits=4))")
+    println("  期望值:  [0.1, 0.3, 0.4, 0.2]")
 
-    println("\n--- Sampling: Normal (Box-Muller) ---")
+    println("\n--- 采样: 正态分布 (Box-Muller) ---")
     norm = sample_normal_box_muller(rng, 0.0, 1.0, 10000)
     sample_mean = mean(norm)
     sample_var = var_of_samples(norm)
-    println("  10000 samples from N(0, 1):")
-    @printf("  Sample mean: %.4f (expected 0)\n", sample_mean)
-    @printf("  Sample var:  %.4f (expected 1)\n", sample_var)
+    println("  10000 个来自 N(0, 1) 的样本:")
+    @printf("  样本均值: %.4f (期望 0)\n", sample_mean)
+    @printf("  样本方差:  %.4f (期望 1)\n", sample_var)
 
     println("\n--- Softmax ---")
     logits = Float64[2.0, 1.0, 0.1]
     probs = softmax(logits)
     println("  Logits:  $logits")
     println("  Softmax: $(round.(probs, digits=4))")
-    @printf("  Sum:     %.4f\n", sum(probs))
+    @printf("  和:     %.4f\n", sum(probs))
 
-    println("\n--- Softmax with large logits (stability test) ---")
+    println("\n--- 大 Logits 的 Softmax (稳定性测试) ---")
     large_logits = Float64[100, 101, 102]
     probs_large = softmax(large_logits)
     println("  Logits:  $large_logits")
     println("  Softmax: $(round.(probs_large, digits=4))")
-    println("  (No overflow because we subtract max before exp)")
+    println("  (因在指数化前减去最大值而未溢出)")
 
-    println("\n--- Log Probabilities ---")
+    println("\n--- 对数概率 ---")
     lp = log_softmax(logits)
     println("  Logits:      $logits")
     println("  Log-softmax: $(round.(lp, digits=4))")
-    println("  Verify exp:  $(round.(exp.(lp), digits=4))")
+    println("  验证 exp:  $(round.(exp.(lp), digits=4))")
 
-    println("\n--- Cross-Entropy Loss ---")
+    println("\n--- 交叉熵损失 ---")
     ce = cross_entropy_loss(Float64[2.0, 1.0, 0.1], 0)
-    println("  Logits: [2.0, 1.0, 0.1], target: 0")
-    @printf("  Cross-entropy loss: %.4f\n", ce)
+    println("  Logits: [2.0, 1.0, 0.1], 目标: 0")
+    @printf("  交叉熵损失: %.4f\n", ce)
 
-    println("\n--- Why log probabilities matter ---")
+    println("\n--- 为什么对数概率很重要 ---")
     word_prob = 0.01
     n_words = 50
     raw_product = word_prob ^ n_words
     log_sum = n_words * log(word_prob)
     @printf("  P(word)^%d = %.2e\n", n_words, raw_product)
-    @printf("  Log sum: %.4f (stable)\n", log_sum)
-    @printf("  Recovered: %.2e\n", exp(log_sum))
+    @printf("  对数和: %.4f (稳定)\n", log_sum)
+    @printf("  恢复值: %.2e\n", exp(log_sum))
 
-    println("\n--- Joint & Marginal Distributions ---")
+    println("\n--- 联合分布与边缘分布 ---")
     joint = Float64[0.40 0.10; 0.05 0.45]
     mx, my = joint_to_marginals(joint)
-    println("  Joint (weather x umbrella):")
-    @printf("    Sun, no umbrella: %.2f\n", joint[1, 1])
-    @printf("    Sun, umbrella:    %.2f\n", joint[1, 2])
-    @printf("    Rain, no umbrella: %.2f\n", joint[2, 1])
-    @printf("    Rain, umbrella:    %.2f\n", joint[2, 2])
-    println("  Marginal X (weather):  $mx")
-    println("  Marginal Y (umbrella): $my")
-    println("  Independent? $(check_independence(joint, mx, my))")
+    println("  联合分布 (天气 x 雨伞):")
+    @printf("    晴天, 无雨伞: %.2f\n", joint[1, 1])
+    @printf("    晴天, 有雨伞:    %.2f\n", joint[1, 2])
+    @printf("    雨天, 无雨伞: %.2f\n", joint[2, 1])
+    @printf("    雨天, 有雨伞:    %.2f\n", joint[2, 2])
+    println("  边缘分布 X (天气):  $mx")
+    println("  边缘分布 Y (雨伞): $my")
+    println("  是否独立? $(check_independence(joint, mx, my))")
 
-    println("\n--- Central Limit Theorem ---")
-    println("  Averaging uniform [0, 1) samples:")
+    println("\n--- 中心极限定理 ---")
+    println("  均匀分布 [0, 1) 样本的平均值:")
     for n in [1, 2, 5, 30]
         avgs = demonstrate_clt(rng, n, 10000)
-        @printf("    n=%2d: mean=%.4f, std=%.4f\n", n, mean(avgs), std_of_samples(avgs))
+        @printf("    n=%2d: 均值=%.4f, 标准差=%.4f\n", n, mean(avgs), std_of_samples(avgs))
     end
-    println("  As n grows, std shrinks and distribution approaches normal.")
+    println("  随着 n 增大，标准差缩小，分布趋近正态分布。")
 
     println("\n" * "=" ^ 60)
-    println("All probability computations complete.")
+    println("所有概率计算完成。")
     println("=" ^ 60)
 end
 

@@ -1,7 +1,7 @@
-"""Positional encoding — sinusoidal, RoPE, ALiBi.
+"""位置编码 (Positional encoding) — 正弦编码 (sinusoidal)、RoPE、ALiBi。
 
-Pure stdlib. Each encoding scheme shipped as a small reusable function.
-Demos the relative-distance property of RoPE numerically.
+仅使用标准库。每种编码方案都封装为小巧的可复用函数。
+通过数值实验演示 RoPE 的相对距离性质。
 """
 
 import math
@@ -19,7 +19,7 @@ def sinusoidal_pe(n, d, base=10000.0):
 
 
 def apply_rope(x, pos, base=10000.0):
-    """Rotate even/odd pairs of x by angle pos * theta_i."""
+    """将 x 的偶数/奇数维度对按角度 pos * theta_i 旋转。"""
     d = len(x)
     out = list(x)
     for i in range(d // 2):

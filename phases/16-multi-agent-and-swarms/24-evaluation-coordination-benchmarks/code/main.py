@@ -1,8 +1,6 @@
-"""Multi-agent benchmark scorecard generator, stdlib only.
+"""多智能体基准评分卡生成器，仅使用标准库。
 
-Simulates 3 multi-agent systems on a toy task set. Computes MARBLE-style
-milestone metrics, random baseline delta, cost-per-milestone, and a
-contamination check by splitting seen/unseen tasks.
+在玩具任务集上模拟3个多智能体系统。计算MARBLE风格的里程碑指标、随机基线增量、每里程碑成本，以及通过拆分已见/未见任务进行污染检查。
 """
 from __future__ import annotations
 

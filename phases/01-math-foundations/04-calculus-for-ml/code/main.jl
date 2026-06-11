@@ -1,7 +1,7 @@
-# Calculus for ML in Julia. Numerical + analytical derivatives,
-# multivariate gradients, gradient descent, Hessian curvature,
-# Taylor expansion, and a tiny linear regression trained by SGD.
-# Stdlib only. Sources:
+# 面向 ML 的 Julia 微积分. 数值 + 解析导数,
+# 多元梯度, 梯度下降, Hessian 曲率,
+# Taylor 展开, 以及用 SGD 训练的微小线性回归.
+# 仅使用标准库. 来源:
 #   https://docs.julialang.org/en/v1/manual/functions/
 #   https://docs.julialang.org/en/v1/stdlib/LinearAlgebra/
 #   https://docs.julialang.org/en/v1/manual/arrays/
@@ -70,7 +70,7 @@ end
 
 function demo_numerical_vs_analytical()
     println("=" ^ 55)
-    println("NUMERICAL vs ANALYTICAL DERIVATIVES")
+    println("数值 vs 解析导数")
     println("=" ^ 55)
 
     cases = [
@@ -82,8 +82,8 @@ function demo_numerical_vs_analytical()
     ]
 
     x = 2.0
-    println("\nAt x = $x:")
-    @printf("%-12s %12s %12s %12s\n", "Function", "Numerical", "Analytical", "Error")
+    println("\n在 x = $x:")
+    @printf("%-12s %12s %12s %12s\n", "函数", "数值", "解析", "误差")
     println("-" ^ 50)
     for (name, f, df) in cases
         num = numerical_derivative(f, x)
@@ -96,7 +96,7 @@ end
 
 function demo_gradient()
     println("\n" * "=" ^ 55)
-    println("GRADIENT (VECTOR OF PARTIAL DERIVATIVES)")
+    println("梯度（偏导数向量）")
     println("=" ^ 55)
 
     f = p -> p[1]^2 + 3 * p[1] * p[2] + p[2]^2
@@ -106,97 +106,97 @@ function demo_gradient()
     analytical = Float64[2 * point[1] + 3 * point[2], 3 * point[1] + 2 * point[2]]
 
     println("\nf(x, y) = x^2 + 3xy + y^2")
-    println("At point ($(point[1]), $(point[2])):")
-    @printf("  Numerical gradient:  [%.4f, %.4f]\n", grad[1], grad[2])
-    @printf("  Analytical gradient: [%.1f, %.1f]\n", analytical[1], analytical[2])
+    println("在点 ($(point[1]), $(point[2])):")
+    @printf("  数值梯度:  [%.4f, %.4f]\n", grad[1], grad[2])
+    @printf("  解析梯度: [%.1f, %.1f]\n", analytical[1], analytical[2])
 end
 
 
 function demo_gradient_descent_1d()
     println("\n" * "=" ^ 55)
-    println("GRADIENT DESCENT: f(x) = x^2")
+    println("梯度下降: f(x) = x^2")
     println("=" ^ 55)
 
     x = 5.0
     lr = 0.1
-    println("\nStart: x=$x, lr=$lr")
+    println("\n起始: x=$x, lr=$lr")
     for step in 0:19
         g = 2x
         x -= lr * g
         if step % 4 == 0 || step == 19
-            @printf("  step %2d  x=%8.4f  f(x)=%10.6f\n", step, x, x * x)
+            @printf("  步 %2d  x=%8.4f  f(x)=%10.6f\n", step, x, x * x)
         end
     end
-    @printf("Minimum found at x=%.6f (true minimum: x=0)\n", x)
+    @printf("在 x=%.6f 找到最小值 (真实最小值: x=0)\n", x)
 end
 
 
 function demo_gradient_descent_2d()
     println("\n" * "=" ^ 55)
-    println("GRADIENT DESCENT: f(x, y) = x^2 + y^2")
+    println("梯度下降: f(x, y) = x^2 + y^2")
     println("=" ^ 55)
 
     f = p -> p[1]^2 + p[2]^2
     point = Float64[4.0, 3.0]
     lr = 0.1
-    @printf("\nStart: (%.1f, %.1f), lr=%.2f\n", point[1], point[2], lr)
+    @printf("\n起始: (%.1f, %.1f), lr=%.2f\n", point[1], point[2], lr)
     for step in 0:29
         g = numerical_gradient(f, point)
         point .-= lr .* g
         if step % 5 == 0 || step == 29
-            @printf("  step %2d  (%7.4f, %7.4f)  f=%.6f\n", step, point[1], point[2], f(point))
+            @printf("  步 %2d  (%7.4f, %7.4f)  f=%.6f\n", step, point[1], point[2], f(point))
         end
     end
-    @printf("Minimum found at (%.4f, %.4f) (true: (0, 0))\n", point[1], point[2])
+    @printf("在 (%.4f, %.4f) 找到最小值 (真实: (0, 0))\n", point[1], point[2])
 end
 
 
 function demo_hessian()
     println("\n" * "=" ^ 55)
-    println("HESSIAN MATRIX: SADDLE POINT vs MINIMUM")
+    println("HESSIAN 矩阵: 鞍点 vs 最小值")
     println("=" ^ 55)
 
     saddle = (x, y) -> x^2 - y^2
     bowl = (x, y) -> x^2 + y^2
     rosenbrock = (x, y) -> (1 - x)^2 + 100 * (y - x^2)^2
 
-    println("\nf(x, y) = x^2 - y^2 (saddle function)")
+    println("\nf(x, y) = x^2 - y^2 (鞍函数)")
     H = hessian_2d(saddle, 0.0, 0.0)
     evals = hessian_eigenvalues(H)
-    println("  Hessian at (0, 0):")
+    println("  Hessian 在 (0, 0):")
     @printf("    [%6.2f  %6.2f]\n", H[1, 1], H[1, 2])
     @printf("    [%6.2f  %6.2f]\n", H[2, 1], H[2, 2])
-    @printf("  Eigenvalues: %.2f, %.2f\n", evals[1], evals[2])
-    println("  Mixed signs => SADDLE POINT")
+    @printf("  特征值: %.2f, %.2f\n", evals[1], evals[2])
+    println("  混合符号 => 鞍点")
 
-    println("\nf(x, y) = x^2 + y^2 (bowl function)")
+    println("\nf(x, y) = x^2 + y^2 (碗函数)")
     H = hessian_2d(bowl, 0.0, 0.0)
     evals = hessian_eigenvalues(H)
-    println("  Hessian at (0, 0):")
+    println("  Hessian 在 (0, 0):")
     @printf("    [%6.2f  %6.2f]\n", H[1, 1], H[1, 2])
     @printf("    [%6.2f  %6.2f]\n", H[2, 1], H[2, 2])
-    @printf("  Eigenvalues: %.2f, %.2f\n", evals[1], evals[2])
-    println("  Both positive => LOCAL MINIMUM")
+    @printf("  特征值: %.2f, %.2f\n", evals[1], evals[2])
+    println("  均为正 => 局部最小值")
 
     println("\nRosenbrock f(x, y) = (1-x)^2 + 100(y - x^2)^2")
     H = hessian_2d(rosenbrock, 1.0, 1.0)
     evals = hessian_eigenvalues(H)
-    println("  Hessian at minimum (1, 1):")
+    println("  Hessian 在最小值 (1, 1):")
     @printf("    [%8.2f  %8.2f]\n", H[1, 1], H[1, 2])
     @printf("    [%8.2f  %8.2f]\n", H[2, 1], H[2, 2])
-    @printf("  Eigenvalues: %.2f, %.2f\n", evals[1], evals[2])
-    println("  Both positive => LOCAL MINIMUM (confirmed)")
+    @printf("  特征值: %.2f, %.2f\n", evals[1], evals[2])
+    println("  均为正 => 局部最小值 (确认)")
 end
 
 
 function demo_taylor()
     println("\n" * "=" ^ 55)
-    println("TAYLOR SERIES APPROXIMATION")
+    println("TAYLOR 级数近似")
     println("=" ^ 55)
 
     x0 = 1.0
-    println("\nApproximating f(x) = e^x near x0 = $x0")
-    @printf("%8s  %14s  %10s  %10s  %10s\n", "h", "True f(x0+h)", "Order 0", "Order 1", "Order 2")
+    println("\n近似 f(x) = e^x 在 x0 = $x0 附近")
+    @printf("%8s  %14s  %10s  %10s  %10s\n", "h", "真实 f(x0+h)", "0 阶", "1 阶", "2 阶")
     println("-" ^ 60)
     for h in [0.1, 0.5, 1.0, 2.0]
         true_val = exp(x0 + h)
@@ -206,8 +206,8 @@ function demo_taylor()
         @printf("%8.1f  %14.6f  %10.6f  %10.6f  %10.6f\n", h, true_val, t0, t1, t2)
     end
 
-    println("\nApproximating f(x) = sin(x) near x0 = 0")
-    @printf("%8s  %14s  %10s  %10s  %10s\n", "h", "True sin(h)", "Order 0", "Order 1", "Order 2")
+    println("\n近似 f(x) = sin(x) 在 x0 = 0 附近")
+    @printf("%8s  %14s  %10s  %10s  %10s\n", "h", "真实 sin(h)", "0 阶", "1 阶", "2 阶")
     println("-" ^ 60)
     for h in [0.1, 0.5, 1.0, 2.0]
         true_val = sin(h)
@@ -217,14 +217,14 @@ function demo_taylor()
         @printf("%8.1f  %14.6f  %10.6f  %10.6f  %10.6f\n", h, true_val, t0, t1, t2)
     end
 
-    println("\nKey insight: more terms = better approximation near x0,")
-    println("but all Taylor approximations diverge far from x0.")
+    println("\n关键洞察: 项越多 = 在 x0 附近近似越好,")
+    println("但所有 Taylor 近似在远离 x0 时都会发散。")
 end
 
 
 function demo_linear_regression()
     println("\n" * "=" ^ 55)
-    println("GRADIENT DESCENT: LINEAR REGRESSION y = 2x + 1")
+    println("梯度下降: 线性回归 y = 2x + 1")
     println("=" ^ 55)
 
     Random.seed!(42)
@@ -253,12 +253,12 @@ function demo_linear_regression()
         w -= lr * dw
         b -= lr * db
         if epoch % 40 == 0 || epoch == 199
-            @printf("  epoch %3d  w=%.4f  b=%.4f  loss=%.6f\n", epoch, w, b, total_loss)
+            @printf("  轮 %3d  w=%.4f  b=%.4f  loss=%.6f\n", epoch, w, b, total_loss)
         end
     end
 
-    @printf("\nLearned: y = %.2fx + %.2f\n", w, b)
-    println("Actual:  y = 2.00x + 1.00")
+    @printf("\n学得: y = %.2fx + %.2f\n", w, b)
+    println("实际:  y = 2.00x + 1.00")
 end
 
 

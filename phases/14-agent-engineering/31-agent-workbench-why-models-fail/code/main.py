@@ -6,6 +6,9 @@ caught each failure on the first run.
 
 Run: python3 code/main.py
 """
+# 将 prompt-only（仅提示词）运行与 workbench-guided（工作台引导）运行进行对比。
+# agent 是一个基于规则的 stub；重点在于周围的 surface。
+# 第二次运行接入了每个 surface，我们统计哪些 surface 本会捕获第一次运行中的每个故障。
 
 from __future__ import annotations
 

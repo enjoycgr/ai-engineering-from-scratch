@@ -3,12 +3,15 @@ import random
 
 
 class Dropout:
+    """Dropout (随机失活) 层：以概率 p 在训练期间随机将神经元输出置零。"""
+
     def __init__(self, p=0.5):
         self.p = p
         self.training = True
         self.mask = None
 
     def forward(self, x):
+        # 推理模式：直接返回输入，不做任何修改
         if not self.training:
             return list(x)
         self.mask = []
@@ -19,10 +22,12 @@ class Dropout:
                 output.append(0.0)
             else:
                 self.mask.append(1)
+                # Inverted dropout (反转dropout)：训练时缩放，测试时无需修改
                 output.append(val / (1 - self.p))
         return output
 
     def backward(self, grad_output):
+        # 反向传播：被丢弃的神经元梯度为零，其余按缩放因子回传
         grads = []
         for g, m in zip(grad_output, self.mask):
             if m == 0:
@@ -33,6 +38,7 @@ class Dropout:
 
 
 def l2_regularization(weights, lambda_reg):
+    """计算 L2 regularization (L2正则化) 惩罚项：0.5 * lambda * sum(w^2)。"""
     penalty = 0.0
     for w in weights:
         penalty += w * w
@@ -40,10 +46,13 @@ def l2_regularization(weights, lambda_reg):
 
 
 def l2_gradient(weights, lambda_reg):
+    """计算 L2 regularization (L2正则化) 对权重的梯度：lambda * w。"""
     return [lambda_reg * w for w in weights]
 
 
 class BatchNorm:
+    """Batch Normalization (批归一化)：跨 batch (批次) 维度对每层的输出进行归一化。"""
+
     def __init__(self, num_features, momentum=0.1, eps=1e-5):
         self.gamma = [1.0] * num_features
         self.beta = [0.0] * num_features
@@ -57,6 +66,7 @@ class BatchNorm:
     def forward(self, batch):
         batch_size = len(batch)
         if self.training:
+            # 训练期间：使用当前 batch (批次) 的均值和方差
             mean = [0.0] * self.num_features
             for sample in batch:
                 for j in range(self.num_features):
@@ -69,10 +79,12 @@ class BatchNorm:
                     var[j] += (sample[j] - mean[j]) ** 2
             var = [v / batch_size for v in var]
 
+            # 更新 running statistics (运行统计量) 用于推理
             for j in range(self.num_features):
                 self.running_mean[j] = (1 - self.momentum) * self.running_mean[j] + self.momentum * mean[j]
                 self.running_var[j] = (1 - self.momentum) * self.running_var[j] + self.momentum * var[j]
         else:
+            # 推理期间：使用训练期间累积的 running statistics (运行统计量)
             mean = list(self.running_mean)
             var = list(self.running_var)
 
@@ -84,6 +96,7 @@ class BatchNorm:
             for j in range(self.num_features):
                 x_h = (sample[j] - mean[j]) / math.sqrt(var[j] + self.eps)
                 normalized.append(x_h)
+                # 使用可学习的 gamma 和 beta 进行缩放和平移
                 out_sample.append(self.gamma[j] * x_h + self.beta[j])
             self.x_hat.append(normalized)
             output.append(out_sample)
@@ -91,6 +104,8 @@ class BatchNorm:
 
 
 class LayerNorm:
+    """Layer Normalization (层归一化)：在每个样本内跨特征维度归一化，与 batch size (批次大小) 无关。"""
+
     def __init__(self, num_features, eps=1e-5):
         self.gamma = [1.0] * num_features
         self.beta = [0.0] * num_features
@@ -98,6 +113,7 @@ class LayerNorm:
         self.num_features = num_features
 
     def forward(self, x):
+        # 计算当前样本的 feature mean (特征均值) 和 variance (方差)
         mean = sum(x) / len(x)
         var = sum((xi - mean) ** 2 for xi in x) / len(x)
 
@@ -111,12 +127,15 @@ class LayerNorm:
 
 
 class RMSNorm:
+    """RMSNorm：去掉均值减法的 LayerNorm，仅按 RMS (均方根) 缩放，速度提升约 10%。"""
+
     def __init__(self, num_features, eps=1e-6):
         self.gamma = [1.0] * num_features
         self.eps = eps
         self.num_features = num_features
 
     def forward(self, x):
+        # 仅计算 RMS (均方根)，不做 mean subtraction (均值减法)
         rms = math.sqrt(sum(xi * xi for xi in x) / len(x) + self.eps)
         output = []
         for j in range(self.num_features):
@@ -125,11 +144,13 @@ class RMSNorm:
 
 
 def sigmoid(x):
+    """数值稳定的 sigmoid 函数。"""
     x = max(-500, min(500, x))
     return 1.0 / (1.0 + math.exp(-x))
 
 
 def make_circle_data(n=200, seed=42):
+    """生成 circle classification dataset (圆形分类数据集)。"""
     random.seed(seed)
     data = []
     for _ in range(n):
@@ -141,6 +162,11 @@ def make_circle_data(n=200, seed=42):
 
 
 class RegularizedNetwork:
+    """
+    一个带有可选 Dropout (随机失活) 和 L2 weight decay (L2权重衰减) 的 2 层 MLP。
+    用于演示不同 regularization (正则化) 策略对 overfitting (过拟合) 的影响。
+    """
+
     def __init__(self, hidden_size=16, lr=0.05, dropout_p=0.0, weight_decay=0.0):
         random.seed(0)
         self.hidden_size = hidden_size
@@ -149,20 +175,25 @@ class RegularizedNetwork:
         self.weight_decay = weight_decay
         self.dropout = Dropout(p=dropout_p) if dropout_p > 0 else None
 
+        # 第一层 weight (权重) 和 bias (偏置)
         self.w1 = [[random.gauss(0, 0.5) for _ in range(2)] for _ in range(hidden_size)]
         self.b1 = [0.0] * hidden_size
+        # 第二层 weight (权重) 和 bias (偏置)
         self.w2 = [random.gauss(0, 0.5) for _ in range(hidden_size)]
         self.b2 = 0.0
 
     def forward(self, x, training=True):
+        """前向传播。training=True 时启用 dropout (随机失活)。"""
         self.x = x
         self.z1 = []
         self.h = []
+        # 第一层线性变换 + ReLU 激活
         for i in range(self.hidden_size):
             z = self.w1[i][0] * x[0] + self.w1[i][1] * x[1] + self.b1[i]
             self.z1.append(z)
             self.h.append(max(0.0, z))
 
+        # 可选的 Dropout (随机失活) 层
         if self.dropout and training:
             self.dropout.training = True
             self.h = self.dropout.forward(self.h)
@@ -170,22 +201,27 @@ class RegularizedNetwork:
             self.dropout.training = False
             self.h = self.dropout.forward(self.h)
 
+        # 第二层线性变换 + sigmoid 输出
         self.z2 = sum(self.w2[i] * self.h[i] for i in range(self.hidden_size)) + self.b2
         self.out = sigmoid(self.z2)
         return self.out
 
     def backward(self, target):
+        """反向传播，包含 binary cross-entropy (二元交叉熵) 梯度和 weight decay (权重衰减)。"""
         eps = 1e-15
         p = max(eps, min(1 - eps, self.out))
+        # Binary cross-entropy (二元交叉熵) 对输出的梯度
         d_loss = -(target / p) + (1 - target) / (1 - p)
         d_sigmoid = self.out * (1 - self.out)
         d_out = d_loss * d_sigmoid
 
+        # 通过 dropout (随机失活) 掩码回传梯度
         d_h_dropout = [d_out * self.w2[i] for i in range(self.hidden_size)]
         if self.dropout and self.dropout.mask is not None:
             d_h_dropout = [g * m / (1 - self.dropout.p) if m else 0.0
                            for g, m in zip(d_h_dropout, self.dropout.mask)]
 
+        # 更新 weight (权重) 和 bias (偏置)，包含 weight decay (权重衰减) 项
         for i in range(self.hidden_size):
             d_relu = 1.0 if self.z1[i] > 0 else 0.0
             d_h = d_h_dropout[i] * d_relu
@@ -196,6 +232,7 @@ class RegularizedNetwork:
         self.b2 -= self.lr * d_out
 
     def evaluate(self, data):
+        """在 dataset (数据集) 上评估：返回平均 loss (损失) 和 accuracy (准确率)%。"""
         correct = 0
         total_loss = 0.0
         for x, y in data:
@@ -208,6 +245,7 @@ class RegularizedNetwork:
         return total_loss / len(data), correct / len(data) * 100
 
     def train_model(self, train_data, test_data, epochs=300):
+        """训练模型并记录每个 epoch 的 train/test metrics (指标)。"""
         history = []
         for epoch in range(epochs):
             total_loss = 0.0
@@ -232,7 +270,7 @@ class RegularizedNetwork:
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("STEP 1: Dropout Demonstration")
+    print("STEP 1: Dropout (随机失活) 演示")
     print("=" * 60)
     drop = Dropout(p=0.5)
     test_input = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
@@ -252,7 +290,7 @@ if __name__ == "__main__":
     print(f"  Eval mean:   {sum(output)/len(output):.1f} (no scaling needed)")
 
     print("\n" + "=" * 60)
-    print("STEP 2: L2 Regularization")
+    print("STEP 2: L2 Regularization (L2正则化)")
     print("=" * 60)
     weights = [0.5, -1.2, 3.0, 0.1, -2.5]
     lambda_val = 0.01

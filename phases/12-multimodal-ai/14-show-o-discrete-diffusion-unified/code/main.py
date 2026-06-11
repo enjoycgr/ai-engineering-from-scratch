@@ -1,7 +1,7 @@
-"""Show-o masked-discrete-diffusion sampler — stdlib.
+"""Show-o masked-discrete-diffusion 采样器 — stdlib。
 
-16 tokens, K=8 vocab, T=8 steps, cosine schedule. Mock "transformer" logits so
-the sampling loop is the focus, not the model. Prints the mask evolution.
+16 token，K=8 词汇，T=8 步，cosine schedule。Mock "transformer" logits 使
+采样循环是重点，不是模型。打印 mask 演化。
 """
 
 from __future__ import annotations

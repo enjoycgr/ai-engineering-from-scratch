@@ -3,6 +3,8 @@ import random
 
 
 class SGD:
+    """Vanilla stochastic gradient descent (SGD，朴素随机梯度下降)."""
+
     def __init__(self, lr=0.01):
         self.lr = lr
 
@@ -12,6 +14,8 @@ class SGD:
 
 
 class SGDMomentum:
+    """SGD with momentum (带动量的随机梯度下降)."""
+
     def __init__(self, lr=0.01, beta=0.9):
         self.lr = lr
         self.beta = beta
@@ -26,6 +30,8 @@ class SGDMomentum:
 
 
 class Adam:
+    """Adam optimizer (自适应矩估计)."""
+
     def __init__(self, lr=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self.lr = lr
         self.beta1 = beta1
@@ -53,6 +59,8 @@ class Adam:
 
 
 class AdamW:
+    """AdamW: Adam with decoupled weight decay (解耦权重衰减)."""
+
     def __init__(self, lr=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, weight_decay=0.01):
         self.lr = lr
         self.beta1 = beta1
@@ -82,11 +90,13 @@ class AdamW:
 
 
 def sigmoid(x):
+    """Sigmoid activation with numerical clamping (带数值裁剪的 Sigmoid 激活函数)."""
     x = max(-500, min(500, x))
     return 1.0 / (1.0 + math.exp(-x))
 
 
 def make_circle_data(n=200, seed=42):
+    """Generate a 2D binary classification dataset (circle inside vs outside)."""
     random.seed(seed)
     data = []
     for _ in range(n):
@@ -98,6 +108,8 @@ def make_circle_data(n=200, seed=42):
 
 
 class OptimizerTestNetwork:
+    """Small 2-layer MLP for comparing optimizers on the circle dataset."""
+
     def __init__(self, optimizer, hidden_size=8):
         random.seed(0)
         self.hidden_size = hidden_size
@@ -109,6 +121,7 @@ class OptimizerTestNetwork:
         self.b2 = 0.0
 
     def get_params(self):
+        """Flatten all weights and biases into a single list (将所有权重和偏置展平为单一列表)."""
         params = []
         for row in self.w1:
             params.extend(row)
@@ -118,6 +131,7 @@ class OptimizerTestNetwork:
         return params
 
     def set_params(self, params):
+        """Restore flattened parameters back into weight matrices (将展平参数还原回权重矩阵)."""
         idx = 0
         for i in range(self.hidden_size):
             for j in range(2):
@@ -132,6 +146,7 @@ class OptimizerTestNetwork:
         self.b2 = params[idx]
 
     def forward(self, x):
+        """Forward pass: linear -> ReLU -> linear -> sigmoid (前向传播：线性 -> ReLU -> 线性 -> Sigmoid)."""
         self.x = x
         self.z1 = []
         self.h = []
@@ -145,6 +160,7 @@ class OptimizerTestNetwork:
         return self.out
 
     def compute_grads(self, target):
+        """Backpropagation (反向传播) for binary cross-entropy loss."""
         eps = 1e-15
         p = max(eps, min(1 - eps, self.out))
         d_loss = -(target / p) + (1 - target) / (1 - p)
@@ -173,6 +189,7 @@ class OptimizerTestNetwork:
         return grads
 
     def train(self, data, epochs=300):
+        """Train for the given number of epochs and return (loss, accuracy) history."""
         losses = []
         for epoch in range(epochs):
             total_loss = 0.0
@@ -198,6 +215,7 @@ class OptimizerTestNetwork:
 
 
 def bias_correction_demo():
+    """Show how Adam's bias correction compensates for zero-initialized moments (展示 Adam 的偏差修正如何补偿从零初始化的矩)."""
     beta1 = 0.9
     beta2 = 0.999
     gradient = 1.0

@@ -1,8 +1,8 @@
-// Function calling in TypeScript: JSON-schema tool definitions, registry,
-// validator, sandboxed dispatcher, mock model decision loop, parallel calls.
-// Mirrors code/function_calling.py and follows the four-step pattern shared
-// by OpenAI, Anthropic, and Google: define, detect, execute, return.
-// Sources:
+// TypeScript 中的函数调用：JSON-schema 工具定义、注册表、
+// 验证器、沙箱调度器、模拟模型决策循环、并行调用。
+// 与 code/function_calling.py 镜像，遵循 OpenAI、Anthropic 和 Google 共有的四步模式：
+// 定义、检测、执行、返回。
+// 来源：
 //   https://platform.openai.com/docs/guides/function-calling
 //   https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 //   https://ai.google.dev/gemini-api/docs/function-calling
@@ -55,7 +55,7 @@ function calculator(args: Readonly<Record<string, JsonValue>>): JsonValue {
   const expression = String(args.expression ?? "");
   const precision = typeof args.precision === "number" ? args.precision : 2;
   if (!ARITH_RE.test(expression)) {
-    return { error: true, message: "Invalid characters in expression: " + expression };
+    return { error: true, message: "表达式中包含无效字符: " + expression };
   }
   try {
     // eslint-disable-next-line no-new-func
@@ -83,7 +83,7 @@ function getWeather(args: Readonly<Record<string, JsonValue>>): JsonValue {
   const row = WEATHER_DB[key];
   if (!row) {
     const suggestions = Object.keys(WEATHER_DB).filter((c) => c.startsWith(key.slice(0, 3)));
-    return { error: true, message: "City '" + city + "' not found.", suggestions, code: "CITY_NOT_FOUND" };
+    return { error: true, message: "未找到城市 '" + city + "'。", suggestions, code: "CITY_NOT_FOUND" };
   }
   if (units === "fahrenheit") {
     return { city, condition: row.condition, humidity: row.humidity, wind_kph: row.wind_kph, temp_f: Number((row.temp_c * 9 / 5 + 32).toFixed(1)) };
@@ -126,10 +126,10 @@ const FILE_SYSTEM: Readonly<Record<string, string>> = {
 function readFile(args: Readonly<Record<string, JsonValue>>): JsonValue {
   const path = String(args.path ?? "");
   if (path.includes("..") || path.startsWith("/")) {
-    return { error: true, message: "Path traversal not allowed.", code: "FORBIDDEN" };
+    return { error: true, message: "不允许路径遍历。", code: "FORBIDDEN" };
   }
   if (!(path in FILE_SYSTEM)) {
-    return { error: true, message: "File '" + path + "' not found.", available_files: Object.keys(FILE_SYSTEM), code: "NOT_FOUND" };
+    return { error: true, message: "未找到文件 '" + path + "'。", available_files: Object.keys(FILE_SYSTEM), code: "NOT_FOUND" };
   }
   const content = FILE_SYSTEM[path];
   return { path, content, size_bytes: content.length, lines: content.split("\n").length };
@@ -139,12 +139,12 @@ function runCode(args: Readonly<Record<string, JsonValue>>): JsonValue {
   const code = String(args.code ?? "");
   const language = String(args.language ?? "javascript");
   if (language !== "javascript") {
-    return { error: true, message: "Language '" + language + "' not supported." };
+    return { error: true, message: "不支持语言 '" + language + "'。" };
   }
   const FORBIDDEN = ["require(", "process.", "fs.", "child_process", "import ", "eval(", "Function("];
   for (const p of FORBIDDEN) {
     if (code.includes(p)) {
-      return { error: true, message: "Forbidden operation: " + p, code: "SECURITY_VIOLATION" };
+      return { error: true, message: "禁止的操作: " + p, code: "SECURITY_VIOLATION" };
     }
   }
   try {
@@ -160,12 +160,12 @@ function runCode(args: Readonly<Record<string, JsonValue>>): JsonValue {
 function registerAllTools(): void {
   registerTool(
     "calculator",
-    "Evaluate a math expression. Supports +, -, *, /, parentheses, decimals.",
+    "计算数学表达式。支持 +、-、*、/、括号、十进制数。",
     {
       type: "object",
       properties: {
-        expression: { type: "string", description: "Math expression, e.g. '(10 + 5) * 3'" },
-        precision: { type: "integer", description: "Decimal places", default: 2 },
+        expression: { type: "string", description: "数学表达式，例如 '(10 + 5) * 3'" },
+        precision: { type: "integer", description: "小数位数", default: 2 },
       },
       required: ["expression"],
     },
@@ -173,12 +173,12 @@ function registerAllTools(): void {
   );
   registerTool(
     "get_weather",
-    "Get current weather for a city.",
+    "获取城市的当前天气。",
     {
       type: "object",
       properties: {
-        city: { type: "string", description: "City name" },
-        units: { type: "string", description: "celsius or fahrenheit", enum: ["celsius", "fahrenheit"] },
+        city: { type: "string", description: "城市名称" },
+        units: { type: "string", description: "celsius 或 fahrenheit", enum: ["celsius", "fahrenheit"] },
       },
       required: ["city"],
     },
@@ -186,12 +186,12 @@ function registerAllTools(): void {
   );
   registerTool(
     "web_search",
-    "Search the web.",
+    "搜索网页。",
     {
       type: "object",
       properties: {
-        query: { type: "string", description: "Search query" },
-        max_results: { type: "integer", description: "Max results", default: 3 },
+        query: { type: "string", description: "搜索查询" },
+        max_results: { type: "integer", description: "最大结果数", default: 3 },
       },
       required: ["query"],
     },
@@ -199,22 +199,22 @@ function registerAllTools(): void {
   );
   registerTool(
     "read_file",
-    "Read file contents.",
+    "读取文件内容。",
     {
       type: "object",
-      properties: { path: { type: "string", description: "Relative path" } },
+      properties: { path: { type: "string", description: "相对路径" } },
       required: ["path"],
     },
     readFile,
   );
   registerTool(
     "run_code",
-    "Execute JavaScript in a sandbox. Assign to 'result' to return output.",
+    "在沙箱中执行 JavaScript。赋值给 'result' 以返回输出。",
     {
       type: "object",
       properties: {
-        code: { type: "string", description: "JavaScript code to run" },
-        language: { type: "string", description: "javascript only", enum: ["javascript"] },
+        code: { type: "string", description: "要运行的 JavaScript 代码" },
+        language: { type: "string", description: "仅 javascript", enum: ["javascript"] },
       },
       required: ["code"],
     },
@@ -263,29 +263,29 @@ type ToolResult = { tool: string; result: JsonValue; executionTimeMs: number };
 function executeToolCall(call: ToolCall): ToolResult {
   const tool = TOOL_REGISTRY.get(call.name);
   if (!tool) {
-    return { tool: call.name, result: { error: true, message: "Unknown tool: " + call.name, code: "UNKNOWN_TOOL" }, executionTimeMs: 0 };
+    return { tool: call.name, result: { error: true, message: "未知工具: " + call.name, code: "UNKNOWN_TOOL" }, executionTimeMs: 0 };
   }
   const start = Date.now();
   let result: JsonValue;
   try {
     result = tool.fn(call.arguments);
   } catch (err) {
-    result = { error: true, message: "Invalid arguments: " + (err as Error).message };
+    result = { error: true, message: "无效参数: " + (err as Error).message };
   }
   return { tool: call.name, result, executionTimeMs: Date.now() - start };
 }
 
 function validateToolArguments(toolName: string, args: unknown): string[] {
   const tool = TOOL_REGISTRY.get(toolName);
-  if (!tool) return ["Unknown tool: " + toolName];
+  if (!tool) return ["未知工具: " + toolName];
   if (args === null || typeof args !== "object" || Array.isArray(args)) {
-    return ["Arguments must be an object, got " + typeof args];
+    return ["参数必须是对象，得到 " + typeof args];
   }
   const schema = tool.definition.function.parameters;
   const errors: string[] = [];
   for (const required of schema.required ?? []) {
     if (!(required in (args as Record<string, unknown>))) {
-      errors.push("Missing required argument: " + required);
+      errors.push("缺少必需参数: " + required);
     }
   }
   const typeChecks: Readonly<Record<ParamType, (v: unknown) => boolean>> = {
@@ -299,14 +299,14 @@ function validateToolArguments(toolName: string, args: unknown): string[] {
   for (const [argName, argValue] of Object.entries(args as Record<string, unknown>)) {
     const prop = schema.properties[argName];
     if (!prop) {
-      errors.push("Unknown argument: " + argName);
+      errors.push("未知参数: " + argName);
       continue;
     }
     if (!typeChecks[prop.type](argValue)) {
-      errors.push("Argument '" + argName + "': expected " + prop.type + ", got " + typeof argValue);
+      errors.push("参数 '" + argName + "': 预期 " + prop.type + "，得到 " + typeof argValue);
     }
     if (prop.enum && !prop.enum.includes(argValue as JsonValue)) {
-      errors.push("Argument '" + argName + "': '" + String(argValue) + "' not in " + JSON.stringify(prop.enum));
+      errors.push("参数 '" + argName + "': '" + String(argValue) + "' 不在 " + JSON.stringify(prop.enum) + " 中");
     }
   }
   return errors;
@@ -322,29 +322,29 @@ function runFunctionCallingLoop(userMessage: string): { toolResults: ToolResult[
 function main(): void {
   registerAllTools();
   console.log("=".repeat(60));
-  console.log("  Function Calling and Tool Use");
+  console.log("  函数调用与工具使用");
   console.log("=".repeat(60));
 
-  console.log("\n--- Registered Tools ---");
+  console.log("\n--- 已注册工具 ---");
   for (const [name, tool] of TOOL_REGISTRY) {
     const params = Object.keys(tool.definition.function.parameters.properties);
-    console.log("  " + name + ": " + tool.definition.function.description.slice(0, 60) + " | params: " + params.join(","));
+    console.log("  " + name + ": " + tool.definition.function.description.slice(0, 60) + " | 参数: " + params.join(","));
   }
 
-  console.log("\n--- Argument Validation ---");
+  console.log("\n--- 参数验证 ---");
   const validationTests: ReadonlyArray<{ tool: string; args: unknown; label: string }> = [
-    { tool: "get_weather", args: { city: "Tokyo" }, label: "Valid call" },
-    { tool: "get_weather", args: {}, label: "Missing required arg" },
-    { tool: "get_weather", args: { city: "Tokyo", units: "kelvin" }, label: "Invalid enum value" },
-    { tool: "calculator", args: { expression: 123 }, label: "Wrong type (number for string)" },
-    { tool: "unknown_tool", args: { x: 1 }, label: "Unknown tool" },
+    { tool: "get_weather", args: { city: "Tokyo" }, label: "有效调用" },
+    { tool: "get_weather", args: {}, label: "缺少必需参数" },
+    { tool: "get_weather", args: { city: "Tokyo", units: "kelvin" }, label: "无效的枚举值" },
+    { tool: "calculator", args: { expression: 123 }, label: "类型错误（number 而非 string）" },
+    { tool: "unknown_tool", args: { x: 1 }, label: "未知工具" },
   ];
   for (const { tool, args, label } of validationTests) {
     const errors = validateToolArguments(tool, args);
-    console.log("  " + label + ": " + (errors.length === 0 ? "VALID" : "ERRORS: " + errors.join(" / ")));
+    console.log("  " + label + ": " + (errors.length === 0 ? "有效" : "错误: " + errors.join(" / ")));
   }
 
-  console.log("\n--- Direct Tool Execution ---");
+  console.log("\n--- 直接工具执行 ---");
   const directTests: readonly ToolCall[] = [
     { name: "calculator", arguments: { expression: "(10 + 5) * 3 / 2" } },
     { name: "get_weather", arguments: { city: "Tokyo" } },
@@ -361,10 +361,10 @@ function main(): void {
     const resStr = JSON.stringify(r.result).slice(0, 90);
     console.log("\n  " + call.name + "(" + argsStr.slice(0, 60) + ")");
     console.log("    -> " + resStr);
-    console.log("    time: " + r.executionTimeMs + "ms");
+    console.log("    时间: " + r.executionTimeMs + "ms");
   }
 
-  console.log("\n--- Function Calling Loop ---");
+  console.log("\n--- 函数调用循环 ---");
   const queries = [
     "What's the weather in Tokyo?",
     "Calculate (100 + 250) * 0.15",
@@ -375,23 +375,23 @@ function main(): void {
   ];
   for (const q of queries) {
     const { toolResults, iterations } = runFunctionCallingLoop(q);
-    console.log("\n  User: " + q);
+    console.log("\n  用户: " + q);
     for (const tr of toolResults) {
-      console.log("    Tool: " + tr.tool + " (" + tr.executionTimeMs + "ms)");
+      console.log("    工具: " + tr.tool + " (" + tr.executionTimeMs + "ms)");
     }
-    if (toolResults.length === 0) console.log("    [No tool called]");
-    console.log("    Iterations: " + iterations);
+    if (toolResults.length === 0) console.log("    [未调用工具]");
+    console.log("    迭代次数: " + iterations);
   }
 
-  console.log("\n--- Parallel Tool Calls ---");
+  console.log("\n--- 并行工具调用 ---");
   const { toolResults: multi } = runFunctionCallingLoop("What's the weather in tokyo and london?");
-  console.log("  Tool calls made: " + multi.length);
+  console.log("  工具调用次数: " + multi.length);
   for (const tr of multi) {
     const r = tr.result as Record<string, JsonValue>;
     console.log("    " + String(r.city) + ": " + String(r.temp_c ?? r.temp_f) + ", " + String(r.condition));
   }
 
-  console.log("\n--- Security Checks ---");
+  console.log("\n--- 安全检查 ---");
   const securityTests: ReadonlyArray<{ tool: string; args: Record<string, JsonValue> }> = [
     { tool: "read_file", args: { path: "../../etc/passwd" } },
     { tool: "run_code", args: { code: "process.exit(0)" } },
@@ -402,7 +402,7 @@ function main(): void {
     const blocked = typeof r.result === "object" && r.result !== null && (r.result as Record<string, JsonValue>).error === true;
     const firstArg = Object.values(args)[0];
     const argDisplay = String(firstArg).slice(0, 40);
-    console.log("  " + tool + "(" + argDisplay + "): " + (blocked ? "BLOCKED" : "ALLOWED"));
+    console.log("  " + tool + "(" + argDisplay + "): " + (blocked ? "已阻止" : "已允许"));
   }
 }
 

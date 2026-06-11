@@ -1,14 +1,14 @@
-"""Toy ReAct agent loop — stdlib only.
+"""Toy ReAct agent loop（玩具 ReAct 智能体循环）——纯 stdlib。
 
-Implements the five ingredients from docs/en.md:
-  1. message buffer
-  2. tool registry
-  3. stop condition
-  4. turn budget
-  5. observation formatter
+实现了 docs/en.md 中的五个要素：
+  1. message buffer（消息缓冲区）
+  2. tool registry（工具注册表）
+  3. stop condition（停止条件）
+  4. turn budget（轮次预算）
+  5. observation formatter（观察格式化器）
 
-ToyLLM is a scripted policy so the loop runs offline and deterministic. Swap
-ToyLLM for a real provider client and the control flow is identical.
+ToyLLM 是一个脚本化的策略，使循环可以离线、确定性运行。将 ToyLLM
+替换为真正的 provider client，控制流完全相同。
 """
 
 from __future__ import annotations
@@ -76,10 +76,10 @@ class KVStore:
 
 
 class ToyLLM:
-    """Scripted ReAct policy. Returns one assistant turn per call.
+    """脚本化的 ReAct 策略。每次调用返回一个助手轮。
 
-    Each script entry is either ('thought', text) plus ('action', name, args)
-    or ('finish', text). The loop runs through the script in order.
+    每个脚本条目要么是 ('thought', text) 加 ('action', name, args)，
+    要么是 ('finish', text)。循环按顺序遍历脚本。
     """
 
     def __init__(self, script: list[dict[str, Any]]) -> None:

@@ -1,7 +1,11 @@
 """Load-test anti-pattern demonstrator — stdlib Python.
 
+负载测试反模式演示器 —— 仅使用 Python 标准库。
+
 Simulates how uniform prompts inflate reported throughput via prefix-cache
 and request-coalescing, while realistic distribution reveals the true ceiling.
+模拟统一提示词如何通过前缀缓存（prefix-cache）和请求合并（request-coalescing）
+夸大报告的吞吐量，而真实分布则揭示真正的上限。
 """
 
 from __future__ import annotations
@@ -41,6 +45,7 @@ def simulate(reqs: list[Request], concurrency: int) -> dict:
     cache: set[str] = set()
     ttft_samples: list[float] = []
     # serialize in groups of "concurrency"
+    # 按 "concurrency" 分组串行处理
     for i in range(0, len(reqs), concurrency):
         batch = reqs[i:i + concurrency]
         unique_prefixes = len({r.prefix_hash for r in batch})
@@ -65,6 +70,7 @@ def simulate(reqs: list[Request], concurrency: int) -> dict:
 def main() -> None:
     print("=" * 95)
     print("PROMPT-UNIFORMITY TRAP — same test harness, different prompt distributions")
+    print("=" * 95)
     print("=" * 95)
 
     for concurrency in (10, 50, 200):

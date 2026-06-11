@@ -1,7 +1,7 @@
-"""Toy web-agent harness with execution-based eval and trajectory efficiency.
+"""Toy web-agent harness (玩具级网页智能体工具链) with execution-based eval (基于执行的评估) and trajectory efficiency (轨迹效率).
 
-Models a minimal shopping app; 3 tasks with gold trajectories; a scripted agent
-attempts each task; we record success + steps-over-gold per OSWorld-Human.
+Models a minimal shopping app (最小购物应用); 3 tasks with gold trajectories (黄金轨迹); a scripted agent (脚本化智能体)
+attempts each task; we record success + steps-over-gold per OSWorld-Human (按 OSWorld-Human 记录成功率 + 超过黄金的步骤数).
 """
 
 from __future__ import annotations

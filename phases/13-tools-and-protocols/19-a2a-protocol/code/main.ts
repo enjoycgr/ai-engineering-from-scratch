@@ -1,18 +1,18 @@
-// Phase 13 Lesson 19 — A2A agent-to-agent protocol, in TypeScript.
+// Phase 13 Lesson 19 —— A2A 智能体到智能体协议，TypeScript 版本。
 //
-// Research agent calls writer agent via A2A:
-//   1. Research agent fetches writer's Agent Card
-//   2. Submits a Task with text + file + data parts
-//   3. Writer transitions working -> input_required -> working -> completed
-//   4. Research agent receives an Artifact
+// 研究智能体通过 A2A 调用写作智能体：
+//   1. 研究智能体获取写作智能体的 Agent Card
+//   2. 提交一个带 text + file + data parts 的 Task
+//   3. 写作智能体转换 working -> input_required -> working -> completed
+//   4. 研究智能体接收一个 Artifact
 //
-// Stdlib only; in-process transport stands in for JSON-RPC over HTTP.
+// 仅标准库；进程内传输替代 HTTP 上的 JSON-RPC。
 //
-// Spec references:
+// 规范参考：
 //   A2A protocol         https://a2aproject.github.io/A2A/specification
 //   Agent Card schema    https://a2aproject.github.io/A2A/specification/#agent-card
 //
-// Run: npx tsx code/main.ts
+// 运行：npx tsx code/main.ts
 
 import { randomUUID } from "node:crypto";
 

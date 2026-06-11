@@ -1,21 +1,20 @@
 /**
- * Model routing — TypeScript port + rule-based router.
+ * Model routing — TypeScript 移植版 + 基于规则的路由器。
  *
- * Two halves:
- *   1. ModelRouter: rule-based picker over (model catalog, request signals).
- *      Each rule scores candidates by capability fit, then weighs latency vs
- *      cost vs capability per a caller-supplied policy. Matches the four
- *      signals in docs/en.md (task class, prompt length, similarity to
- *      hard set, self-confidence).
- *   2. Cost/quality simulator matching main.py: NO_ROUTE / PRE_ROUTE /
- *      CASCADE patterns on a mixed-difficulty workload.
+ * 两部分：
+ *   1. ModelRouter：基于 (model catalog, request signals) 的规则选择器。
+ *      每条规则按 capability fit 对候选模型打分，然后按调用方提供的策略
+ *      权衡 latency vs cost vs capability。匹配 docs/en.md 中的四种信号
+ *      （task class、prompt length、与 hard set 的 similarity、self-confidence）。
+ *   2. 与 main.py 一致的成本/质量模拟器：NO_ROUTE / PRE_ROUTE /
+ *      CASCADE 模式在混合难度工作负载上。
  *
- * Citations:
+ * 引用：
  *   - RouteLLM (LMSYS): https://github.com/lm-sys/RouteLLM
  *   - OpenRouter recommendation/routing primitives: https://openrouter.ai/
- *   - LiteLLM router config with fallback + cost-routing (referenced in docs)
+ *   - LiteLLM router config with fallback + cost-routing（docs 中引用）
  *
- * Runs on Node 20+ stdlib. No npm deps.
+ * 在 Node 20+ stdlib 上运行。无 npm 依赖。
  */
 
 // -- Pricing (2026-04 approximations) -------------------------------------
@@ -37,16 +36,16 @@ type Capability =
 
 type Model = {
   id: string;
-  // Per-million-tokens.
+  // 每百万 token。
   inputPrice: number;
   outputPrice: number;
-  // P50 first-token latency (ms).
+  // P50 首 token 延迟（ms）。
   latencyMs: number;
-  // Maximum context length (tokens).
+  // 最大上下文长度（token）。
   contextWindow: number;
-  // Capability bag. Used by router fit-scoring.
+  // Capability bag。路由器按此打分。
   capabilities: Set<Capability>;
-  // Subjective quality on a 0–1 scale per the docs' rough mapping.
+  // 按 docs 粗略映射的 0–1 主观质量。
   qualityFloor: number;
 };
 
@@ -127,8 +126,8 @@ class ModelRouter {
     this.hardSetThreshold = hardSetThreshold;
   }
 
-  // Estimate a request's blended cost on a model. Assumes 200 output tokens
-  // unless the caller threads through a real output estimate elsewhere.
+  // 估算请求在模型上的 blended cost。假设输出 200 token，
+  // 除非调用方在其他地方传入真实输出估算。
   estCost(model: Model, promptTokens: number, outputTokens = 200): number {
     return (
       (promptTokens / 1e6) * model.inputPrice +
@@ -136,10 +135,10 @@ class ModelRouter {
     );
   }
 
-  // Filter the catalog down to models that:
-  //  (a) cover every required capability,
-  //  (b) fit the prompt in their context window,
-  //  (c) clear the policy quality floor.
+  // 将 catalog 过滤为满足以下条件的模型：
+  //  (a) 覆盖所有必需 capability，
+  //  (b) 提示在其上下文窗口内，
+  //  (c) 达到策略质量底线。
   candidates(signals: RouteSignals, policy: RoutePolicy): Model[] {
     return this.catalog.filter((m) => {
       for (const c of signals.required) if (!m.capabilities.has(c)) return false;
@@ -149,8 +148,8 @@ class ModelRouter {
     });
   }
 
-  // Weighted pick: lower cost / lower latency / higher capability fit is better.
-  // The 'hard set' similarity short-circuits to frontier (matches docs' rule).
+  // 加权选择：越低 cost / 越低 latency / 越高 capability fit 越好。
+  // 'hard set' similarity 短路到 frontier（匹配 docs 规则）。
   pick(signals: RouteSignals, policy: RoutePolicy): RouteDecision {
     if (signals.hardSetSimilarity >= this.hardSetThreshold) {
       const frontier = this.catalog.find((m) => m.id === "frontier");

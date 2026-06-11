@@ -1,150 +1,150 @@
 ---
 name: prompt-alignment-method-selector
-description: Choose the right alignment method (SFT, RLHF, DPO, KTO, ORPO, SimPO) for your use case
+description: 为你的用例选择正确的对齐方法（SFT、RLHF、DPO、KTO、ORPO、SimPO）
 version: 1.0.0
 phase: 10
 lesson: 8
 tags: [alignment, dpo, rlhf, kto, orpo, simpo, preference-optimization, fine-tuning]
 ---
 
-# Alignment Method Selector
+# 对齐方法选择器
 
-When choosing an alignment method for a language model, use this framework to evaluate your data, compute, and quality requirements, then select the method that best fits your constraints.
+在为语言模型选择对齐方法时，使用此框架评估你的数据、计算和质量要求，然后选择最符合你约束的方法。
 
-## Input Requirements
+## 输入要求
 
-Provide:
-- **Base model** (e.g., Llama 3 8B, Mistral 7B, Qwen 2.5 72B)
-- **Starting point** (base model, or already SFT'd?)
-- **Available data** (instruction pairs, preference pairs, unpaired ratings, or none)
-- **Compute budget** (GPU hours, number of GPUs)
-- **Quality target** (good enough for prototype, competitive with open-source, state-of-the-art)
-- **Timeline** (days, weeks, months)
+提供：
+- **基础模型**（例如，Llama 3 8B、Mistral 7B、Qwen 2.5 72B）
+- **起始点**（基础模型，还是已经 SFT 的？）
+- **可用数据**（指令对、偏好对、未配对评分，或无）
+- **计算预算**（GPU 小时数、GPU 数量）
+- **质量目标**（原型够用、与开源竞争、state-of-the-art）
+- **时间线**（天、周、月）
 
-## Decision Matrix
+## 决策矩阵
 
-### Quick Selection
+### 快速选择
 
-| Your Situation | Recommended Method | Why |
+| 你的情况 | 推荐方法 | 原因 |
 |---------------|-------------------|-----|
-| No preference data, only instruction pairs | SFT only | You can't align without preference signal |
-| < 5,000 preference pairs, limited compute | DPO | Simpler pipeline, works well with small data |
-| Unpaired feedback (thumbs up/down only) | KTO | Only method that works without pairwise comparisons |
-| Want alignment in a single training run | ORPO | Combines SFT + alignment, no reference model |
-| Memory-constrained (can't fit reference model) | SimPO | No reference model needed |
-| Large-scale, multi-objective alignment | RLHF (PPO) | Separate reward model captures complex preferences |
-| Iterative alignment with online data | RLHF (PPO) | Can generate, rate, and retrain in a loop |
-| Post-RLHF refinement | DPO | Fine-tune an RLHF model on targeted preferences |
+| 没有偏好数据，只有指令对 | 仅 SFT | 没有偏好信号就无法对齐 |
+| < 5,000 偏好对，计算有限 | DPO | 管道更简单，小数据下效果好 |
+| 未配对反馈（仅 thumbs up/down） | KTO | 唯一无需成对比较的方法 |
+| 希望在单个训练运行中对齐 | ORPO | 结合 SFT + 对齐，无需 reference model |
+| 内存受限（无法容纳 reference model） | SimPO | 无需 reference model |
+| 大规模、多目标对齐 | RLHF (PPO) | 单独的 reward model 捕捉复杂偏好 |
+| 迭代对齐与在线数据 | RLHF (PPO) | 可以生成、评分并循环重新训练 |
+| Post-RLHF 细化 | DPO | 在针对性偏好上微调 RLHF 模型 |
 
-### Detailed Comparison
+### 详细比较
 
-| Method | Data Requirement | Models in Memory | Training Loops | Stability | Best Scale |
+| 方法 | 数据要求 | 内存中的模型 | 训练循环 | 稳定性 | 最佳规模 |
 |--------|-----------------|-----------------|----------------|-----------|------------|
-| SFT | Instruction pairs (10K+) | 1 | 1 | High | Any |
-| RLHF | Preference pairs (20K+) | 3-4 | 3 | Low | Large (70B+) |
-| DPO | Preference pairs (5K+) | 2 | 2 (SFT + DPO) | High | Small-Medium (7B-70B) |
-| KTO | Unpaired ratings (5K+) | 2 | 2 (SFT + KTO) | High | Any |
-| ORPO | Preference pairs (10K+) | 1 | 1 | High | Small-Medium |
-| SimPO | Preference pairs (5K+) | 1 | 2 (SFT + SimPO) | High | Small-Medium |
+| SFT | 指令对 (10K+) | 1 | 1 | 高 | 任何 |
+| RLHF | 偏好对 (20K+) | 3-4 | 3 | 低 | 大 (70B+) |
+| DPO | 偏好对 (5K+) | 2 | 2 (SFT + DPO) | 高 | 小-中 (7B-70B) |
+| KTO | 未配对评分 (5K+) | 2 | 2 (SFT + KTO) | 高 | 任何 |
+| ORPO | 偏好对 (10K+) | 1 | 1 | 高 | 小-中 |
+| SimPO | 偏好对 (5K+) | 1 | 2 (SFT + SimPO) | 高 | 小-中 |
 
-## Method-Specific Configuration
+## 方法特定配置
 
 ### SFT
 
-- **When to stop**: After 1-3 epochs or when validation loss stops decreasing
-- **Key hyperparameter**: Learning rate (1e-5 to 5e-5, lower for bigger models)
-- **Critical detail**: Mask instruction tokens in the loss
-- **Gotcha**: More than 3 epochs causes memorization; mix in 2-5% pre-training data
+- **何时停止**：1-3 个 epoch 后或验证 loss 停止下降时
+- **关键超参数**：Learning rate（1e-5 到 5e-5，更大的模型用更低的学习率）
+- **关键细节**：在 loss 中 mask 指令 token
+- **陷阱**：超过 3 个 epoch 会导致 memorization；混合 2-5% pre-training 数据
 
 ### RLHF (PPO)
 
-- **When to use**: You have 20K+ comparison pairs, need multi-objective alignment, or want iterative online learning
-- **Key hyperparameters**: KL coefficient (0.01-0.05), PPO clip ratio (0.1-0.3), learning rate (5e-6 to 3e-5)
-- **Critical detail**: Reward model should be >= policy model size
-- **Gotcha**: PPO is unstable; monitor KL divergence and reward curves continuously
+- **何时使用**：你有 20K+ 比较对，需要多目标对齐，或想要迭代在线学习
+- **关键超参数**：KL coefficient (0.01-0.05)、PPO clip ratio (0.1-0.3)、learning rate (5e-6 到 3e-5)
+- **关键细节**：Reward model 应 >= policy model 大小
+- **陷阱**：PPO 不稳定；持续监控 KL divergence 和 reward 曲线
 
 ### DPO
 
-- **When to use**: You have preference pairs and want a simpler pipeline than RLHF
-- **Key hyperparameter**: Beta (0.1-0.5; lower = more deviation from reference allowed)
-- **Critical detail**: Reference model must be a frozen copy of the SFT checkpoint
-- **Gotcha**: Very sensitive to beta; run a sweep over [0.05, 0.1, 0.2, 0.5]
+- **何时使用**：你有偏好对且想要比 RLHF 更简单的管道
+- **关键超参数**：Beta (0.1-0.5；越低 = 允许偏离 reference 越多)
+- **关键细节**：Reference model 必须是 SFT checkpoint 的冻结副本
+- **陷阱**：对 beta 非常敏感；在 [0.05, 0.1, 0.2, 0.5] 上运行 sweep
 
 ### KTO
 
-- **When to use**: You only have "good" or "bad" labels without pairwise comparisons
-- **Key hyperparameter**: Beta (same as DPO), loss aversion multiplier (1.5x on bad responses)
-- **Critical detail**: Needs roughly balanced good/bad examples (40-60% split)
-- **Gotcha**: Without pairs, the gradient signal is weaker; may need more data than DPO
+- **何时使用**：你只有 "good" 或 "bad" 标签，没有成对比较
+- **关键超参数**：Beta（与 DPO 相同）、bad 响应上的 loss aversion 乘数 (1.5x)
+- **关键细节**：需要大致平衡的好/坏示例（40-60% 分割）
+- **陷阱**：没有成对数据，梯度信号更弱；可能需要比 DPO 更多的数据
 
 ### ORPO
 
-- **When to use**: You want to skip SFT entirely and go straight from base to aligned
-- **Key hyperparameter**: Lambda (weight of the preference term vs SFT term)
-- **Critical detail**: Needs both instruction labels AND preference pairs in one dataset
-- **Gotcha**: Combined objective can be hard to balance; if SFT loss dominates, alignment is weak
+- **何时使用**：你想跳过 SFT 直接从基础模型到对齐模型
+- **关键超参数**：Lambda（偏好项 vs SFT 项的权重）
+- **关键细节**：需要一个数据集中同时包含指令标签和偏好对
+- **陷阱**：组合目标可能难以平衡；如果 SFT loss 占主导，对齐就很弱
 
 ### SimPO
 
-- **When to use**: Memory-constrained setup where you can't hold a reference model
-- **Key hyperparameter**: Beta, gamma (length normalization exponent)
-- **Critical detail**: Length normalization prevents the model from favoring short responses
-- **Gotcha**: Without a reference model anchor, the model can drift further; monitor carefully
+- **何时使用**：内存受限的设置，无法容纳 reference model
+- **关键超参数**：Beta、gamma（长度归一化指数）
+- **关键细节**：长度归一化防止模型偏好短响应
+- **陷阱**：没有 reference model 锚点，模型可以漂移更远；仔细监控
 
-## Pipeline Templates
+## 管道模板
 
-### Template 1: Fast Prototype (1-2 days)
+### 模板 1：快速原型（1-2 天）
 
 ```
 Base Model -> SFT (1 epoch, 10K examples) -> DPO (3 epochs, 5K pairs)
 ```
 
-Compute: ~4 GPU-hours for 7B model on A100
-Quality: Solid instruction following, basic preference alignment
+计算：7B 模型在 A100 上约 4 GPU 小时
+质量：扎实的指令遵循，基本的偏好对齐
 
-### Template 2: Production Quality (1-2 weeks)
+### 模板 2：生产质量（1-2 周）
 
 ```
 Base Model -> SFT (2 epochs, 50K examples) -> DPO (5 epochs, 20K pairs) -> Eval -> Iterate
 ```
 
-Compute: ~40 GPU-hours for 7B, ~200 GPU-hours for 70B
-Quality: Competitive with open-source RLHF models
+计算：7B 约 40 GPU 小时，70B 约 200 GPU 小时
+质量：与开源 RLHF 模型竞争
 
-### Template 3: State-of-the-Art (1-3 months)
+### 模板 3：State-of-the-Art（1-3 个月）
 
 ```
 Base Model -> SFT (2 epochs, 100K+ examples) -> RLHF (PPO, 50K+ pairs) -> DPO (targeted refinement) -> Eval -> Iterate
 ```
 
-Compute: ~500+ GPU-hours for 70B
-Quality: Approaching frontier model alignment
+计算：70B 约 500+ GPU 小时
+质量：接近前沿模型对齐
 
-### Template 4: Minimal Data (1-2 days)
+### 模板 4：最小数据（1-2 天）
 
 ```
 Base Model -> SFT (1 epoch, 5K examples) -> KTO (unpaired thumbs up/down from users)
 ```
 
-Compute: ~2 GPU-hours for 7B
-Quality: Better than SFT-only with minimal data collection overhead
+计算：7B 约 2 GPU 小时
+质量：比仅 SFT 更好，数据收集开销最小
 
-## Evaluation Protocol
+## 评估协议
 
-After alignment, evaluate across these dimensions:
+对齐后，在这些维度上评估：
 
-1. **Preference win rate**: Compare aligned model vs SFT model on 200+ test prompts with human judges. Target: > 60% win rate.
-2. **Benchmark retention**: MMLU, HumanEval, or domain-specific benchmarks. Should not drop > 5% from SFT baseline.
-3. **MT-Bench or AlpacaEval**: Standard alignment quality benchmarks. Compare against published baselines.
-4. **Safety evaluation**: Test against adversarial prompts, jailbreaks, and harmful request categories.
-5. **Response diversity**: Measure entropy of responses across 100 prompts. Low entropy = mode collapse.
+1. **偏好胜率**：在 200+ 测试 prompt 上比较对齐模型与 SFT 模型，由人类评判。目标：> 60% 胜率。
+2. **Benchmark 保留**：MMLU、HumanEval 或领域特定 benchmark。与 SFT baseline 相比不应下降 > 5%。
+3. **MT-Bench 或 AlpacaEval**：标准对齐质量 benchmark。与已发布的 baseline 比较。
+4. **安全评估**：针对对抗性 prompt、jailbreaks 和有害请求类别进行测试。
+5. **响应多样性**：测量 100 个 prompt 上响应的熵。低熵 = mode collapse。
 
-## Common Failure Modes
+## 常见失败模式
 
-| Symptom | Cause | Method-Specific Fix |
+| 症状 | 原因 | 方法特定修复 |
 |---------|-------|-------------------|
-| Verbose, padded responses | Reward model / implicit reward favors length | DPO: increase beta. RLHF: add length penalty. SimPO: adjust gamma. |
-| Model agrees with everything | Sycophancy from preference data bias | Add preference pairs where the correct response disagrees with the user |
-| Refuses benign requests | Over-alignment on safety data | Reduce safety example proportion, add more benign-refusal pairs |
-| Outputs are nearly identical to SFT | Beta too high (DPO/KTO) or KL coefficient too high (PPO) | Lower beta / KL coefficient; the model isn't learning |
-| Training loss oscillates | Learning rate too high or insufficient data | Reduce lr by 2-3x; increase preference data |
+| 冗长、填充的响应 | Reward model / 隐式 reward 偏好长度 | DPO：增加 beta。RLHF：添加长度惩罚。SimPO：调整 gamma。 |
+| 模型同意一切 | 偏好数据偏见导致的 sycophancy | 添加正确响应不同意用户的偏好对 |
+| 拒绝良性请求 | 安全数据上过度对齐 | 减少安全示例比例，添加更多良性-拒绝对 |
+| 输出与 SFT 几乎相同 | Beta 太高（DPO/KTO）或 KL coefficient 太高（PPO） | 降低 beta / KL coefficient；模型没有学习 |
+| 训练 loss 振荡 | 学习率太高或数据不足 | 将 lr 降低 2-3 倍；增加偏好数据 |

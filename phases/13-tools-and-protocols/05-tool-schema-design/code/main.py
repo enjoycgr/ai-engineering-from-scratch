@@ -1,15 +1,15 @@
-"""Phase 13 Lesson 05 - tool schema design linter.
+"""Phase 13 Lesson 05 - 工具 schema 设计 linter。
 
-Audits a tool registry against design rules from the lesson:
-  - names: snake_case, verb-noun, no arguments, no tense markers
-  - descriptions: Use-when pattern, length bounds, no injection keywords
-  - schemas: typed properties, required list, enum on closed sets
-  - shape: atomic vs monolithic (flag `action: str` if enum size > 3)
+根据课程中的设计规则审计工具注册表：
+  - 名称：snake_case、动词-名词、无参数、无时态标记
+  - 描述：Use-when 模式、长度限制、无注入关键字
+  - schema：类型化属性、required 列表、闭集 enum
+  - 形状：原子 vs 整体（enum 大小 > 3 时标记 `action: str`）
 
-Run on GOOD_REGISTRY (passes) and BAD_REGISTRY (fails on every rule).
-Stdlib only.
+在 GOOD_REGISTRY（通过）和 BAD_REGISTRY（每条规则都失败）上运行。
+仅标准库。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

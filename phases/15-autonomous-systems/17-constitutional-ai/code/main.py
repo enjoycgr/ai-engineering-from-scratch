@@ -1,13 +1,13 @@
-"""Four-tier priority resolver — stdlib Python.
+"""四层层级优先级解析器 —— stdlib Python。
 
-Models Anthropic's January 2026 Claude Constitution tier hierarchy:
-  1. safety and supporting human oversight
-  2. ethics
-  3. guidelines
-  4. helpfulness
+模拟 Anthropic 2026 年 1 月 Claude Constitution 层级结构：
+  1. safety and supporting human oversight (安全与支持人类监督)
+  2. ethics (伦理)
+  3. guidelines (指南)
+  4. helpfulness (有用性)
 
-Hardcoded prohibitions refuse regardless of tier scoring; soft-coded
-defaults resolve by tier weight.
+硬编码禁令 (hardcoded prohibitions) 无论层级评分如何都拒绝；软编码
+默认值按层级权重解析。
 """
 
 from __future__ import annotations
@@ -15,17 +15,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-# ---------- Constitution ----------
+# ---------- 宪法层 ----------
 
 HARDCODED_PROHIBITIONS = (
     "bioweapons uplift",
     "cbrn attack planning",
     "csam",
     "critical infrastructure attack",
-    # Illustrative only — substring matching catches specific phrasings
-    # like "false identity to user" or "deny being an ai". Production
-    # classifiers should use a dedicated deception detector, not a
-    # keyword list.
+    # 仅作示例 —— 子串匹配捕获特定措辞
+    # 如 "false identity to user" 或 "deny being an ai"。生产环境
+    # 分类器应使用专用欺骗检测器，而非
+    # 关键词列表。
     "false identity to user",
     "deny being an ai",
 )
@@ -48,13 +48,13 @@ def hardcoded_block(action: str) -> str | None:
 
 
 def resolve(action: str, score: TierScore) -> tuple[str, str]:
-    # Layer 1: hardcoded prohibitions
+    # 层 1：硬编码禁令
     block = hardcoded_block(action)
     if block:
         return "refuse", f"hardcoded prohibition: {block}"
 
-    # Layer 2: four-tier priority. Higher tier wins on conflict.
-    # We interpret a violation score of >= 3 as blocking at that tier.
+    # 层 2：四层层级优先级。冲突时更高层级获胜。
+    # 我们将 >= 3 的违规分数解释为在该层级阻止。
     if score.safety >= 3:
         return "refuse", f"safety violation (score={score.safety})"
     if score.ethics >= 3:
@@ -62,8 +62,8 @@ def resolve(action: str, score: TierScore) -> tuple[str, str]:
     if score.guidelines >= 3:
         return "modify", f"guideline conflict (score={score.guidelines}); modify"
 
-    # Helpfulness is lowest priority; by this point we already cleared
-    # higher tiers. Proceed.
+    # Helpfulness 是最低优先级；到此我们已经清除了
+    # 更高层级。继续执行。
     return "allow", "all higher tiers clear; helpfulness respected"
 
 
@@ -102,15 +102,15 @@ def main() -> None:
 
     print()
     print("=" * 80)
-    print("HEADLINE: hardcoded floor + reason-based ceiling")
+    print("HEADLINE: 硬编码底线 + 基于推理的天花板")
     print("-" * 80)
-    print("  Hardcoded prohibitions (bioweapons, CSAM, ...) never bend.")
-    print("  Reason-based tiers (safety > ethics > guidelines > helpfulness)")
-    print("  resolve the rest. Operators adjust soft-coded defaults inside")
-    print("  declared bounds; they cannot touch the hardcoded floor.")
-    print("  Reason-based alignment misses: principle ambiguity, drift,")
-    print("  and framing-premise attacks. Runtime layer (Lessons 10, 13, 14)")
-    print("  stays required.")
+    print("  硬编码禁令（生物武器、CSAM 等）永不弯曲。")
+    print("  基于推理的层级（safety > ethics > guidelines > helpfulness）")
+    print("  解析其余部分。操作者在声明边界内调整软编码默认值；")
+    print("  他们不能触碰硬编码底线。")
+    print("  基于推理的对齐遗漏：原则模糊、漂移，")
+    print("  以及框架前提攻击。运行时层（第 10、13、14 课）")
+    print("  仍然是必需的。")
 
 
 if __name__ == "__main__":

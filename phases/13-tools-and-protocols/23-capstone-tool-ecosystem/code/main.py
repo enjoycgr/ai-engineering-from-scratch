@@ -1,16 +1,16 @@
-"""Phase 13 Capstone - end-to-end research-and-report ecosystem.
+"""Phase 13 巅峰 - 端到端研究和报告生态系统。
 
-All the pieces from Phase 13 in one runnable demo:
-  - gateway with OAuth-shaped auth and RBAC
-  - MCP server exposing arxiv_search tool, recent resource, task-augmented
-    generate_report, and a ui:// app
-  - A2A call to a writer agent for paper summarization
-  - OTel GenAI spans emitted across every hop with one trace id
-  - pinned-hash manifest guarding description mutations
+Phase 13 的所有部分在一个可运行演示中：
+  - 具备 OAuth 形状认证和 RBAC 的网关
+  - 暴露 arxiv_search 工具、recent 资源、任务增强的
+    generate_report 和 ui:// 应用的 MCP 服务器
+  - 用于论文摘要的 A2A 调用写作智能体
+  - 跨每个跳跃发出的 OTel GenAI span，带一个 trace id
+  - 防御描述变更的固定哈希清单
 
-Stdlib only.
+仅标准库。
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations

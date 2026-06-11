@@ -2,6 +2,8 @@ import math
 import random
 
 
+# 向量工具函数
+
 def dot(a, b):
     return sum(ai * bi for ai, bi in zip(a, b))
 
@@ -22,20 +24,28 @@ def vec_norm(a):
     return math.sqrt(dot(a, a))
 
 
+# Kernel 函数
+
 def linear_kernel(x, z):
+    """Linear kernel (线性核): K(x, z) = x . z"""
     return dot(x, z)
 
 
 def polynomial_kernel(x, z, degree=3, c=1.0):
+    """Polynomial kernel (多项式核): K(x, z) = (x . z + c)^d"""
     return (dot(x, z) + c) ** degree
 
 
 def rbf_kernel(x, z, gamma=0.5):
+    """RBF kernel (RBF 核) / Gaussian kernel: K(x, z) = exp(-gamma * ||x - z||^2)"""
     diff = vec_sub(x, z)
     return math.exp(-gamma * dot(diff, diff))
 
 
+# Hinge loss (铰链损失) 和 SVM 目标函数
+
 def hinge_loss(X, y, w, b):
+    """计算平均 hinge loss: max(0, 1 - y * (w^T x + b))"""
     n = len(X)
     total = 0.0
     for i in range(n):
@@ -45,10 +55,13 @@ def hinge_loss(X, y, w, b):
 
 
 def svm_objective(X, y, w, b, lambda_param):
+    """SVM 目标函数: L2 regularization (正则化) + hinge loss"""
     reg = 0.5 * lambda_param * dot(w, w)
     loss = hinge_loss(X, y, w, b)
     return reg + loss
 
+
+# 线性 SVM 分类器（primal formulation (原始形式)，随机次梯度下降）
 
 class LinearSVM:
     def __init__(self, lr=0.001, lambda_param=0.01, n_epochs=1000):
@@ -60,6 +73,7 @@ class LinearSVM:
         self.loss_history = []
 
     def fit(self, X, y):
+        """使用 hinge loss + L2 regularization 训练"""
         n_features = len(X[0])
         n_samples = len(X)
         self.w = [0.0] * n_features
@@ -74,11 +88,13 @@ class LinearSVM:
                 margin = y[i] * (dot(self.w, X[i]) + self.b)
 
                 if margin >= 1:
+                    # 点在 margin 外：仅应用 regularization 梯度
                     self.w = [
                         wj - self.lr * self.lambda_param * wj
                         for wj in self.w
                     ]
                 else:
+                    # 点在 margin 内或被误分类：应用 hinge loss + regularization 梯度
                     self.w = [
                         wj - self.lr * (self.lambda_param * wj - y[i] * X[i][j])
                         for j, wj in enumerate(self.w)
@@ -96,12 +112,14 @@ class LinearSVM:
         return [dot(self.w, x) + self.b for x in X]
 
     def margin_width(self):
+        """计算 margin width (间隔宽度): 2 / ||w||"""
         w_norm = vec_norm(self.w)
         if w_norm == 0:
             return 0.0
         return 2.0 / w_norm
 
     def find_support_vectors(self, X, y, tol=0.1):
+        """识别 support vectors (支持向量): margin 接近 1.0 的点"""
         svs = []
         for i in range(len(X)):
             margin = y[i] * (dot(self.w, X[i]) + self.b)
@@ -110,12 +128,15 @@ class LinearSVM:
         return svs
 
 
+# 评估和数据生成工具
+
 def accuracy(y_true, y_pred):
     correct = sum(1 for a, b in zip(y_true, y_pred) if a == b)
     return correct / len(y_true)
 
 
 def generate_linear_data(n_samples=100, margin=1.0, seed=42):
+    """生成线性可分数据，两类之间有一定 margin"""
     random.seed(seed)
     X = []
     y = []
@@ -133,6 +154,7 @@ def generate_linear_data(n_samples=100, margin=1.0, seed=42):
 
 
 def generate_noisy_data(n_samples=200, noise=0.5, seed=42):
+    """生成带噪声的线性数据（非完全可分）"""
     random.seed(seed)
     X = []
     y = []
@@ -147,6 +169,7 @@ def generate_noisy_data(n_samples=200, noise=0.5, seed=42):
 
 
 def generate_circular_data(n_samples=200, seed=42):
+    """生成圆形边界数据（非线性可分）"""
     random.seed(seed)
     X = []
     y = []
@@ -178,6 +201,7 @@ def train_test_split(X, y, test_ratio=0.2, seed=42):
 
 
 def compute_kernel_matrix(X, kernel_fn, **kwargs):
+    """计算对称 kernel matrix (核矩阵)"""
     n = len(X)
     K = [[0.0] * n for _ in range(n)]
     for i in range(n):
@@ -187,6 +211,8 @@ def compute_kernel_matrix(X, kernel_fn, **kwargs):
             K[j][i] = val
     return K
 
+
+# Demo 函数
 
 def demo_hinge_loss():
     print("=" * 65)
@@ -206,8 +232,8 @@ def demo_hinge_loss():
         print(f"  {m:>10.1f}  {h_loss:>12.3f}  {l_loss:>14.3f}  {bar}")
 
     print()
-    print("  Hinge loss is exactly zero when y*f(x) >= 1 (outside margin).")
-    print("  Logistic loss is never exactly zero. Always uses all data points.")
+    print("  Hinge loss 在 y*f(x) >= 1（margin 外）时恰好为零。")
+    print("  Logistic loss 永远不会恰好为零。始终使用所有数据点。")
     print()
 
 
@@ -220,8 +246,8 @@ def demo_linear_svm():
     X, y = generate_linear_data(200, margin=1.0, seed=42)
     X_train, y_train, X_test, y_test = train_test_split(X, y)
 
-    print(f"  Dataset: {len(X)} samples, linearly separable")
-    print(f"  Train: {len(X_train)}  Test: {len(X_test)}")
+    print(f"  数据集: {len(X)} 个样本，线性可分")
+    print(f"  训练集: {len(X_train)}  测试集: {len(X_test)}")
     print()
 
     svm = LinearSVM(lr=0.001, lambda_param=0.01, n_epochs=500)
@@ -232,17 +258,17 @@ def demo_linear_svm():
     train_acc = accuracy(y_train, train_pred)
     test_acc = accuracy(y_test, test_pred)
 
-    print(f"  Weights: [{svm.w[0]:.4f}, {svm.w[1]:.4f}]")
-    print(f"  Bias: {svm.b:.4f}")
+    print(f"  权重: [{svm.w[0]:.4f}, {svm.w[1]:.4f}]")
+    print(f"  偏置: {svm.b:.4f}")
     print(f"  Margin width: {svm.margin_width():.4f}")
-    print(f"  Train accuracy: {train_acc:.4f}")
-    print(f"  Test accuracy: {test_acc:.4f}")
+    print(f"  训练准确率: {train_acc:.4f}")
+    print(f"  测试准确率: {test_acc:.4f}")
 
     svs = svm.find_support_vectors(X_train, y_train, tol=0.3)
-    print(f"  Support vectors: {len(svs)} / {len(X_train)} training points")
+    print(f"  Support vectors: {len(svs)} / {len(X_train)} 个训练点")
     print()
 
-    print("  Training loss progression:")
+    print("  训练 loss 变化:")
     print(f"  {'Epoch':>8s}  {'Loss':>10s}")
     print(f"  {'-' * 8}  {'-' * 10}")
     for epoch, loss in svm.loss_history:
@@ -259,8 +285,8 @@ def demo_c_parameter():
     X, y = generate_noisy_data(300, noise=0.8, seed=42)
     X_train, y_train, X_test, y_test = train_test_split(X, y)
 
-    print(f"  Dataset: {len(X)} samples with noise (not perfectly separable)")
-    print(f"  Train: {len(X_train)}  Test: {len(X_test)}")
+    print(f"  数据集: {len(X)} 个带噪声样本（非完全可分）")
+    print(f"  训练集: {len(X_train)}  测试集: {len(X_test)}")
     print()
 
     c_values = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
@@ -281,8 +307,8 @@ def demo_c_parameter():
               f"{margin:>8.4f}  {n_sv:>6d}")
 
     print()
-    print("  Small C (large lambda): wide margin, more errors, better generalization.")
-    print("  Large C (small lambda): narrow margin, fewer errors, risk of overfitting.")
+    print("  小 C（大 lambda）: 宽 margin，更多错误，更好的 generalization (泛化)。")
+    print("  大 C（小 lambda）: 窄 margin，更少错误，overfitting (过拟合) 风险。")
     print()
 
 
@@ -301,7 +327,7 @@ def demo_kernel_functions():
         ("opposite", [-1.0, 0.0]),
     ]
 
-    print(f"  Reference point: {x}")
+    print(f"  参考点: {x}")
     print()
     print(f"  {'Point':<20s}  {'Linear':>8s}  {'Poly(d=2)':>10s}  {'Poly(d=3)':>10s}  {'RBF(g=0.5)':>10s}")
     print(f"  {'-' * 20}  {'-' * 8}  {'-' * 10}  {'-' * 10}  {'-' * 10}")
@@ -314,9 +340,9 @@ def demo_kernel_functions():
         print(f"  {name:<20s}  {k_lin:>8.3f}  {k_p2:>10.3f}  {k_p3:>10.3f}  {k_rbf:>10.4f}")
 
     print()
-    print("  Linear kernel: raw dot product. Measures projection.")
-    print("  Polynomial kernel: captures feature interactions up to degree d.")
-    print("  RBF kernel: locality-based. High for nearby points, near zero for distant.")
+    print("  Linear kernel: 原始 dot product。度量投影。")
+    print("  Polynomial kernel: 捕获最高到 degree d 的特征交互。")
+    print("  RBF kernel: 基于局部性。相近点值高，相距远的点接近零。")
     print()
 
 
@@ -331,7 +357,7 @@ def demo_kernel_matrix():
     K_linear = compute_kernel_matrix(X, linear_kernel)
     K_rbf = compute_kernel_matrix(X, rbf_kernel, gamma=1.0)
 
-    print(f"  Generated {len(X)} points with circular decision boundary")
+    print(f"  生成了 {len(X)} 个具有圆形决策边界的点")
     print()
 
     pos_pos_lin = []
@@ -356,15 +382,15 @@ def demo_kernel_matrix():
     def safe_mean(lst):
         return sum(lst) / len(lst) if lst else 0.0
 
-    print(f"  Average kernel values between classes:")
+    print(f"  各类之间的平均 kernel 值:")
     print(f"  {'Pair':<15s}  {'Linear':>10s}  {'RBF(g=1)':>10s}")
     print(f"  {'-' * 15}  {'-' * 10}  {'-' * 10}")
     print(f"  {'Same (+/+)':<15s}  {safe_mean(pos_pos_lin):>10.4f}  {safe_mean(pos_pos_rbf):>10.4f}")
     print(f"  {'Same (-/-)':<15s}  {safe_mean(neg_neg_lin):>10.4f}  {safe_mean(neg_neg_rbf):>10.4f}")
     print(f"  {'Different':<15s}  {safe_mean(pos_neg_lin):>10.4f}  {safe_mean(pos_neg_rbf):>10.4f}")
     print()
-    print("  Linear kernel: cannot separate circular classes well.")
-    print("  RBF kernel: creates separation by measuring local similarity.")
+    print("  Linear kernel: 无法很好地分离圆形类别。")
+    print("  RBF kernel: 通过度量局部相似性创建分离。")
     print()
 
 
@@ -383,8 +409,8 @@ def demo_linear_vs_nonlinear():
     train_acc = accuracy(y_train, svm.predict(X_train))
     test_acc = accuracy(y_test, svm.predict(X_test))
 
-    print(f"  Circular data (not linearly separable)")
-    print(f"  Linear SVM: train acc = {train_acc:.4f}, test acc = {test_acc:.4f}")
+    print(f"  圆形数据（非线性可分）")
+    print(f"  Linear SVM: 训练 acc = {train_acc:.4f}, 测试 acc = {test_acc:.4f}")
     print()
 
     X_train_aug = [
@@ -402,12 +428,12 @@ def demo_linear_vs_nonlinear():
     train_acc_aug = accuracy(y_train, svm_aug.predict(X_train_aug))
     test_acc_aug = accuracy(y_test, svm_aug.predict(X_test_aug))
 
-    print(f"  After polynomial feature mapping (x1, x2) -> (x1, x2, x1^2, x2^2, x1*x2):")
-    print(f"  Linear SVM on augmented features: train acc = {train_acc_aug:.4f}, "
-          f"test acc = {test_acc_aug:.4f}")
+    print(f"  经过多项式特征映射 (x1, x2) -> (x1, x2, x1^2, x2^2, x1*x2) 后:")
+    print(f"  在增强特征上的 Linear SVM: 训练 acc = {train_acc_aug:.4f}, "
+          f"测试 acc = {test_acc_aug:.4f}")
     print()
-    print("  The kernel trick does this feature mapping implicitly.")
-    print("  You compute K(x, z) instead of explicitly constructing the features.")
+    print("  Kernel trick 隐式地完成了这种特征映射。")
+    print("  你计算 K(x, z) 而不是显式构造特征。")
     print()
 
 
@@ -430,10 +456,10 @@ def demo_support_vectors():
 
     margins.sort(key=lambda x: x[1])
 
-    print(f"  Trained on {len(X_train)} points")
-    print(f"  Weights: [{svm.w[0]:.4f}, {svm.w[1]:.4f}], bias: {svm.b:.4f}")
+    print(f"  在 {len(X_train)} 个点上训练")
+    print(f"  权重: [{svm.w[0]:.4f}, {svm.w[1]:.4f}], 偏置: {svm.b:.4f}")
     print()
-    print("  Points sorted by margin (y * f(x)):")
+    print("  按 margin (y * f(x)) 排序的点:")
     print(f"  {'Index':>6s}  {'y':>4s}  {'Margin':>8s}  {'Role':<20s}")
     print(f"  {'-' * 6}  {'-' * 4}  {'-' * 8}  {'-' * 20}")
 
@@ -461,7 +487,7 @@ def demo_support_vectors():
     print(f"  Support vectors (margin ~ 1.0): {n_sv}")
     print(f"  Safely classified (margin >> 1): {n_safe}")
     print(f"  Inside margin (0 < margin < 1): {n_inside}")
-    print(f"  Only {n_sv} out of {len(X_train)} points define the boundary.")
+    print(f"  只有 {n_sv} 个（共 {len(X_train)} 个）点定义了边界。")
     print()
 
 
@@ -497,14 +523,14 @@ def demo_svm_vs_logistic():
 
     svm_svs = len(svm.find_support_vectors(X_train, y_train, tol=0.5))
 
-    print(f"  SVM test accuracy:              {svm_test_acc:.4f}")
-    print(f"  Logistic regression test acc:   {lr_test_acc:.4f}")
+    print(f"  SVM 测试准确率:              {svm_test_acc:.4f}")
+    print(f"  Logistic regression 测试准确率:   {lr_test_acc:.4f}")
     print()
     print(f"  SVM support vectors:            {svm_svs} / {len(X_train)}")
-    print(f"  Logistic regression:            ALL {len(X_train)} points used")
+    print(f"  Logistic regression:            使用全部 {len(X_train)} 个点")
     print()
-    print("  SVM: sparse model, only support vectors matter at prediction time.")
-    print("  Logistic: dense model, all training points contribute.")
+    print("  SVM: 稀疏模型，预测时只有 support vectors 起作用。")
+    print("  Logistic: 稠密模型，所有训练点都有贡献。")
     print()
 
 
@@ -532,7 +558,7 @@ def demo_margin_effect():
               f"{train_acc:>10.4f}  {test_acc:>10.4f}")
 
     print()
-    print("  Wider data separation = wider learned margin = better generalization.")
+    print("  数据分离越宽 = 学到的 margin 越宽 = generalization 越好。")
     print()
 
 
@@ -542,14 +568,14 @@ def print_summary():
     print("SUMMARY")
     print("=" * 65)
     print()
-    print("  1. SVMs find the maximum margin hyperplane between classes.")
-    print("  2. Only support vectors determine the boundary.")
-    print("  3. Hinge loss produces sparse models (zero loss outside margin).")
-    print("  4. The C parameter trades off margin width vs classification errors.")
-    print("  5. The kernel trick enables nonlinear boundaries via dot products.")
-    print("  6. RBF kernel maps to infinite dimensions using local similarity.")
-    print("  7. Linear SVMs train in O(n*d) per epoch using gradient descent.")
-    print("  8. SVMs still win on small datasets and high-dimensional sparse data.")
+    print("  1. SVM 找到两类之间的 maximum margin (最大间隔) 超平面。")
+    print("  2. 只有 support vectors 决定边界。")
+    print("  3. Hinge loss 产生稀疏模型（margin 外 loss 为零）。")
+    print("  4. C 参数在 margin width 与分类错误之间进行权衡。")
+    print("  5. Kernel trick 通过 dot products 实现非线性边界。")
+    print("  6. RBF kernel 利用局部相似性映射到无限维。")
+    print("  7. Linear SVM 每轮 epoch 以 O(n*d) 训练，使用梯度下降。")
+    print("  8. SVM 在小数据集和高维稀疏数据上仍然胜出。")
     print()
 
 

@@ -19,7 +19,7 @@ def randn_matrix(rows, cols, rng, scale=0.3):
 
 
 def lora_forward(W_frozen, A, B, x, alpha=1.0):
-    """Compute (W + alpha * B @ A) @ x."""
+    """计算 (W + alpha * B @ A) @ x。"""
     base = matmul_mat_vec(W_frozen, x)
     Ax = matmul_mat_vec(A, x)
     BAx = matmul_mat_vec(B, Ax)
@@ -55,18 +55,18 @@ def train_lora(W_frozen, W_target, r, rng, steps=4000, lr=0.01):
 
 
 def controlnet_toy(steps, rng):
-    """Learn a gated side-network that conditions on an extra signal."""
-    # base: f_base(x) = x  (frozen)
-    # side: f_side(x, c) = c  (learnable weight w_side)
+    """学习一个 gated（门控）旁路网络，对额外信号进行 conditioning。"""
+    # base: f_base(x) = x  (frozen / 冻结)
+    # side: f_side(x, c) = c  (可学习权重 w_side)
     # gated: out = f_base + gate * w_side * c
     w_side = rng.gauss(0, 0.1)
-    gate = 0.0          # zero-conv init
+    gate = 0.0          # zero-conv init（零卷积初始化）
     lr = 0.03
     trace = []
     for step in range(steps):
         x = rng.gauss(0, 1)
         c = rng.choice([-1.0, 1.0])
-        target = x + 0.7 * c     # the "true" signal we want
+        target = x + 0.7 * c     # 我们想要的"真实"信号
         pred = x + gate * w_side * c
         err = pred - target
         grad_gate = 2 * err * w_side * c
@@ -91,20 +91,20 @@ def main():
             delta_matrix[i][j] = u[i] * v[j] * 0.5
     W_target = [[W_frozen[i][j] + delta_matrix[i][j] for j in range(d)] for i in range(d)]
 
-    print("=== LoRA: approximate a known rank-1 delta ===")
+    print("=== LoRA：用已知 rank-1 delta 进行近似 ===")
     for r in [1, 2, 4]:
         err = train_lora(W_frozen, W_target, r=r, rng=random.Random(2 * r))
         print(f"  rank r={r}: residual MSE {err:.5f}")
 
     print()
-    print("=== ControlNet-lite: zero-initialized gate on a side signal ===")
+    print("=== ControlNet-lite：旁路信号上的零初始化 gate ===")
     trace = controlnet_toy(steps=800, rng=rng)
     for step, gate, wside in trace[::2][:6]:
         print(f"  step {step:4d}: gate={gate:+.3f}  w_side={wside:+.3f}")
 
     print()
-    print("takeaway: LoRA needs rank >= true delta rank to converge exactly.")
-    print("          ControlNet-lite gate ramps from 0 as the side signal proves useful.")
+    print("takeaway：LoRA 需要 rank >= 真实 delta rank 才能精确收敛。")
+    print("          ControlNet-lite gate 从 0 开始上升，随着旁路信号被证明有用。")
 
 
 if __name__ == "__main__":

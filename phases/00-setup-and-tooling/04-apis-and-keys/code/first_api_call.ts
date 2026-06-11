@@ -1,9 +1,9 @@
-// Phase 0 · Lesson 04 — APIs and keys (TypeScript port).
-// Reads ANTHROPIC_API_KEY from env, parses a minimal .env file, then makes one
-// /v1/messages call with global fetch. Set MOCK=1 to skip the network entirely.
+// Phase 0 · Lesson 04 — API 与密钥（TypeScript 版本）。
+// 从环境变量读取 ANTHROPIC_API_KEY，解析最小化 .env 文件，然后使用
+// 全局 fetch 发起一次 /v1/messages 调用。设置 MOCK=1 可跳过网络请求。
 // Refs: https://docs.anthropic.com/en/api/messages
 //       https://nodejs.org/api/process.html#processenv
-//       https://nodejs.org/api/globals.html#fetch (Node 18+ ships fetch)
+//       https://nodejs.org/api/globals.html#fetch (Node 18+ 内置 fetch)
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -20,8 +20,8 @@ type MessagesResponse = {
   usage: { input_tokens: number; output_tokens: number };
 };
 
-// .env loader. Same shape every framework follows; we skip a dep to stay
-// portable. KEY=VALUE per line, # comments, optional surrounding quotes.
+// .env 加载器。与所有框架遵循的格式相同；我们跳过依赖以保持
+// 可移植性。每行格式 KEY=VALUE，# 为注释，可选的引号包裹。
 function loadDotenv(path: string): Record<string, string> {
   let raw: string;
   try {
@@ -49,13 +49,13 @@ function loadDotenv(path: string): Record<string, string> {
 }
 
 function mergeEnv(): NodeJS.ProcessEnv {
-  // process.env wins so users can override the file without editing it.
+  // process.env 优先，用户可以不修改文件就覆盖配置。
   const fromFile = loadDotenv(resolve(process.cwd(), ".env"));
   return { ...fromFile, ...process.env };
 }
 
-// Fixture matches the real /v1/messages response shape, so the surrounding
-// code is identical whether MOCK=1 or not.
+// 模拟数据与真实 /v1/messages 响应格式一致，因此无论 MOCK=1 与否，
+// 周围代码完全相同。
 const MOCK_RESPONSE: MessagesResponse = {
   content: [
     {

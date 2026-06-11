@@ -1,8 +1,6 @@
-"""Agent economies: Shapley attribution, second-price auction, reputation routing.
+"""智能体经济：Shapley归属、二价拍卖、信誉路由。
 
-All stdlib. Shapley is exact for N<=6 and sampled otherwise. Second-price
-auction demonstrates truthful bidding. Reputation routing compares
-rep-weighted vs random assignment over 100 rounds.
+全部使用标准库。Shapley在N<=6时精确计算，否则采样。二价拍卖展示真实出价。信誉路由在100轮中比较信誉加权与随机分配。
 """
 from __future__ import annotations
 

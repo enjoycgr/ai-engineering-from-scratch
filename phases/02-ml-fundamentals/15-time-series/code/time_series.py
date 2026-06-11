@@ -2,6 +2,7 @@ import numpy as np
 
 
 def make_synthetic_series(n=500, seed=42):
+    """生成一个带有趋势、季节性和噪声的合成时间序列。"""
     rng = np.random.RandomState(seed)
     t = np.arange(n, dtype=float)
 
@@ -14,6 +15,7 @@ def make_synthetic_series(n=500, seed=42):
 
 
 def make_seasonal_series(n=365, period=7, seed=42):
+    """生成一个带有趋势、周季节性、月季节性和噪声的合成时间序列。"""
     rng = np.random.RandomState(seed)
     t = np.arange(n, dtype=float)
 
@@ -27,6 +29,11 @@ def make_seasonal_series(n=365, period=7, seed=42):
 
 
 def difference(series, order=1):
+    """对序列应用差分 (differencing) 以去除趋势。
+
+    差分将每个值替换为与前一个值的变化量：
+    diff[t] = value[t] - value[t-1]
+    """
     result = series.copy()
     for _ in range(order):
         result = result[1:] - result[:-1]
@@ -34,6 +41,10 @@ def difference(series, order=1):
 
 
 def check_stationarity(series, window=50):
+    """通过比较滚动统计量和前后两半来检查平稳性 (stationarity)。
+
+    如果滚动均值漂移或方差比超过 2，则序列被标记为非平稳。
+    """
     n = len(series)
     rolling_mean = np.zeros(n)
     rolling_std = np.zeros(n)
@@ -58,6 +69,11 @@ def check_stationarity(series, window=50):
 
 
 def autocorrelation(series, max_lag=20):
+    """计算自相关函数 (ACF, Autocorrelation Function) 到 max_lag。
+
+    ACF 衡量序列与其自身滞后 (lag) 副本之间的相关性。
+    滞后处的尖峰表示季节性或记忆效应。
+    """
     n = len(series)
     mean = series.mean()
     var = series.var()
@@ -73,6 +89,11 @@ def autocorrelation(series, max_lag=20):
 
 
 def make_lag_features(series, n_lags):
+    """将时间序列转换为用于监督学习的滞后特征 (lag features) 矩阵。
+
+    每行包含过去的 n_lags 个值作为特征，当前值作为目标。
+    这允许标准 ML 模型（线性、树）用于时间序列预测。
+    """
     n = len(series)
     X = np.full((n, n_lags), np.nan)
 
@@ -87,6 +108,11 @@ def make_lag_features(series, n_lags):
 
 
 def walk_forward_split(n_samples, n_splits=5, min_train=50):
+    """为时间序列生成 walk-forward validation 划分。
+
+    每次划分严格保证训练数据在测试数据之前，防止未来泄露。
+    训练窗口随每个折扩展（扩展窗口 expanding window）。
+    """
     if n_samples <= min_train:
         return
 
@@ -104,12 +130,18 @@ def walk_forward_split(n_samples, n_splits=5, min_train=50):
 
 
 class SimpleAR:
+    """使用最小二乘拟合的简单自回归 (AR) 模型。
+
+    这等价于滞后特征上的线性回归。
+    支持单步预测和通过递归的 multi-step forecasting (多步预测)。
+    """
     def __init__(self, n_lags=5):
         self.n_lags = n_lags
         self.weights = None
         self.bias = None
 
     def fit(self, X, y):
+        """使用正规方程拟合线性模型。"""
         X_b = np.column_stack([np.ones(len(X)), X])
         theta = np.linalg.lstsq(X_b, y, rcond=None)[0]
         self.bias = theta[0]
@@ -120,10 +152,15 @@ class SimpleAR:
         return X @ self.weights + self.bias
 
     def fit_series(self, series):
+        """从原始序列拟合，自动构建滞后特征。"""
         X, y = make_lag_features(series, self.n_lags)
         return self.fit(X, y)
 
     def forecast(self, last_values, n_steps):
+        """通过递归预测多步：预测 -> 附加到历史 -> 重复。
+
+        警告：误差随每一步累积，因为每个预测都使用之前的预测作为输入。
+        """
         if len(last_values) < self.n_lags:
             raise ValueError(
                 f"Need at least {self.n_lags} history points, got {len(last_values)}"
@@ -141,14 +178,17 @@ class SimpleAR:
 
 
 def mse(y_true, y_pred):
+    """均方误差 (Mean Squared Error)。"""
     return np.mean((y_true - y_pred) ** 2)
 
 
 def mae(y_true, y_pred):
+    """平均绝对误差 (Mean Absolute Error)。"""
     return np.mean(np.abs(y_true - y_pred))
 
 
 def mape(y_true, y_pred):
+    """平均绝对百分比误差 (Mean Absolute Percentage Error)。"""
     mask = y_true != 0
     return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
 
@@ -160,30 +200,30 @@ def print_separator(title):
 
 
 def demo_stationarity():
-    print_separator("STATIONARITY CHECK")
+    print_separator("平稳性检查 (STATIONARITY CHECK)")
 
     series = make_synthetic_series(n=300, seed=42)
     _, _, is_stat = check_stationarity(series)
-    print(f"Original series (trend + seasonality):")
-    print(f"  Mean: {series.mean():.2f}, Std: {series.std():.2f}")
-    print(f"  Stationary: {is_stat}")
+    print(f"原始序列 (趋势 + 季节性):")
+    print(f"  均值: {series.mean():.2f}, 标准差: {series.std():.2f}")
+    print(f"  平稳: {is_stat}")
 
     diff1 = difference(series, order=1)
     _, _, is_stat1 = check_stationarity(diff1)
-    print(f"\nAfter first differencing:")
-    print(f"  Mean: {diff1.mean():.4f}, Std: {diff1.std():.2f}")
-    print(f"  Stationary: {is_stat1}")
+    print(f"\n一阶差分后:")
+    print(f"  均值: {diff1.mean():.4f}, 标准差: {diff1.std():.2f}")
+    print(f"  平稳: {is_stat1}")
 
 
 def demo_autocorrelation():
-    print_separator("AUTOCORRELATION ANALYSIS")
+    print_separator("自相关分析 (AUTOCORRELATION ANALYSIS)")
 
     series = make_seasonal_series(n=365, period=7, seed=42)
     diff_series = difference(series, order=1)
     acf = autocorrelation(diff_series, max_lag=30)
 
-    print("ACF of differenced series (first 15 lags):")
-    print(f"{'Lag':>5} {'ACF':>8} {'Significance':>14}")
+    print("差分序列的 ACF (前 15 个滞后):")
+    print(f"{'滞后':>5} {'ACF':>8} {'显著性':>14}")
     print(f"{'-' * 28}")
     threshold = 1.96 / np.sqrt(len(diff_series))
     for k in range(15):
@@ -191,37 +231,37 @@ def demo_autocorrelation():
         bar = "#" * int(abs(acf[k]) * 30)
         print(f"{k:>5} {acf[k]:>8.4f} {sig:>4} {bar}")
 
-    print(f"\nSignificance threshold (95%): +/-{threshold:.4f}")
-    print(f"Lags 7 and 14 should show spikes (weekly seasonality)")
+    print(f"\n显著性阈值 (95%): +/-{threshold:.4f}")
+    print(f"滞后 7 和 14 应显示尖峰 (周季节性)")
 
 
 def demo_lag_features():
-    print_separator("LAG FEATURES AND AR MODEL")
+    print_separator("滞后特征与 AR 模型 (LAG FEATURES AND AR MODEL)")
 
     series = make_synthetic_series(n=400, seed=42)
     n_lags = 10
 
     X, y = make_lag_features(series, n_lags)
-    print(f"Series length: {len(series)}")
-    print(f"Feature matrix: {X.shape} (samples x lag features)")
-    print(f"Target vector: {y.shape}")
+    print(f"序列长度: {len(series)}")
+    print(f"特征矩阵: {X.shape} (样本 x 滞后特征)")
+    print(f"目标向量: {y.shape}")
 
-    print(f"\nFirst 3 samples:")
+    print(f"\n前 3 个样本:")
     for i in range(3):
         lags_str = ", ".join(f"{v:.1f}" for v in X[i, :5])
-        print(f"  Lags: [{lags_str}, ...] -> Target: {y[i]:.1f}")
+        print(f"  滞后: [{lags_str}, ...] -> 目标: {y[i]:.1f}")
 
     ar = SimpleAR(n_lags=n_lags)
     ar.fit(X, y)
 
-    print(f"\nAR({n_lags}) weights:")
+    print(f"\nAR({n_lags}) 权重:")
     for i, w in enumerate(ar.weights):
-        print(f"  Lag {i+1}: {w:+.4f}")
-    print(f"  Bias:  {ar.bias:+.4f}")
+        print(f"  滞后 {i+1}: {w:+.4f}")
+    print(f"  偏置:  {ar.bias:+.4f}")
 
 
 def demo_walk_forward():
-    print_separator("WALK-FORWARD VALIDATION")
+    print_separator("WALK-FORWARD 验证 (WALK-FORWARD VALIDATION)")
 
     series = make_synthetic_series(n=400, seed=42)
     n_lags = 10
@@ -230,8 +270,8 @@ def demo_walk_forward():
     n_splits = 5
     fold_scores = []
 
-    print(f"Walk-forward with {n_splits} splits:")
-    print(f"{'Fold':>6} {'Train':>10} {'Test':>10} {'MSE':>10} {'MAE':>10}")
+    print(f"Walk-forward 共 {n_splits} 折:")
+    print(f"{'折':>6} {'训练集':>10} {'测试集':>10} {'MSE':>10} {'MAE':>10}")
     print(f"{'-' * 48}")
 
     for fold, (train_sl, test_sl) in enumerate(walk_forward_split(len(X), n_splits=n_splits, min_train=100)):
@@ -248,12 +288,12 @@ def demo_walk_forward():
 
         print(f"{fold+1:>6} {X_train.shape[0]:>10} {X_test.shape[0]:>10} {fold_mse:>10.4f} {fold_mae:>10.4f}")
 
-    print(f"\nMean MSE: {np.mean(fold_scores):.4f}")
-    print(f"Std MSE:  {np.std(fold_scores):.4f}")
+    print(f"\n平均 MSE: {np.mean(fold_scores):.4f}")
+    print(f"MSE 标准差:  {np.std(fold_scores):.4f}")
 
 
 def demo_random_vs_walk_forward():
-    print_separator("RANDOM SPLIT vs WALK-FORWARD")
+    print_separator("随机划分 vs WALK-FORWARD (RANDOM SPLIT vs WALK-FORWARD)")
 
     series = make_synthetic_series(n=500, seed=42)
     n_lags = 10
@@ -277,24 +317,24 @@ def demo_random_vs_walk_forward():
 
     wf_mse = np.mean(wf_scores)
 
-    print(f"Random 80/20 split MSE:  {random_mse:.4f}")
-    print(f"Walk-forward mean MSE:   {wf_mse:.4f}")
-    print(f"Ratio (random/wf):       {random_mse / wf_mse:.4f}")
+    print(f"随机 80/20 划分 MSE:  {random_mse:.4f}")
+    print(f"Walk-forward 平均 MSE:   {wf_mse:.4f}")
+    print(f"比率 (随机/wf):       {random_mse / wf_mse:.4f}")
     print()
     if random_mse < wf_mse:
-        print("Random split gives lower MSE -- this is the optimistic bias from future leakage.")
-        print("The walk-forward score is the honest estimate of production performance.")
+        print("随机划分给出更低 MSE —— 这是来自未来泄露的乐观偏差。")
+        print("Walk-forward 分数是生产性能的真实估计。")
     else:
-        print("Walk-forward gives similar or lower MSE -- the series may be stationary enough")
-        print("that future leakage is not a major factor here.")
+        print("Walk-forward 给出相似或更低 MSE —— 序列可能足够平稳")
+        print("以至于未来泄露不是主要因素。")
 
 
 def demo_lag_comparison():
-    print_separator("LAG COUNT COMPARISON")
+    print_separator("滞后数量比较 (LAG COUNT COMPARISON)")
 
     series = make_seasonal_series(n=365, period=7, seed=42)
 
-    print(f"{'n_lags':>8} {'Mean MSE':>12} {'Mean MAE':>12}")
+    print(f"{'n_lags':>8} {'平均 MSE':>12} {'平均 MAE':>12}")
     print(f"{'-' * 34}")
 
     for n_lags in [1, 3, 5, 7, 10, 14, 21, 30]:
@@ -315,7 +355,7 @@ def demo_lag_comparison():
 
 
 def demo_forecasting():
-    print_separator("MULTI-STEP FORECASTING")
+    print_separator("多步预测 (MULTI-STEP FORECASTING)")
 
     series = make_synthetic_series(n=300, seed=42)
     train_series = series[:250]
@@ -328,18 +368,18 @@ def demo_forecasting():
 
     forecast = ar.forecast(train_series, n_steps=20)
 
-    print(f"Training on {len(train_series)} points, forecasting {len(true_future)} steps ahead")
+    print(f"在 {len(train_series)} 个点上训练，预测未来 {len(true_future)} 步")
     print()
-    print(f"{'Step':>6} {'True':>10} {'Predicted':>10} {'Error':>10}")
+    print(f"{'步':>6} {'真实值':>10} {'预测值':>10} {'误差':>10}")
     print(f"{'-' * 38}")
 
     for i in range(len(true_future)):
         error = true_future[i] - forecast[i]
         print(f"{i+1:>6} {true_future[i]:>10.2f} {forecast[i]:>10.2f} {error:>+10.2f}")
 
-    print(f"\nForecast MSE:  {mse(true_future, forecast):.4f}")
-    print(f"Forecast MAE:  {mae(true_future, forecast):.4f}")
-    print(f"Forecast MAPE: {mape(true_future, forecast):.2f}%")
+    print(f"\n预测 MSE:  {mse(true_future, forecast):.4f}")
+    print(f"预测 MAE:  {mae(true_future, forecast):.4f}")
+    print(f"预测 MAPE: {mape(true_future, forecast):.2f}%")
 
 
 if __name__ == "__main__":

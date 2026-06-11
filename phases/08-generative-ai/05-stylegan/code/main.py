@@ -46,7 +46,7 @@ def init_mapping(z_dim, w_dim, depth, rng):
 
 
 def stylegan_forward(w, const, synth, noise_sigma, rng, adain_on=True):
-    """Very small 'synthesis' network: three resolution blocks on a 4-channel constant."""
+    """非常小的"合成"网络：在 4 通道常数上的三个分辨率块。"""
     h = list(const)
     for i in range(3):
         W = synth[f"W{i}"]
@@ -80,8 +80,8 @@ def main():
     synth = init_synth(hidden, w_dim, rng)
     const = [rng.gauss(0, 0.3) for _ in range(hidden)]
 
-    print("=== compare: style inputs via AdaIN vs no AdaIN ===")
-    print("sample 5 random z, look at std of output under each mode")
+    print("=== 对比：通过 AdaIN 输入风格 vs 无 AdaIN ===")
+    print("采样 5 个随机 z，观察每种模式下输出的 std")
 
     for mode in [True, False]:
         outs = []
@@ -96,7 +96,7 @@ def main():
         print(f"  {label}: mean {m:+.3f}  std {s:.3f}")
 
     print()
-    print("=== truncation trick: sample many w, take mean, interpolate ===")
+    print("=== 截断技巧：采样多个 w，取均值，插值 ===")
     ws = []
     for _ in range(200):
         z = [rng.gauss(0, 1) for _ in range(z_dim)]
@@ -112,7 +112,7 @@ def main():
         print(f"  psi={psi:.1f}: output = {[f'{v:+.2f}' for v in h]}")
 
     print()
-    print("=== per-layer noise injection (pose fixed, stochastic detail changes) ===")
+    print("=== 逐层噪声注入（姿态固定，随机细节变化） ===")
     z_fixed = [rng.gauss(0, 1) for _ in range(z_dim)]
     w_fixed = mapping(z_fixed, mapping_net)
     for seed in range(3):
@@ -121,8 +121,8 @@ def main():
         print(f"  seed {seed}: {[f'{v:+.2f}' for v in h]}")
 
     print()
-    print("notice: with the same w, outputs vary slightly with noise seed.")
-    print("         that is the stochastic-detail vs global-style split.")
+    print("注意：相同的 w 下，输出随噪声 seed 略有变化。")
+    print("      这就是随机细节 vs 全局风格的分离。")
 
 
 if __name__ == "__main__":

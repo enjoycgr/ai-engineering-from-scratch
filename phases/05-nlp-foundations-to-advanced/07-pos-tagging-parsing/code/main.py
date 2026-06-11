@@ -13,6 +13,7 @@ TRAIN = [
 
 
 def train_mft(examples):
+    """训练最频繁标签（MFT）基线模型。"""
     word_tag_counts = defaultdict(Counter)
     all_tags = Counter()
     for tokens, tags in examples:
@@ -25,10 +26,12 @@ def train_mft(examples):
 
 
 def predict_mft(tokens, word_best, default_tag):
+    """使用 MFT 模型预测标签序列。"""
     return [word_best.get(t.lower(), default_tag) for t in tokens]
 
 
 def train_hmm(examples, alpha=0.01):
+    """训练二元 HMM：收集转移计数和发射计数。"""
     transitions = defaultdict(Counter)
     emissions = defaultdict(Counter)
     tags = set()
@@ -46,10 +49,12 @@ def train_hmm(examples, alpha=0.01):
 
 
 def log_prob(table, given, key, smooth_denom, alpha):
+    """带加性平滑的对数概率。"""
     return math.log((table[given].get(key, 0) + alpha) / smooth_denom)
 
 
 def viterbi(tokens, transitions, emissions, tags, vocab, alpha=0.01):
+    """Viterbi 解码：在标签格子上进行动态规划。"""
     tags_list = list(tags)
     n = len(tokens)
     V = [[0.0] * len(tags_list) for _ in range(n)]

@@ -1,7 +1,7 @@
 """Toy Pipecat-style voice pipeline: VAD  STT  LLM  TTS  transport.
 
-Frames travel DOWNSTREAM (source to sink) and UPSTREAM (cancel/control).
-A scripted input shows normal flow plus a barge-in cancel that stops TTS.
+Frames（帧）沿 DOWNSTREAM（下游，source to sink）和 UPSTREAM（上游，cancel/control 取消/控制）传输。
+脚本输入展示正常流程加上一个 barge-in cancel（打断取消），该取消停止 TTS。
 """
 
 from __future__ import annotations
@@ -134,23 +134,23 @@ def main() -> None:
     transport = Transport("transport")
     link(vad, stt, llm, tts, transport)
 
-    print("\nscenario 1: normal flow")
+    print("\nscenario 1: 正常流程")
     vad.process(Frame("audio_chunk", "hello"))
     print(f"  transport delivered: {transport.delivered[-1]}")
 
-    print("\nscenario 2: barge-in mid-utterance")
+    print("\nscenario 2: 话语中途 barge-in（打断）")
     tts.cancelled = False
     vad.process(Frame("audio_chunk", "refund please"))
     transport.process(Frame("cancel", None, direction="upstream"))
 
-    print("  trace across pipeline")
+    print("  pipeline 中的 trace（追踪）")
     for proc in (vad, stt, llm, tts, transport):
         for line in proc.trace:
             print(f"    {proc.name}: {line}")
 
     print()
-    print("barge-in needs UPSTREAM cancel frames that propagate back to TTS+LLM.")
-    print("sum latency per stage; premium stack lands at 450-600ms end-to-end.")
+    print("barge-in（打断）需要 UPSTREAM cancel frames（上游取消帧）回传到 TTS+LLM。")
+    print("累加每阶段的 latency（延迟）；premium stack（优质技术栈）端到端达到 450-600ms。")
 
 
 if __name__ == "__main__":

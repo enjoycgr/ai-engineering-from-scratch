@@ -61,7 +61,7 @@ def toy_retrieve(question, top_k=2):
 
 
 def main():
-    print("=== extractive metrics ===")
+    print("=== 抽取式指标 (extractive metrics) ===")
     cases = [
         ("June 29, 2007", "June 29, 2007"),
         ("June 29th, 2007", "June 29, 2007"),
@@ -74,10 +74,11 @@ def main():
         f1 = token_f1(pred, gold)
         print(f"  pred={pred!r:20s} gold={gold!r:20s} EM={em:.0f}  F1={f1:.2f}")
     print()
+    # 注意：EM 会惩罚改写 (paraphrase)。F1 给部分分。两者都无法捕捉语义。
     print("note: EM punishes paraphrase. F1 is partial credit. neither captures semantics.")
     print()
 
-    print("=== toy retrieval ===")
+    print("=== 玩具检索 (toy retrieval) ===")
     q = "When was the first iPhone released?"
     results = toy_retrieve(q)
     top_score = results[0][0]

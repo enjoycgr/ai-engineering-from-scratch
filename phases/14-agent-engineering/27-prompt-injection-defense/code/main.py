@@ -1,8 +1,7 @@
 """PVE: Prompt-Validator-Executor for tool calls.
 
-Cheap fast validator refuses injection-shaped content before the expensive
-main model commits. Demonstrates argument inspection, retrieved-content
-rejection, and memory-write guardrails.
+廉价快速的验证器在昂贵的主模型提交之前拒绝注入形态的内容。
+演示参数检查、检索内容拒绝和记忆写入护栏。
 """
 
 from __future__ import annotations

@@ -3,6 +3,8 @@ import heapq
 
 
 class KVCache:
+    """多层多头的 KV Cache，存储每层的 key/value 投影，展示显存增长模式。"""
+
     def __init__(self, num_layers, num_heads, head_dim, max_seq_len, dtype=np.float16):
         self.num_layers = num_layers
         self.num_heads = num_heads
@@ -19,6 +21,7 @@ class KVCache:
         self.seq_len = 0
 
     def update(self, layer_idx, new_keys, new_values):
+        """将新的 K/V 切片写入指定层，返回当前完整的 K/V。"""
         num_new = new_keys.shape[1]
         end = self.seq_len + num_new
         self.k_cache[layer_idx, :, self.seq_len:end, :] = new_keys
@@ -29,17 +32,21 @@ class KVCache:
         )
 
     def advance(self, num_tokens):
+        """推进已缓存的序列长度。"""
         self.seq_len += num_tokens
 
     def memory_bytes(self):
+        """返回 KV cache 的总显存占用（含未使用部分）。"""
         return self.k_cache.nbytes + self.v_cache.nbytes
 
     def used_bytes(self):
+        """返回当前已使用的 KV cache 显存。"""
         per_token = 2 * self.num_layers * self.num_heads * self.head_dim * np.dtype(self.dtype).itemsize
         return per_token * self.seq_len
 
 
 def scaled_dot_product_attention(query, keys, values):
+    """缩放点积注意力，支持 causal mask。"""
     head_dim = query.shape[-1]
     scores = np.matmul(query, keys.transpose(0, 1, 3, 2)) / np.sqrt(head_dim)
     seq_len_q = scores.shape[-2]
@@ -54,6 +61,8 @@ def scaled_dot_product_attention(query, keys, values):
 
 
 class MultiHeadAttention:
+    """简化的多头注意力，支持 KV cache 加速 decode 步骤。"""
+
     def __init__(self, d_model, num_heads):
         self.num_heads = num_heads
         self.head_dim = d_model // num_heads
@@ -82,6 +91,8 @@ class MultiHeadAttention:
 
 
 class Request:
+    """推理请求对象，用于 batching 模拟。"""
+
     def __init__(self, request_id, prompt_tokens, output_tokens, arrival_step):
         self.request_id = request_id
         self.prompt_tokens = prompt_tokens
@@ -96,6 +107,7 @@ class Request:
 
 
 def simulate_static_batching(requests, batch_size):
+    """静态批处理：等一个 batch 内所有请求完成才接受新请求。"""
     step = 0
     completed = []
     queue = sorted(requests, key=lambda r: r.arrival_step)
@@ -120,6 +132,7 @@ def simulate_static_batching(requests, batch_size):
 
 
 def simulate_continuous_batching(requests, batch_size):
+    """连续批处理：每步动态加入新请求、移除已完成请求。"""
     step = 0
     completed = []
     queue = sorted(requests, key=lambda r: r.arrival_step)
@@ -162,6 +175,7 @@ def simulate_continuous_batching(requests, batch_size):
 
 
 def batching_stats(completed):
+    """计算批处理统计：平均延迟、P50、P99、总时间、吞吐量。"""
     latencies = [r.end_step - r.arrival_step for r in completed]
     total_time = max(r.end_step for r in completed) - min(r.arrival_step for r in completed)
     total_tokens = sum(r.output_tokens for r in completed)
@@ -175,6 +189,8 @@ def batching_stats(completed):
 
 
 class TrieNode:
+    """前缀缓存的 Trie 节点。"""
+
     def __init__(self):
         self.children = {}
         self.kv_data = None
@@ -182,6 +198,8 @@ class TrieNode:
 
 
 class PrefixCache:
+    """基于 Trie 的前缀缓存，存储共享前缀的 KV entries。"""
+
     def __init__(self, max_entries=1000):
         self.root = TrieNode()
         self.max_entries = max_entries
@@ -200,6 +218,7 @@ class PrefixCache:
         return node, depth
 
     def lookup(self, token_ids):
+        """查找 token 序列的共享前缀深度，返回深度和缓存的 KV 数据。"""
         node, depth = self._walk(token_ids)
         if depth > 0:
             self.hits += 1
@@ -218,6 +237,7 @@ class PrefixCache:
         return 0, []
 
     def insert(self, token_ids, kv_per_token):
+        """插入 token 序列到前缀缓存，逐 token 存储 KV 数据。"""
         node = self.root
         for i, tid in enumerate(token_ids):
             if tid not in node.children:
@@ -236,6 +256,8 @@ class PrefixCache:
 
 
 class DraftModel:
+    """草稿模型模拟器：以给定接受率生成候选 token。"""
+
     def __init__(self, vocab_size, acceptance_rate=0.8):
         self.vocab_size = vocab_size
         self.acceptance_rate = acceptance_rate
@@ -248,6 +270,8 @@ class DraftModel:
 
 
 class TargetModel:
+    """目标模型模拟器：提供验证用的概率分布。"""
+
     def __init__(self, vocab_size):
         self.vocab_size = vocab_size
 
@@ -259,10 +283,15 @@ class TargetModel:
 
 def speculative_decode(draft_model, target_model, context, num_speculative=5,
                        draft_cost=1.0, target_cost=10.0, verify_cost=12.0):
+    """推测解码：草稿生成 N 个 token，目标模型一次并行验证。
+
+    返回总 token 数、推测成本、顺序成本、加速比、平均接受数、接受率。
+    """
     total_tokens = 0
     total_cost = 0.0
     accepted_counts = []
     context = list(context)
+
     max_tokens = 100
 
     while total_tokens < max_tokens:
@@ -278,6 +307,7 @@ def speculative_decode(draft_model, target_model, context, num_speculative=5,
             target_p = target_probs[i]
 
             r = np.random.random()
+            acceptance_prob = min(1.0, target_p[token] / (draft_p[token] + 1e-10))
 
             if r < draft_model.acceptance_rate:
                 accepted += 1
@@ -308,6 +338,41 @@ def speculative_decode(draft_model, target_model, context, num_speculative=5,
     }
 
 
+def compare_speculation_strategies(vocab_size=1000, num_trials=20):
+    """对比不同推测策略的加速比和接受率。"""
+    results = {}
+
+    for name, acceptance_rate, spec_tokens in [
+        ("Draft-target (8B->70B)", 0.78, 5),
+        ("EAGLE", 0.85, 6),
+        ("N-gram", 0.50, 4),
+        ("No speculation", 0.0, 0),
+    ]:
+        if spec_tokens == 0:
+            results[name] = {
+                "speedup": 1.0,
+                "acceptance_rate": 0.0,
+                "avg_accepted": 0.0,
+            }
+            continue
+
+        trial_results = []
+        for _ in range(num_trials):
+            draft = DraftModel(vocab_size, acceptance_rate=acceptance_rate)
+            target = TargetModel(vocab_size)
+            context = list(np.random.randint(0, vocab_size, size=10))
+            result = speculative_decode(draft, target, context, num_speculative=spec_tokens)
+            trial_results.append(result)
+
+        results[name] = {
+            "speedup": np.mean([r["speedup"] for r in trial_results]),
+            "acceptance_rate": np.mean([r["acceptance_rate"] for r in trial_results]),
+            "avg_accepted": np.mean([r["avg_accepted"] for r in trial_results]),
+        }
+
+    return results
+
+
 MODEL_CONFIGS = {
     "Llama-3-8B": {
         "num_layers": 32, "num_kv_heads": 8, "head_dim": 128,
@@ -333,6 +398,7 @@ MODEL_CONFIGS = {
 
 
 def kv_cache_memory(config, seq_len, dtype_bytes=2):
+    """计算给定模型配置和序列长度的 KV cache 显存需求。"""
     per_token = 2 * config["num_layers"] * config["num_kv_heads"] * config["head_dim"] * dtype_bytes
     total = per_token * seq_len
     return {
@@ -345,6 +411,7 @@ def kv_cache_memory(config, seq_len, dtype_bytes=2):
 
 
 def memory_budget(config, gpu_memory_gb, model_dtype_bytes=2, kv_dtype_bytes=2):
+    """计算给定 GPU 显存下可容纳的最大 token 数和并发用户数。"""
     model_memory_gb = config["model_params_b"] * 1e9 * model_dtype_bytes / (1024 ** 3)
     overhead_gb = gpu_memory_gb * 0.1
     available_for_kv = gpu_memory_gb - model_memory_gb - overhead_gb

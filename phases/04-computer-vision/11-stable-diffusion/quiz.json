@@ -2,38 +2,38 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "Why does Stable Diffusion run its DDPM in a 4x64x64 latent space rather than directly on 3x512x512 pixel images?",
-      "options": ["Latents are easier to visualise", "Training and sampling on 16,384 latent values instead of 786,432 pixels is roughly 48x cheaper; a pretrained VAE handles the image <-> latent conversion, and the diffusion model only has to model the structured latent manifold", "Latents are the native output of GPUs", "To make inference deterministic"],
+      "question": "为什么 Stable Diffusion 在 4x64x64 的潜空间（latent space）中运行其 DDPM，而不是直接在 3x512x512 的像素图像上运行？",
+      "options": ["潜变量（latents）更容易可视化", "在 16,384 个潜变量值上训练和采样，而不是 786,432 个像素，大约便宜 48 倍；预训练的 VAE 负责图像与潜变量的转换，而扩散模型只需建模结构化的潜变量流形（latent manifold）", "潜变量（latents）是 GPU 的原生输出", "为了让推理（inference）确定性"],
       "correct": 1,
-      "explanation": "Latent diffusion is the single innovation that made consumer-GPU text-to-image practical. The VAE compresses 48x spatial and channel information. The diffusion model can spend its entire parameter and compute budget modelling the latent manifold, which is the part the user sees after decoding."
+      "explanation": "潜空间扩散（latent diffusion）是使消费级 GPU 文本到图像成为现实的单一创新。VAE 将空间和通道信息压缩了 48 倍。扩散模型可以将全部参数和计算预算用于建模潜变量流形（latent manifold），即用户解码后看到的部分。"
     },
     {
       "stage": "pre",
-      "question": "What does classifier-free guidance (CFG) do at inference?",
-      "options": ["Runs two separate models and averages them", "Uses one model trained to predict both conditional eps_cond and unconditional eps_uncond noise, then combines them as eps = eps_uncond + w*(eps_cond - eps_uncond) to amplify prompt adherence", "Adds a classifier head to the model at test time", "Uses a larger scheduler"],
+      "question": "分类器无关引导（classifier-free guidance, CFG）在推理（inference）时做了什么？",
+      "options": ["运行两个独立的模型并取平均", "使用一个被训练为同时预测条件 eps_cond 和非条件 eps_uncond 噪声的单一模型，然后按 eps = eps_uncond + w*(eps_cond - eps_uncond) 组合它们，以放大对提示词的遵循程度", "在测试时为模型添加一个分类头", "使用更大的调度器"],
       "correct": 1,
-      "explanation": "CFG trains a single model with the conditioning dropped 10% of the time so the same weights produce both cond and uncond predictions. At inference the formula above amplifies the conditional direction. Guidance scale w is the standard knob to tune prompt adherence vs diversity; SD defaults to 7.5."
+      "explanation": "CFG 在训练时以 10% 的概率丢弃条件，使同一组权重既能产生条件预测也能产生非条件预测。推理时上述公式放大了条件方向。引导尺度 w 是调节提示词遵循度与多样性之间权衡的标准旋钮；SD 默认值为 7.5。"
     },
     {
       "stage": "post",
-      "question": "You swap SD's default scheduler for DPM-Solver++ 2M Karras and reduce num_inference_steps from 50 to 20. What is the expected result?",
-      "options": ["Worse quality and longer runtime", "Comparable quality in roughly half the time; DPM-Solver++ is a second-order ODE integrator that converges in fewer steps than DDIM for the same sample quality", "Numerical instability", "You must also retrain the model"],
+      "question": "你将 SD 的默认调度器换成 DPM-Solver++ 2M Karras，并将 num_inference_steps 从 50 减少到 20。预期结果是什么？",
+      "options": ["质量更差且运行时间更长", "在约一半时间内达到可比较的质量；DPM-Solver++ 是一个二阶 ODE 积分器，在相同样本质量下比 DDIM 用更少的步数收敛", "数值不稳定", "你还必须重新训练模型"],
       "correct": 1,
-      "explanation": "Schedulers are decoupled from the model weights. DPM-Solver++ is a higher-order solver that achieves DDIM-50 quality in about 20 steps. Zero retraining required, and it is the production default in 2026. Going below 8 steps typically needs distilled/consistency-model variants like LCM or Turbo."
+      "explanation": "调度器（scheduler）与模型权重解耦。DPM-Solver++ 是一个高阶求解器，能在约 20 步内达到 DDIM-50 的质量。无需重新训练，它在 2026 年已是生产默认值。低于 8 步通常需要蒸馏/一致性模型变体，如 LCM 或 Turbo。"
     },
     {
       "stage": "post",
-      "question": "Why is LoRA fine-tuning popular for Stable Diffusion instead of full fine-tuning?",
-      "options": ["LoRA produces better images by default", "LoRA keeps the 860M base U-Net frozen and inserts tiny rank-decomposition matrices into attention layers, so a fine-tune trains in minutes on consumer hardware, produces 10-50 MB adapters, and can be swapped or mixed at inference", "LoRA is required by diffusers", "LoRA prevents overfitting entirely"],
+      "question": "为什么 LoRA 微调（fine-tuning）在 Stable Diffusion 中比全量微调更流行？",
+      "options": ["LoRA 默认生成更好的图像", "LoRA 保持 8.6 亿参数的基础 U-Net 冻结，只在注意力（attention）层中插入微小的秩分解矩阵（rank-decomposition matrices），因此微调可以在消费级硬件上几分钟完成，产生 10-50 MB 的适配器（adapter），并可在推理时切换或混合", "LoRA 是 diffusers 的要求", "LoRA 能完全防止过拟合（overfitting）"],
       "correct": 1,
-      "explanation": "LoRA's value is training cost and distribution. Full SD fine-tuning updates 860M+ parameters and needs 20+ GB of VRAM. LoRA updates ~1-10M parameters and fits in 6-8 GB. The base model is unchanged, so the same LoRA loads into any compatible checkpoint, and multiple LoRAs can be combined. CivitAI's ecosystem is entirely LoRAs."
+      "explanation": "LoRA 的价值在于训练成本和分发。全量 SD 微调更新 8.6 亿+ 参数，需要 20+ GB 显存。LoRA 只更新约 100 万到 1000 万参数，可在 6-8 GB 显存中运行。基础模型不变，因此同一个 LoRA 可以加载到任何兼容的检查点中，多个 LoRA 也可以组合。CivitAI 的整个生态系统都建立在 LoRA 之上。"
     },
     {
       "stage": "post",
-      "question": "You generate the same prompt with guidance_scale=15 and see oversaturated colours and burned-in artefacts. What is going on?",
-      "options": ["The model is broken", "CFG amplifies the conditional direction; past a threshold around 9-12 the amplification pushes predictions outside the manifold the VAE can decode cleanly, producing visual artefacts. Drop guidance to 7-9 for balanced results", "The VAE needs retraining", "The seed is wrong"],
+      "question": "你用 guidance_scale=15 生成同样的提示词，看到颜色过饱和和 burned-in 伪影。发生了什么？",
+      "options": ["模型坏了", "CFG 放大了条件方向；超过约 9-12 的阈值后，放大效应会将预测推出 VAE 能干净解码的流形（manifold），产生视觉伪影。将引导值降到 7-9 以获得平衡的结果", "VAE 需要重新训练", "随机种子（seed）错了"],
       "correct": 1,
-      "explanation": "CFG's formula is unbounded: higher w moves the prediction further along (eps_cond - eps_uncond). Past a point, you leave the trained distribution and the VAE decoder produces over-saturated, posterised images. Production default is 7-8. Some newer schedulers support CFG scheduling (lower w at final timesteps) to avoid this."
+      "explanation": "CFG 的公式是无界的：更高的 w 会将预测进一步推向 (eps_cond - eps_uncond) 的方向。超过某一点后，你就离开了训练分布，VAE 解码器会产生过饱和、色调分离的图像。生产默认值是 7-8。一些较新的调度器支持 CFG 调度（在最后的时间步降低 w）来避免这个问题。"
     }
   ]
 }

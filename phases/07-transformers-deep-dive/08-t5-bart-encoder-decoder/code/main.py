@@ -1,7 +1,7 @@
-"""T5 span corruption + BART denoising noise functions.
+"""T5 跨度破坏（span corruption）+ BART 去噪噪声函数。
 
-Pure stdlib. Shows how encoder-decoder models turn any input into
-a supervised (corrupted_input -> clean_spans) training pair.
+仅使用标准库。展示编码器-解码器模型如何将任意输入转换为
+有监督的（corrupted_input -> clean_spans）训练对。
 """
 
 import random
@@ -12,16 +12,16 @@ def sentinel(i):
 
 
 def corrupt_spans(tokens, mask_rate=0.15, mean_span=3.0, rng=None):
-    """T5-style span corruption.
+    """T5-style span corruption（T5 风格的跨度破坏）。
 
-    Returns (corrupted_source, decoder_target) as lists of tokens (strings).
+    返回 (corrupted_source, decoder_target)，均为 token（字符串）列表。
     """
     if rng is None:
         rng = random.Random()
     n = len(tokens)
     n_mask = max(1, int(round(n * mask_rate)))
     n_spans = max(1, int(round(n_mask / mean_span)))
-    # Pick span start positions with no overlap.
+    # 选取不重叠的跨度起始位置。
     positions = list(range(n))
     rng.shuffle(positions)
     starts = []
@@ -31,14 +31,14 @@ def corrupt_spans(tokens, mask_rate=0.15, mean_span=3.0, rng=None):
     for _ in range(n_spans):
         if remaining <= 0:
             break
-        # pick a random starting point not yet used and with room
+        # 随机选取一个尚未使用且有足够空间的起始点
         random_order = list(range(n))
         rng.shuffle(random_order)
         chosen_start = None
         for start in random_order:
             if used[start]:
                 continue
-            # span length
+            # 跨度长度
             length = max(1, int(rng.gauss(mean_span, 1.0)))
             length = min(length, remaining, n - start)
             if length < 1:
@@ -67,13 +67,13 @@ def corrupt_spans(tokens, mask_rate=0.15, mean_span=3.0, rng=None):
         target.extend(tokens[start:start + length])
         prev_end = start + length
     source.extend(tokens[prev_end:])
-    target.append(sentinel(len(ordered)))  # closing sentinel
+    target.append(sentinel(len(ordered)))  # 结尾哨兵（closing sentinel）
     return source, target
 
 
 def round_trip(source, target):
-    """Reconstruct original by replacing sentinels in source with corresponding target spans."""
-    # Parse target into sentinel->span map
+    """用目标中的对应跨度替换源中的哨兵，重建原始序列。"""
+    # 将目标解析为 sentinel->span 映射
     spans = {}
     current_key = None
     current_span = []
@@ -85,7 +85,7 @@ def round_trip(source, target):
             current_span = []
         else:
             current_span.append(tok)
-    # Last sentinel in target has no following span (closing marker).
+    # 目标中的最后一个哨兵后面没有跨度（它是结尾标记）。
     out = []
     for tok in source:
         if tok.startswith("<extra_id_"):
@@ -108,7 +108,7 @@ def token_delete(tokens, rate=0.15, rng=None):
 
 
 def text_infill(tokens, rate=0.15, mean_span=3.0, rng=None, mask_token="<mask>"):
-    """BART text infill: mask spans with a SINGLE mask; decoder infers length."""
+    """BART text infill（文本填充）：用单个 mask 掩码跨度；解码器推断长度。"""
     if rng is None:
         rng = random.Random()
     out = []

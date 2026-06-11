@@ -1,14 +1,14 @@
-"""Phase 13 Lesson 04 - structured output, JSON Schema 2020-12 subset.
+"""Phase 13 Lesson 04 - 结构化输出，JSON Schema 2020-12 子集。
 
-Stdlib JSON Schema validator supporting type, required, enum, minimum,
-maximum, minLength, maxLength, pattern, items, and additionalProperties.
-Wrapped around an Invoice schema to show the three failure modes:
+支持 type、required、enum、minimum、maximum、minLength、maxLength、
+pattern、items 和 additionalProperties 的标准库 JSON Schema 验证器。
+包装在一个 Invoice schema 周围以展示三种失败模式：
 
-  - parse error (invalid JSON; impossible in strict mode)
-  - schema violation (parsed but wrong)
-  - refusal (model declined; handled as typed outcome)
+  - 解析错误（无效 JSON；严格模式下不可能）
+  - schema 违规（已解析但错误）
+  - 拒绝（模型拒绝；作为类型化结果处理）
 
-Run: python code/main.py
+运行：python code/main.py
 """
 
 from __future__ import annotations
@@ -123,7 +123,7 @@ class ParsedResult:
 
 
 def process_model_output(raw: str, schema: dict) -> ParsedResult:
-    """Three-branch handler: parse error, refusal, success/violation."""
+    """三分支处理器：解析错误、拒绝、成功/违规。"""
     if raw.startswith("__REFUSAL__"):
         return ParsedResult("refusal", raw.removeprefix("__REFUSAL__").strip(), [])
     try:

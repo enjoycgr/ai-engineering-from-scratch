@@ -1,8 +1,9 @@
 """Multi-head attention from scratch in pure stdlib.
 
-No numpy, no torch. A tiny Matrix class carries the ops we need.
-Demonstrates: split heads, per-head scaled dot-product attention,
-combine heads, output projection, and a Grouped-Query variant.
+纯标准库实现的多头注意力（Multi-head attention）。
+一个轻量级的 Matrix 类承载了所需的运算。
+演示内容：split heads (拆分头)、per-head scaled dot-product attention (逐头缩放点积注意力)、
+combine heads (拼接头)、output projection (输出投影)，以及 Grouped-Query (分组查询) 变体。
 """
 
 import math
@@ -11,7 +12,10 @@ from typing import List
 
 
 class Matrix:
-    """Row-major 2D matrix of floats. Just enough ops for attention."""
+    """Row-major 2D matrix of floats. Just enough ops for attention.
+
+    行优先的二维浮点矩阵。仅包含注意力计算所需的最小运算集合。
+    """
 
     __slots__ = ("rows", "cols", "data")
 
@@ -131,7 +135,10 @@ def multi_head_attention(X: Matrix, Wq, Wk, Wv, Wo, n_heads: int):
 
 
 def grouped_query_attention(X: Matrix, Wq, Wk, Wv, Wo, n_heads: int, n_kv_heads: int):
-    """Same as MHA but K and V have fewer heads, repeated to match Q."""
+    """Same as MHA but K and V have fewer heads, repeated to match Q.
+
+    与 MHA 相同，但 K 和 V 的头数更少，通过重复来匹配 Q 的头数。
+    """
     Q = matmul(X, Wq)
     K = matmul(X, Wk)
     V = matmul(X, Wv)
@@ -189,6 +196,7 @@ def main():
         print()
 
     # GQA demo: 4 Q heads, 2 KV heads
+    # GQA 演示：4 个 Q 头，2 个 KV 头
     d_model = 8
     n_heads = 4
     n_kv = 2

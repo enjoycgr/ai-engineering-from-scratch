@@ -7,10 +7,13 @@ PHONE_REGEX = r"^\d{3}-\d{3}-\d{4}$"
 
 
 class PhoneFSM:
+    r"""用于美国电话号码 \d{3}-\d{3}-\d{4} 的简单有限状态机 (FSM)。"""
+
     def __init__(self):
         self.accept_state = 12
 
     def valid_next(self, state):
+        # 返回从当前状态可接受的下一个字符集合
         if state in (0, 1, 2, 4, 5, 6, 8, 9, 10, 11):
             return list("0123456789")
         if state in (3, 7):
@@ -20,15 +23,18 @@ class PhoneFSM:
         raise ValueError(f"unknown state {state}")
 
     def transition(self, state, ch):
+        # 如果字符在当前状态下有效，则推进到下一状态
         if ch not in self.valid_next(state):
             return None
         return state + 1
 
     def is_accept(self, state):
+        # 检查是否到达接受状态（完整电话号码）
         return state == self.accept_state
 
 
 def softmax(xs):
+    # 计算 logits 的 softmax (软最大值)，跳过 -inf 项
     finite = [x for x in xs if x != float("-inf")]
     if not finite:
         return [0.0] * len(xs)
@@ -39,6 +45,7 @@ def softmax(xs):
 
 
 def sample(probs, rng):
+    # 根据概率分布采样一个索引
     r = rng.random()
     acc = 0.0
     for i, p in enumerate(probs):
@@ -49,14 +56,17 @@ def sample(probs, rng):
 
 
 def mask_logits(logits, valid_indices):
+    # 将无效 token 的 logits 设为 -inf，仅保留 valid_indices 中的值
     return [logits[i] if i in valid_indices else float("-inf") for i in range(len(logits))]
 
 
 def fake_llm_logits(alphabet, rng):
+    # 模拟 LLM 输出：为字母表中的每个字符生成随机 logits
     return [rng.gauss(0.0, 1.5) for _ in alphabet]
 
 
 def generate_constrained(alphabet, fsm, seed):
+    # 使用 FSM 约束的 logits masking 生成符合正则的电话号码
     rng = random.Random(seed)
     alphabet_idx = {ch: i for i, ch in enumerate(alphabet)}
     state = 0
@@ -79,6 +89,7 @@ def generate_constrained(alphabet, fsm, seed):
 
 
 def generate_unconstrained(alphabet, max_len, seed):
+    # 无约束生成：直接从随机 logits 采样，不应用任何 masking
     rng = random.Random(seed)
     out = ""
     for _ in range(max_len):

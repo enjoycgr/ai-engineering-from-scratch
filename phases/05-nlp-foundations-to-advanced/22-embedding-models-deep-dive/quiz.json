@@ -4,7 +4,7 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What is a dense embedding?",
+      "question": "什么是 dense embedding（密集嵌入）？",
       "options": [
         "A graph over documents",
         "A sparse weight per vocab token",
@@ -12,11 +12,11 @@
         "One fixed-size vector per text where cosine similarity ranks passages by semantic proximity"
       ],
       "correct": 3,
-      "explanation": "Dense embeddings give one vector per text (typically 384-3072 dim); cosine ranks similarity."
+      "explanation": "Dense embeddings 为每个文本提供一个向量（通常 384-3072 维）；cosine similarity（余弦相似度）用于排序相似度。"
     },
     {
       "stage": "pre",
-      "question": "What does Matryoshka Representation Learning enable?",
+      "question": "Matryoshka Representation Learning（俄罗斯套娃表示学习）能实现什么？",
       "options": [
         "Multilingual training",
         "Faster softmax",
@@ -24,11 +24,11 @@
         "Cross-encoder rescoring"
       ],
       "correct": 2,
-      "explanation": "Matryoshka training makes the first N dims of the vector standalone-useful, enabling cheap truncation."
+      "explanation": "Matryoshka 训练使向量的前 N 维本身成为可用的独立 embedding（嵌入），从而实现低成本的截断。"
     },
     {
       "stage": "check",
-      "question": "How do multi-vector (ColBERT) embeddings score query-doc pairs?",
+      "question": "Multi-vector（多向量 / ColBERT）embeddings 如何对 query-doc 对进行评分？",
       "options": [
         "Cosine of mean-pooled token vectors",
         "Cross-entropy",
@@ -36,11 +36,11 @@
         "MaxSim: for each query token find the most similar document token, then sum the maxima"
       ],
       "correct": 3,
-      "explanation": "ColBERT-style late interaction uses MaxSim across per-token vectors."
+      "explanation": "ColBERT 风格的 late interaction（迟交互）使用 MaxSim 跨 per-token 向量进行评分。"
     },
     {
       "stage": "check",
-      "question": "What does BGE-M3 output simultaneously?",
+      "question": "BGE-M3 同时输出什么？",
       "options": [
         "Only a sparse vector",
         "Only a dense vector",
@@ -48,11 +48,11 @@
         "Only a colbert vector"
       ],
       "correct": 2,
-      "explanation": "BGE-M3 emits three retrieval modes from one model, useful for fused hybrid scoring."
+      "explanation": "BGE-M3 从一个模型中同时发出三种检索模式，可用于融合的 hybrid scoring（混合评分）。"
     },
     {
       "stage": "check",
-      "question": "Why must you re-normalize a Matryoshka-truncated vector before cosine similarity?",
+      "question": "为什么 Matryoshka 截断后的向量在 cosine similarity 之前必须重新归一化？",
       "options": [
         "Truncation breaks training",
         "Truncation changes the vector norm; without re-normalizing, dot product no longer equals cosine",
@@ -60,11 +60,11 @@
         "Required by FAISS only"
       ],
       "correct": 1,
-      "explanation": "Re-normalizing after truncation restores unit norm so dot product equals cosine again."
+      "explanation": "截断后重新归一化可恢复单位范数，使 dot product（点积）再次等于 cosine similarity（余弦相似度）。"
     },
     {
       "stage": "post",
-      "question": "Why do BGE models often need a query-side prefix string?",
+      "question": "为什么 BGE 模型通常需要一个 query-side prefix string（查询前缀字符串）？",
       "options": [
         "To compress queries",
         "Required by FAISS",
@@ -72,11 +72,11 @@
         "Prefixes change tokenizer behavior"
       ],
       "correct": 2,
-      "explanation": "BGE models expect a 'Represent this sentence for searching...' prefix on queries."
+      "explanation": "BGE 模型期望在查询上添加 'Represent this sentence for searching...' 前缀。"
     },
     {
       "stage": "post",
-      "question": "Why is MTEB necessary but not sufficient for picking an embedding model?",
+      "question": "为什么 MTEB 对选择 embedding 模型是必要的但不充分的？",
       "options": [
         "MTEB only covers English",
         "MTEB ignores latency",
@@ -84,11 +84,11 @@
         "MTEB rewards bigger models"
       ],
       "correct": 2,
-      "explanation": "MTEB averages across tasks; domain-specific eval can flip the ranking."
+      "explanation": "MTEB 跨任务取平均；领域特定的评估可能翻转排名。"
     },
     {
       "stage": "post",
-      "question": "When should you add SPLADE sparse retrieval alongside dense embeddings?",
+      "question": "什么时候应该在 dense embeddings 之外添加 SPLADE sparse retrieval？",
       "options": [
         "Whenever the encoder is multilingual",
         "Whenever Matryoshka is used",
@@ -96,7 +96,7 @@
         "On small corpora only"
       ],
       "correct": 2,
-      "explanation": "SPLADE captures lexical/keyword matches that dense models can miss; fuse with dense via RRF."
+      "explanation": "SPLADE 捕获 lexical/keyword（词汇 / 关键词）匹配，而 dense 模型可能遗漏；通过 RRF 与 dense 融合。"
     }
   ]
 }

@@ -1,6 +1,7 @@
 import re
 
 
+# 菜系同义词映射：canonical 值 → 同义词列表
 CUISINE_SYNONYMS = {
     "italian": ["italian", "pasta", "pizza"],
     "chinese": ["chinese", "chow mein", "dim sum"],
@@ -19,6 +20,7 @@ NEGATION_CUES = ["never mind", "forget about", "don't worry about"]
 
 
 def extract_cuisine(utterance):
+    """从用户话语中提取 canonical 菜系。"""
     low = utterance.lower()
     for canonical, synonyms in CUISINE_SYNONYMS.items():
         if any(syn in low for syn in synonyms):
@@ -29,6 +31,7 @@ def extract_cuisine(utterance):
 
 
 def extract_area(utterance):
+    """从用户话语中提取区域（north/south/east/west/center）。"""
     low = utterance.lower()
     for w in AREA_WORDS:
         if re.search(rf"\b{w}\b", low):
@@ -37,6 +40,7 @@ def extract_area(utterance):
 
 
 def extract_price(utterance):
+    """从用户话语中提取价格档位。"""
     low = utterance.lower()
     for canonical, synonyms in PRICE_WORDS.items():
         if any(syn in low for syn in synonyms):
@@ -45,6 +49,7 @@ def extract_price(utterance):
 
 
 def extract_people(utterance):
+    """从用户话语中提取用餐人数。"""
     m = re.search(r"\b(\d+|two|three|four|five|six|seven|eight)\s+(?:people|guests|persons|diners)", utterance.lower())
     if not m:
         return None
@@ -62,15 +67,18 @@ SLOT_EXTRACTORS = {
 
 
 def is_correction(utterance):
+    """检测用户话语是否包含修正信号。"""
     return any(cue in utterance.lower() for cue in CORRECTION_CUES)
 
 
 def is_negation(utterance, slot):
+    """检测用户话语是否包含否定信号并提及指定 slot。"""
     low = utterance.lower()
     return any(cue in low for cue in NEGATION_CUES) and slot in low
 
 
 def update_state(state, utterance):
+    """基于当前状态和新的话语增量更新对话状态。"""
     new_state = dict(state)
     for slot, extractor in SLOT_EXTRACTORS.items():
         value = extractor(utterance)
@@ -83,10 +91,12 @@ def update_state(state, utterance):
 
 
 def render_dialog(turns):
+    """将对话轮次渲染为缩进字符串。"""
     return "\n".join(f"  user: {u}" for u in turns)
 
 
 def main():
+    """运行基于规则的 DST 演示并计算 Joint Goal Accuracy (JGA)。"""
     dialogues = [
         {
             "turns": [

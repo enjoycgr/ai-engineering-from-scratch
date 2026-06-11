@@ -1,12 +1,12 @@
-"""Parallel AAR forum simulator — stdlib Python.
+"""并行 AAR 论坛模拟器 —— stdlib Python。
 
-Three Automated Alignment Researchers run in parallel. Each solves a
-research task under one of two regimes: fixed-workflow (human-prescribed
-plan) or free-decomposition. Findings post to an append-only forum whose
-records live outside the agents' sandboxes.
+三名自动对齐研究员 (Automated Alignment Researchers, AAR) 并行运行。
+每人在两种制度之一下解决研究任务：fixed-workflow（人类规定计划）
+或 free-decomposition。发现发布到仅追加论坛 (append-only forum)，
+其记录住在智能体沙箱之外。
 
-One agent attempts log tampering. The tamper-evident chain catches the
-attempt at verification time.
+一名智能体尝试篡改日志。防篡改链 (tamper-evident chain) 在验证时
+捕获该尝试。
 """
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ class Forum:
         self.records.append(rec)
 
     def verify(self) -> list[int]:
-        """Return indexes of any tampered records."""
+        """返回任何被篡改记录的索引。"""
         bad = []
         prev = self.genesis
         for i, r in enumerate(self.records):
@@ -67,9 +67,9 @@ TASKS = [
 def solve(agent: str, task: tuple[str, float], regime: str) -> float:
     _name, base = task
     if regime == "fixed":
-        # Prescribed workflow: bounded ceiling, lower variance.
+        # 规定工作流：有界上限，方差较低。
         return base + random.random() * 0.25
-    # Free decomposition: wider tail; sometimes much better, sometimes worse.
+    # 自由分解：更宽的尾部；有时更好，有时更差。
     return base + random.gauss(0.15, 0.22)
 
 
@@ -90,14 +90,14 @@ def run_regime(regime: str) -> list[ForumRecord]:
 
 
 def attempt_tamper(forum_records: list[ForumRecord]) -> Forum:
-    """Rebuild a forum from records and attempt a silent edit."""
+    """从记录重建论坛并尝试静默编辑。"""
     f = Forum()
     for r in forum_records:
         f.post(ForumRecord(
             author=r.author, task=r.task, regime=r.regime,
             result=r.result, prev_hash="",
         ))
-    # Pick a record to tamper with — AAR-A's worst result.
+    # 挑选一条记录篡改 —— AAR-A 的最差结果。
     worst_idx = -1
     worst_val = float("inf")
     for i, r in enumerate(f.records):
@@ -105,11 +105,10 @@ def attempt_tamper(forum_records: list[ForumRecord]) -> Forum:
             worst_val = r.result
             worst_idx = i
     if worst_idx >= 0:
-        # Silent edit (agent rewrites its own score to look better).
-        # Always overwrite by adding a fixed bump rather than max(..., 0.85),
-        # which would silently no-op whenever the original already exceeded
-        # the floor — breaking the tamper-detection narrative under
-        # different seeds.
+        # 静默编辑（智能体重写自己的分数以显得更好）。
+        # 始终通过添加固定增量来覆盖，而非 max(..., 0.85)，
+        # 后者在原始值已超出底线时会静默无操作 —— 在不同种子下
+        # 破坏防篡改检测的叙事。
         f.records[worst_idx].result = f.records[worst_idx].result + 0.5
     return f
 
@@ -153,17 +152,17 @@ def main() -> None:
     regime_report("fixed")
     regime_report("free")
 
-    print("\nfixed vs free — fixed has lower variance, free has higher upside")
+    print("\nfixed vs free —— fixed 方差更低，free 上限更高")
     tamper_demo()
 
     print()
     print("=" * 70)
-    print("HEADLINE: out-of-sandbox logs + free decomposition + human review")
+    print("HEADLINE: 沙箱外日志 + 自由分解 + 人工评审")
     print("-" * 70)
-    print("  Free decomposition gives AARs more ceiling — and more audit work.")
-    print("  Tamper-evident logs make the audit possible. Human reviewers still")
-    print("  decide what publishes. AAR compresses the middle of the pipeline,")
-    print("  not the ends.")
+    print("  自由分解给 AAR 更高上限 —— 也带来更多审计工作。")
+    print("  防篡改日志使审计成为可能。人工评审员仍然")
+    print("  决定什么可以发表。AAR 压缩的是管道的中间部分，")
+    print("  而非两端。")
 
 
 if __name__ == "__main__":

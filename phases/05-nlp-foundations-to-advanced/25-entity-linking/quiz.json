@@ -4,99 +4,99 @@
   "questions": [
     {
       "stage": "pre",
-      "question": "What does entity linking add on top of NER?",
+      "question": "实体链接 (entity linking) 在 NER 之上增加了什么？",
       "options": [
         "Translations",
         "Sentiment polarity",
         "Part-of-speech tags",
-        "It maps each detected mention to a unique entry in a knowledge base (Wikidata, Wikipedia, or a domain KB)"
+        "它将每个检测到的 mention 映射到知识库中的唯一条目（Wikidata、Wikipedia 或领域 KB）"
       ],
       "correct": 3,
-      "explanation": "EL turns a mention into a canonical KB id, disambiguating between same-name entities."
+      "explanation": "EL 将 mention 转换为规范的 KB id，从而消除同名实体之间的歧义。"
     },
     {
       "stage": "pre",
-      "question": "What are the two main subtasks in entity linking?",
+      "question": "实体链接中的两个主要子任务是什么？",
       "options": [
         "Tokenization and parsing",
         "POS tagging and lemmatization",
         "Embedding and clustering",
-        "Candidate generation (shortlist of plausible KB entries) and disambiguation (pick the right one given context)"
+        "候选生成（生成合理 KB 条目的短名单）和消歧（根据上下文选择正确的一个）"
       ],
       "correct": 3,
-      "explanation": "EL decomposes into proposing candidates then ranking them by contextual fit."
+      "explanation": "EL 分解为提出候选，然后根据上下文适配度对它们进行排序。"
     },
     {
       "stage": "check",
-      "question": "Why must mention recall be reported alongside disambiguation accuracy?",
+      "question": "为什么 mention recall 必须与消歧准确率一起报告？",
       "options": [
-        "Mention recall is mandatory by GDPR",
-        "Recall replaces precision",
-        "Disambiguation cannot recover from missing candidates; the pipeline is bounded by candidate-generation recall",
-        "Recall is required by spaCy"
+        "Mention recall 是 GDPR 强制要求的",
+        "Recall 替代 precision",
+        "消歧无法从缺失候选中恢复；管道质量受候选生成 recall 的限制",
+        "Recall 是 spaCy 要求的"
       ],
       "correct": 2,
-      "explanation": "If candidates miss the gold entity, no disambiguator can fix it; recall floors pipeline quality."
+      "explanation": "如果候选遗漏了黄金实体，任何消歧器都无法修复；recall 决定了管道质量的上限。"
     },
     {
       "stage": "check",
-      "question": "How does GENRE perform entity linking?",
+      "question": "GENRE 如何执行实体链接？",
       "options": [
-        "Decodes the entity's canonical name token-by-token under constrained decoding over a trie of valid KB ids",
+        "通过在有效 KB id 的 trie 上进行约束解码，逐 token 解码实体的规范名称",
         "By BM25",
         "By computing TF-IDF",
         "By PageRank"
       ],
       "correct": 0,
-      "explanation": "GENRE generates the canonical KB name with constrained decoding to guarantee a valid id."
+      "explanation": "GENRE 通过约束解码生成规范 KB 名称，以保证输出有效的 id。"
     },
     {
       "stage": "check",
-      "question": "What is NIL handling in entity linking?",
+      "question": "实体链接中的 NIL 处理是什么？",
       "options": [
-        "Predicting a 'not in KB' label when no candidate is a real match (emerging entities, obscure people)",
+        "当没有候选是真实匹配时预测 'not in KB' 标签（新兴实体、不知名人物）",
         "Returning the entire candidate list",
         "Lowercasing the input",
         "Skipping every mention"
       ],
       "correct": 0,
-      "explanation": "NIL prediction prevents guessing wrong KB ids for entities the KB does not cover."
+      "explanation": "NIL 预测防止对 KB 未覆盖的实体猜测错误的 KB id。"
     },
     {
       "stage": "post",
-      "question": "Why does popularity bias hurt entity linking in specialized domains?",
+      "question": "为什么 popularity bias 会在专业领域伤害实体链接？",
       "options": [
-        "Models trained on web data over-predict frequent entities (e.g. basketball Jordan over the ML researcher Michael I. Jordan)",
+        "在网页数据上训练的模型过度预测高频实体（例如篮球 Jordan 而不是 ML 研究者 Michael I. Jordan）",
         "It biases toward older entities only",
         "Popularity removes NIL",
         "Popularity helps recall"
       ],
       "correct": 0,
-      "explanation": "Popularity priors skew predictions away from less-common, domain-specific name-clashes."
+      "explanation": "Popularity 先验会使预测偏离不太常见、领域特定的名称冲突。"
     },
     {
       "stage": "post",
-      "question": "What is a safe LLM-EL pattern in 2026?",
+      "question": "2026 年安全的 LLM-EL 模式是什么？",
       "options": [
-        "Provide a candidate list and use constrained JSON output that the LLM can only choose from valid KB ids",
+        "提供候选列表并使用受约束的 JSON 输出，使 LLM 只能从有效的 KB id 中选择",
         "Just prompt 'find the entity'",
         "Free-form generation",
         "Skip candidate generation"
       ],
       "correct": 0,
-      "explanation": "Constraining the LLM to a valid candidate list prevents made-up KB ids and keeps output queryable."
+      "explanation": "将 LLM 约束到有效候选列表可防止编造 KB id，并保持输出可查询。"
     },
     {
       "stage": "post",
-      "question": "Why must NER mention boundaries be exact for entity linking to work?",
+      "question": "为什么 NER mention 边界必须精确，实体链接才能正常工作？",
       "options": [
-        "Boundary errors propagate: 'Bank of America' clipped to 'Bank' surfaces wrong candidates and tanks EL recall",
+        "边界错误会传播：'Bank of America' 被截断为 'Bank' 会引出错误候选并降低 EL recall",
         "Boundary precision only affects NER metrics, not entity-linking candidate quality",
         "Boundaries change tokenization",
         "Boundaries break Wikipedia lookups"
       ],
       "correct": 0,
-      "explanation": "Mis-bounded mentions retrieve the wrong alias set, propagating errors into disambiguation."
+      "explanation": "边界错误的 mention 会检索到错误的别名集，将错误传播到消歧阶段。"
     }
   ]
 }
